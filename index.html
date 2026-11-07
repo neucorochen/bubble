@@ -27,8 +27,6 @@
       align-items: center;
       position: relative;
     }
-
-    /* Модальное окно авторизации/проверки кода */
     .modal-overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -39,11 +37,9 @@
       z-index: 1000;
     }
     .auth-window {
-      width: 360px;
+      width: 340px;
       box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
     }
-
-    /* Окно Internet Explorer */
     .ie-window {
       width: 900px;
       max-width: 98vw;
@@ -62,7 +58,6 @@
       font-size: 11px;
     }
     .address-bar input { flex: 1; font-size: 11px; }
-
     .window-body-layout {
       flex: 1;
       display: flex;
@@ -90,7 +85,6 @@
       overflow-y: auto;
       padding: 12px;
     }
-
     .post-box {
       background: #fbfbfb;
       border: 1px solid #7f9db9;
@@ -104,7 +98,6 @@
       display: flex;
       justify-content: space-between;
     }
-
     .taskbar {
       height: 30px;
       background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
@@ -138,54 +131,35 @@
 </head>
 <body>
 
-  <!-- 1. ОКНО АВТОРИЗАЦИИ И РЕГИСТРАЦИИ -->
+  <!-- Окно входа / регистрации -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
-        <div class="title-bar-text" id="modalTitle">Стрекоза — Вход / Регистрация</div>
+        <div class="title-bar-text">Стрекоза — Вход / Регистрация</div>
       </div>
       <div class="window-body">
-        
-        <!-- Шаг 1: Форма логина и регистрации -->
-        <div id="stepCredentials">
-          <div style="margin-bottom: 6px;">
-            <label style="display:block; font-size:11px;">Никнейм (для постов):</label>
-            <input type="text" id="inputUsername" placeholder="Например, StrekozaUser" style="width: 100%; box-sizing: border-box;">
-          </div>
-          <div style="margin-bottom: 6px;">
-            <label style="display:block; font-size:11px;">Электронная почта:</label>
-            <input type="email" id="inputEmail" placeholder="user@mail.ru" style="width: 100%; box-sizing: border-box;">
-          </div>
-          <div style="margin-bottom: 10px;">
-            <label style="display:block; font-size:11px;">Пароль (от 6 символов):</label>
-            <input type="password" id="inputPass" placeholder="******" style="width: 100%; box-sizing: border-box;">
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <button id="btnActionLogin" type="button" style="font-weight: bold;">Войти</button>
-            <button id="btnActionRegister" type="button">Зарегистрироваться</button>
-          </div>
+        <div style="margin-bottom: 6px;">
+          <label style="display:block; font-size:11px;">Никнейм (для новых участников):</label>
+          <input type="text" id="inputUsername" placeholder="Например, Dragonfly" style="width: 100%; box-sizing: border-box;">
         </div>
-
-        <!-- Шаг 2: Ввод кода подтверждения из письма -->
-        <div id="stepVerification" style="display: none;">
-          <p style="font-size: 11px; margin-top: 0;">Мы отправили код подтверждения на ваш email. Введите его ниже:</p>
-          <div style="margin-bottom: 10px;">
-            <label style="display:block; font-size:11px;">Код из письма:</label>
-            <input type="text" id="inputToken" placeholder="123456" style="width: 100%; box-sizing: border-box; font-size: 16px; letter-spacing: 4px; text-align: center;">
-          </div>
-          <div style="display: flex; justify-content: space-between;">
-            <button id="btnBackToCreds" type="button">Назад</button>
-            <button id="btnVerifyCode" type="button" style="font-weight: bold;">Подтвердить</button>
-          </div>
+        <div style="margin-bottom: 6px;">
+          <label style="display:block; font-size:11px;">Электронная почта:</label>
+          <input type="email" id="inputEmail" placeholder="user@mail.com" style="width: 100%; box-sizing: border-box;">
         </div>
-
-        <!-- Поле статуса и ошибок -->
+        <div style="margin-bottom: 10px;">
+          <label style="display:block; font-size:11px;">Пароль (от 6 символов):</label>
+          <input type="password" id="inputPass" placeholder="******" style="width: 100%; box-sizing: border-box;">
+        </div>
+        <div style="display: flex; justify-content: space-between;">
+          <button id="btnActionLogin" type="button" style="font-weight: bold;">Войти</button>
+          <button id="btnActionRegister" type="button">Зарегистрироваться</button>
+        </div>
         <div id="authStatus" style="color:red; font-size:11px; margin-top:8px; min-height: 14px;"></div>
       </div>
     </div>
   </div>
 
-  <!-- 2. ОСНОВНОЕ ОКНО СОЦСЕТИ -->
+  <!-- Главное окно сайта -->
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -204,18 +178,15 @@
       </div>
 
       <div class="window-body window-body-layout">
-        <!-- Меню пользователя слева -->
         <div class="sidebar">
           <fieldset style="padding: 4px; margin-bottom: 6px;">
             <legend>Мой профиль</legend>
             <div id="userDisplay" style="font-weight: bold; font-size: 11px; margin-bottom: 4px; color: #000080;">...</div>
             <button id="btnLogout" type="button">Выйти</button>
           </fieldset>
-
           <button style="font-weight: bold;">📰 Общая лента</button>
         </div>
 
-        <!-- Центральная область с общей лентой -->
         <div class="main-view">
           <fieldset style="margin-bottom: 12px;">
             <legend>Новая запись на стену</legend>
@@ -245,20 +216,12 @@
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let activeUser = null;
-    let pendingEmail = '';
 
-    // DOM
     const authModal = document.getElementById('authModal');
-    const stepCredentials = document.getElementById('stepCredentials');
-    const stepVerification = document.getElementById('stepVerification');
-    const modalTitle = document.getElementById('modalTitle');
     const authStatus = document.getElementById('authStatus');
-
     const inputUsername = document.getElementById('inputUsername');
     const inputEmail = document.getElementById('inputEmail');
     const inputPass = document.getElementById('inputPass');
-    const inputToken = document.getElementById('inputToken');
-
     const userDisplay = document.getElementById('userDisplay');
     const feedList = document.getElementById('feedList');
     const postContent = document.getElementById('postContent');
@@ -269,13 +232,11 @@
       return div.innerHTML;
     }
 
-    // Получаем отображаемое имя (ник из user_metadata или префикс почты)
     function getUserName(user) {
       if (!user) return 'Аноним';
       return user.user_metadata?.username || user.email.split('@')[0];
     }
 
-    // Проверка сессии
     function updateSessionState(session) {
       activeUser = session ? session.user : null;
       if (activeUser) {
@@ -284,30 +245,16 @@
         loadFeed();
       } else {
         authModal.style.display = 'flex';
-        showStep(1);
       }
     }
 
     sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    function showStep(step) {
-      authStatus.innerText = '';
-      if (step === 1) {
-        stepCredentials.style.display = 'block';
-        stepVerification.style.display = 'none';
-        modalTitle.innerText = 'Стрекоза — Вход / Регистрация';
-      } else {
-        stepCredentials.style.display = 'none';
-        stepVerification.style.display = 'block';
-        modalTitle.innerText = 'Стрекоза — Подтверждение почты';
-      }
-    }
-
-    // 1. Регистрация (отправляет код на email)
+    // Регистрация без кода подтверждения
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
-      authStatus.innerText = 'Отправка кода...';
+      authStatus.innerText = 'Создание аккаунта...';
 
       const username = inputUsername.value.trim();
       const email = inputEmail.value.trim();
@@ -329,13 +276,11 @@
         return;
       }
 
-      pendingEmail = email;
-
       const { data, error } = await sbClient.auth.signUp({
         email,
         password,
         options: {
-          data: { username: username } // Сохраняем введенный ник
+          data: { username: username }
         }
       });
 
@@ -343,49 +288,17 @@
         authStatus.style.color = 'red';
         authStatus.innerText = error.message;
       } else {
-        // Если регистрация сразу выдала сессию (confirm email отключен)
         if (data.session) {
           updateSessionState(data.session);
         } else {
-          // Переключаем окно на ввод проверочного кода
-          showStep(2);
-          authStatus.style.color = 'green';
-          authStatus.innerText = 'Код отправлен на ваш email!';
+          // Если флаг Confirm email ещё не выключен в дашборде
+          authStatus.style.color = 'orange';
+          authStatus.innerText = 'Пользователь создан. Отключите Confirm email в Supabase, чтобы входить сразу.';
         }
       }
     });
 
-    // 2. Подтверждение кода из письма
-    document.getElementById('btnVerifyCode').addEventListener('click', async () => {
-      authStatus.style.color = '#333';
-      authStatus.innerText = 'Проверка кода...';
-
-      const token = inputToken.value.trim();
-      if (!token) {
-        authStatus.style.color = 'red';
-        authStatus.innerText = 'Введите код!';
-        return;
-      }
-
-      const { data, error } = await sbClient.auth.verifyOtp({
-        email: pendingEmail,
-        token: token,
-        type: 'signup'
-      });
-
-      if (error) {
-        authStatus.style.color = 'red';
-        authStatus.innerText = 'Неверный код: ' + error.message;
-      } else {
-        authStatus.style.color = 'green';
-        authStatus.innerText = 'Успешно!';
-        updateSessionState(data.session);
-      }
-    });
-
-    document.getElementById('btnBackToCreds').addEventListener('click', () => showStep(1));
-
-    // 3. Обычный вход по логину/паролю
+    // Вход
     document.getElementById('btnActionLogin').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Проверка данных...';
@@ -413,7 +326,7 @@
       await sbClient.auth.signOut();
     });
 
-    // 4. Загрузка общей ленты
+    // Загрузка ленты постов
     async function loadFeed() {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
@@ -445,7 +358,7 @@
       `).join('');
     }
 
-    // 5. Создание записи под своим ником
+    // Создание записи
     document.getElementById('btnCreatePost').addEventListener('click', async () => {
       const text = postContent.value.trim();
       if (!text || !activeUser) return;
@@ -466,7 +379,6 @@
       }
     });
 
-    // Часы внизу
     setInterval(() => {
       document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     }, 1000);
