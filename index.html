@@ -491,6 +491,7 @@
 </head>
 <body>
 
+  <!-- Авторизация -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
@@ -518,7 +519,68 @@
     </div>
   </div>
 
-  <!-- Модальное окно выбора музыки для сообщества вместо prompt -->
+  <!-- Модальное окно: Настройки профиля -->
+  <div class="modal-overlay" id="profileSettingsModal" style="display:none;">
+    <div class="window" style="width: 360px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">⚙️ Настройки профиля</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('profileSettingsModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <fieldset style="margin-bottom: 10px;">
+          <legend>Аватар пользователя</legend>
+          <label style="font-size:11px; cursor:pointer; display:block; margin-bottom:4px;">
+            Выбрать новое изображение:
+            <input type="file" id="modalAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-top:4px;">
+          </label>
+          <span id="modalAvatarStatus" style="font-size:10px; color:#555;"></span>
+        </fieldset>
+        <div style="text-align: right;">
+          <button onclick="document.getElementById('profileSettingsModal').style.display='none'">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Настройки сообщества -->
+  <div class="modal-overlay" id="commSettingsModal" style="display:none;">
+    <div class="window" style="width: 440px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">⚙️ Управление сообществом</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('commSettingsModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <fieldset style="margin-bottom: 10px;" id="commSettingsAvatarBox">
+          <legend>Аватарка сообщества</legend>
+          <label style="font-size:11px; cursor:pointer; display:block; margin-bottom:4px;">
+            Загрузить новый логотип:
+            <input type="file" id="modalCommAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-top:4px;">
+          </label>
+          <span id="modalCommAvatarStatus" style="font-size:10px; color:#555;"></span>
+        </fieldset>
+
+        <fieldset style="margin-bottom: 10px;" id="commSettingsRolesBox">
+          <legend>Управление участниками и назначение ролей</legend>
+          <div id="modalCommMembersList" style="max-height: 160px; overflow-y: auto; font-size: 11px;">Загрузка участников...</div>
+        </fieldset>
+
+        <fieldset style="margin-bottom: 10px;">
+          <legend>Опасная зона</legend>
+          <button id="btnModalCommDanger" style="font-size:11px; color:#a00;">Покинуть сообщество</button>
+        </fieldset>
+
+        <div style="text-align: right;">
+          <button onclick="document.getElementById('commSettingsModal').style.display='none'">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно выбора музыки для сообщества -->
   <div class="modal-overlay" id="commMusicModal" style="display:none;">
     <div class="window" style="width: 380px; max-width: 95%;">
       <div class="title-bar">
@@ -558,7 +620,7 @@
       <div class="window-body window-body-layout">
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-        <!-- Frutiger Aero Меню -->
+        <!-- Меню Frutiger Aero -->
         <div class="sidebar" id="sidebarPanel">
           <div class="sidebar-usercard">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
@@ -671,26 +733,15 @@
                 <div style="flex:1;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="commTitle">...</div>
-                    <button id="btnCommJoinLeave" style="font-size:11px;">Вступить</button>
+                    <div style="display:flex; gap:4px;">
+                      <button id="btnCommJoinDirect" style="font-size:11px;">Вступить</button>
+                      <button id="btnCommOpenSettings" style="font-size:11px; display:none;">⚙️ Настройки</button>
+                    </div>
                   </div>
                   <div style="font-size:11px; color:#555; margin-top:4px;" id="commDesc">...</div>
                   <div style="font-size:10px; color:#0055ea; margin-top:2px;" id="commUserRole">Ваша роль: Участник</div>
-                  
-                  <!-- Смена аватарки сообщества (только для создателя / админа) -->
-                  <div id="commAvatarUploadBox" style="margin-top:6px; display:none;">
-                    <label style="font-size:11px; cursor:pointer;">
-                      Сменить аватарку группы:
-                      <input type="file" id="commAvatarFile" accept="image/*" style="font-size:10px;">
-                    </label>
-                    <span id="commAvatarStatus" style="font-size:10px; color:#555;"></span>
-                  </div>
                 </div>
               </div>
-
-              <fieldset id="commAdminPanel" style="margin-bottom: 12px; display:none;">
-                <legend>⚙️ Управление участниками и ролями</legend>
-                <div id="commMembersList" style="max-height: 140px; overflow-y: auto; font-size: 11px;">Загрузка участников...</div>
-              </fieldset>
 
               <fieldset style="margin-bottom: 12px;">
                 <legend>🎵 Музыка сообщества</legend>
@@ -737,15 +788,10 @@
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="profileNick">...</div>
-                  <button id="btnFriendAction" style="font-size:11px; display:none;">+ Добавить в друзья</button>
-                </div>
-                
-                <div id="avatarUploadBox" style="margin-top:6px; display:none;">
-                  <label style="font-size:11px; cursor:pointer;">
-                    Сменить аватар:
-                    <input type="file" id="avatarFileInput" accept="image/*" style="font-size:10px;">
-                  </label>
-                  <span id="avatarStatus" style="font-size:10px; color:#555;"></span>
+                  <div style="display:flex; gap:4px;">
+                    <button id="btnFriendAction" style="font-size:11px; display:none;">+ Добавить в друзья</button>
+                    <button id="btnProfileOpenSettings" style="font-size:11px; display:none;">⚙️ Настройки</button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -814,9 +860,9 @@
     window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
     let activeUser = null;
-    let currentTab = 'feed';
-    let viewingUserId = null;
-    let currentCommunityId = null;
+    let currentTab = localStorage.getItem('bubble_active_tab') || 'feed';
+    let viewingUserId = localStorage.getItem('bubble_viewing_user_id') || null;
+    let currentCommunityId = localStorage.getItem('bubble_current_comm_id') ? parseInt(localStorage.getItem('bubble_current_comm_id')) : null;
     let currentCommunityRole = null;
 
     let userLikedPosts = new Set();
@@ -882,9 +928,11 @@
     const profileNick = document.getElementById('profileNick');
     const profileAvatar = document.getElementById('profileAvatar');
     const btnFriendAction = document.getElementById('btnFriendAction');
-    const avatarUploadBox = document.getElementById('avatarUploadBox');
-    const avatarFileInput = document.getElementById('avatarFileInput');
-    const avatarStatus = document.getElementById('avatarStatus');
+    const btnProfileOpenSettings = document.getElementById('btnProfileOpenSettings');
+    const profileSettingsModal = document.getElementById('profileSettingsModal');
+    const modalAvatarFile = document.getElementById('modalAvatarFile');
+    const modalAvatarStatus = document.getElementById('modalAvatarStatus');
+
     const profilePostsLegend = document.getElementById('profilePostsLegend');
     const profileFriendsList = document.getElementById('profileFriendsList');
     const friendsBlockLegend = document.getElementById('friendsBlockLegend');
@@ -919,13 +967,18 @@
     const commTitle = document.getElementById('commTitle');
     const commDesc = document.getElementById('commDesc');
     const commAvatar = document.getElementById('commAvatar');
-    const btnCommJoinLeave = document.getElementById('btnCommJoinLeave');
+    const btnCommJoinDirect = document.getElementById('btnCommJoinDirect');
+    const btnCommOpenSettings = document.getElementById('btnCommOpenSettings');
     const commUserRole = document.getElementById('commUserRole');
-    const commAvatarUploadBox = document.getElementById('commAvatarUploadBox');
-    const commAvatarFile = document.getElementById('commAvatarFile');
-    const commAvatarStatus = document.getElementById('commAvatarStatus');
-    const commAdminPanel = document.getElementById('commAdminPanel');
-    const commMembersList = document.getElementById('commMembersList');
+
+    const commSettingsModal = document.getElementById('commSettingsModal');
+    const commSettingsAvatarBox = document.getElementById('commSettingsAvatarBox');
+    const modalCommAvatarFile = document.getElementById('modalCommAvatarFile');
+    const modalCommAvatarStatus = document.getElementById('modalCommAvatarStatus');
+    const commSettingsRolesBox = document.getElementById('commSettingsRolesBox');
+    const modalCommMembersList = document.getElementById('modalCommMembersList');
+    const btnModalCommDanger = document.getElementById('btnModalCommDanger');
+
     const commMusicControls = document.getElementById('commMusicControls');
     const btnOpenCommMusicModal = document.getElementById('btnOpenCommMusicModal');
     const commMusicModal = document.getElementById('commMusicModal');
@@ -1034,7 +1087,7 @@
       }
     }
 
-    async function updateSessionState(session) {
+    async function updateSessionState(session, isInitial = false) {
       activeUser = session ? session.user : null;
       if (activeUser) {
         authModal.style.display = 'none';
@@ -1049,7 +1102,18 @@
         await loadUserLikes();
         await updateUnreadBadge();
         initRealtimeNotifications();
-        switchTab('feed');
+
+        // Переключаем вкладку только при первичной загрузке, сохраняя текущий раздел
+        if (isInitial) {
+          if (currentTab === 'profile') {
+            switchTab('profile', viewingUserId || activeUser.id);
+          } else if (currentTab === 'communities' && currentCommunityId) {
+            switchTab('communities');
+            openCommunity(currentCommunityId);
+          } else {
+            switchTab(currentTab);
+          }
+        }
       } else {
         authModal.style.display = 'flex';
         if (realtimeChannel) {
@@ -1059,8 +1123,16 @@
       }
     }
 
-    window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
-    window.sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
+    window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session, true));
+
+    // Слушатель смены сессии без сброса вкладки при обновлении токена
+    window.sbClient.auth.onAuthStateChange((event, session) => {
+      if (event === 'SIGNED_OUT') {
+        updateSessionState(null, false);
+      } else if (event === 'SIGNED_IN') {
+        updateSessionState(session, true);
+      }
+    });
 
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
@@ -1078,7 +1150,7 @@
         authStatus.style.color = 'red';
         authStatus.innerText = error.message;
       } else if (data.session) {
-        updateSessionState(data.session);
+        updateSessionState(data.session, true);
       } else {
         authStatus.style.color = 'green';
         authStatus.innerText = 'Создано! Нажмите «Войти».';
@@ -1097,11 +1169,16 @@
         authStatus.style.color = 'red';
         authStatus.innerText = error.message;
       } else {
-        updateSessionState(data.session);
+        updateSessionState(data.session, true);
       }
     });
 
-    document.getElementById('btnLogout').addEventListener('click', () => window.sbClient.auth.signOut());
+    document.getElementById('btnLogout').addEventListener('click', () => {
+      localStorage.removeItem('bubble_active_tab');
+      localStorage.removeItem('bubble_viewing_user_id');
+      localStorage.removeItem('bubble_current_comm_id');
+      window.sbClient.auth.signOut();
+    });
 
     async function updateUnreadBadge() {
       if (!activeUser) return;
@@ -1203,6 +1280,7 @@
 
     function switchTab(tab, targetUserId = null) {
       currentTab = tab;
+      localStorage.setItem('bubble_active_tab', tab);
       toggleMobileMenu(true);
 
       const navButtons = [btnTabFeed, btnTabFriendsFeed, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile];
@@ -1245,7 +1323,10 @@
         loadNotifications();
       } else if (tab === 'profile') {
         viewingUserId = targetUserId || (activeUser ? activeUser.id : null);
-        if (viewingUserId) openUserProfile(viewingUserId);
+        if (viewingUserId) {
+          localStorage.setItem('bubble_viewing_user_id', viewingUserId);
+          openUserProfile(viewingUserId);
+        }
       }
     }
 
@@ -1380,7 +1461,7 @@
       feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, onlyFriends ? 'friends' : 'feed')).join('');
     }
 
-    // ==================== ЛОКАЛЬНЫЕ ОПЕРАЦИИ БЕЗ ПЕРЕЗАГРУЗКИ СКРОЛЛА ====================
+    // Локальные операции
     window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
       if (!activeUser) return;
       const countEl = document.getElementById(`like-count-${uniquePostKey}`);
@@ -1598,10 +1679,15 @@
       openCommunity(comm.id);
     });
 
-    btnBackToCommunities.addEventListener('click', () => showCommunitiesList());
+    btnBackToCommunities.addEventListener('click', () => {
+      localStorage.removeItem('bubble_current_comm_id');
+      showCommunitiesList();
+    });
 
     async function openCommunity(commId) {
       currentCommunityId = commId;
+      localStorage.setItem('bubble_current_comm_id', commId);
+
       communityViewList.style.display = 'none';
       communityViewSingle.style.display = 'block';
       urlInput.value = `https://bubble.net/community/${commId}`;
@@ -1626,23 +1712,21 @@
       }
 
       if (!currentCommunityRole) {
-        btnCommJoinLeave.innerText = '+ Вступить';
+        btnCommJoinDirect.style.display = 'inline-block';
+        btnCommJoinDirect.innerText = '+ Вступить';
+        btnCommOpenSettings.style.display = 'none';
         commUserRole.innerText = 'Вы не состоите в сообществе';
       } else {
+        btnCommJoinDirect.style.display = 'none';
+        btnCommOpenSettings.style.display = 'inline-block';
         const roleNames = { creator: 'Создатель 👑', admin: 'Администратор 🛡️', moderator: 'Модератор 🔨', member: 'Участник 👤' };
         commUserRole.innerText = 'Ваша роль: ' + (roleNames[currentCommunityRole] || 'Участник');
-        btnCommJoinLeave.innerText = currentCommunityRole === 'creator' ? 'Удалить группу' : 'Покинуть';
       }
 
-      // Панель смены аватарки и управления ролями
+      // Доступ к добавлению музыки в паблик
       if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
-        commAvatarUploadBox.style.display = 'block';
-        commAdminPanel.style.display = 'block';
         commMusicControls.style.display = 'block';
-        loadCommunityMembers(commId, currentCommunityRole);
       } else {
-        commAvatarUploadBox.style.display = 'none';
-        commAdminPanel.style.display = 'none';
         commMusicControls.style.display = 'none';
       }
 
@@ -1650,54 +1734,76 @@
       loadCommunityPosts(commId);
     }
 
-    // Смена аватарки сообщества
-    commAvatarFile.addEventListener('change', async () => {
-      const file = commAvatarFile.files[0];
+    // Вступление для не-участников
+    btnCommJoinDirect.addEventListener('click', async () => {
+      if (!activeUser || !currentCommunityId) return;
+      await window.sbClient.from('community_members').insert([{
+        community_id: currentCommunityId, user_id: activeUser.id, role: 'member'
+      }]);
+      openCommunity(currentCommunityId);
+    });
+
+    // Открытие модального окна настроек сообщества
+    btnCommOpenSettings.addEventListener('click', () => {
+      if (!currentCommunityId) return;
+      const isPrivileged = currentCommunityRole === 'creator' || currentCommunityRole === 'admin';
+      commSettingsAvatarBox.style.display = isPrivileged ? 'block' : 'none';
+      commSettingsRolesBox.style.display = isPrivileged ? 'block' : 'none';
+
+      if (currentCommunityRole === 'creator') {
+        btnModalCommDanger.innerText = 'Удалить всё сообщество';
+      } else {
+        btnModalCommDanger.innerText = 'Покинуть сообщество';
+      }
+
+      if (isPrivileged) {
+        loadCommunityMembers(currentCommunityId, currentCommunityRole);
+      }
+      commSettingsModal.style.display = 'flex';
+    });
+
+    modalCommAvatarFile.addEventListener('change', async () => {
+      const file = modalCommAvatarFile.files[0];
       if (!file || !currentCommunityId) return;
 
-      commAvatarStatus.innerText = 'Загрузка...';
+      modalCommAvatarStatus.innerText = 'Загрузка...';
       const fileExt = file.name.split('.').pop();
       const fileName = `comm_${currentCommunityId}_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
       if (uploadError) {
-        commAvatarStatus.innerText = '';
+        modalCommAvatarStatus.innerText = '';
         return alert('Ошибка загрузки: ' + uploadError.message);
       }
 
       const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
       await window.sbClient.from('communities').update({ avatar_url: publicUrl }).eq('id', currentCommunityId);
 
-      commAvatarStatus.innerText = 'Готово!';
+      modalCommAvatarStatus.innerText = 'Готово!';
       commAvatar.src = publicUrl;
-      commAvatarFile.value = '';
+      modalCommAvatarFile.value = '';
     });
 
-    btnCommJoinLeave.addEventListener('click', async () => {
-      if (!activeUser || !currentCommunityId) return;
-
-      if (!currentCommunityRole) {
-        await window.sbClient.from('community_members').insert([{
-          community_id: currentCommunityId, user_id: activeUser.id, role: 'member'
-        }]);
-      } else if (currentCommunityRole === 'creator') {
-        if (!confirm('Вы создатель. Удалить всё сообщество?')) return;
+    btnModalCommDanger.addEventListener('click', async () => {
+      if (!confirm('Вы уверены?')) return;
+      if (currentCommunityRole === 'creator') {
         await window.sbClient.from('communities').delete().eq('id', currentCommunityId);
+        commSettingsModal.style.display = 'none';
         showCommunitiesList();
-        return;
       } else {
         await window.sbClient.from('community_members').delete().match({
           community_id: currentCommunityId, user_id: activeUser.id
         });
+        commSettingsModal.style.display = 'none';
+        openCommunity(currentCommunityId);
       }
-      openCommunity(currentCommunityId);
     });
 
     async function loadCommunityMembers(commId, myRole) {
-      commMembersList.innerHTML = 'Загрузка участников...';
+      modalCommMembersList.innerHTML = 'Загрузка участников...';
       const { data: members } = await window.sbClient.from('community_members').select('*').eq('community_id', commId);
 
-      commMembersList.innerHTML = (members || []).map(m => {
+      modalCommMembersList.innerHTML = (members || []).map(m => {
         const prof = profilesMap[m.user_id] || { username: 'Пользователь' };
         const isSelf = m.user_id === activeUser.id;
         const canManage = (myRole === 'creator' && !isSelf) || (myRole === 'admin' && m.role !== 'creator' && m.role !== 'admin' && !isSelf);
@@ -1726,6 +1832,7 @@
       } else {
         await window.sbClient.from('community_members').update({ role: action }).eq('id', memberRecordId);
       }
+      loadCommunityMembers(currentCommunityId, currentCommunityRole);
       openCommunity(currentCommunityId);
     };
 
@@ -1752,7 +1859,6 @@
       `).join('');
     }
 
-    // Модальное окно выбора трека вместо prompt
     btnOpenCommMusicModal.addEventListener('click', async () => {
       const { data: userTracks } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', activeUser.id);
       const myMusic = (userTracks || []).map(u => u.tracks).filter(Boolean);
@@ -2012,6 +2118,35 @@
     };
 
     // ==================== ПРОФИЛЬ, МУЗЫКА И ПЛЕЙЛИСТЫ ====================
+    btnProfileOpenSettings.addEventListener('click', () => {
+      modalAvatarStatus.innerText = '';
+      profileSettingsModal.style.display = 'flex';
+    });
+
+    modalAvatarFile.addEventListener('change', async () => {
+      const file = modalAvatarFile.files[0];
+      if (!file || !activeUser) return;
+
+      modalAvatarStatus.innerText = 'Загрузка...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
+      if (uploadError) {
+        modalAvatarStatus.innerText = '';
+        return alert('Ошибка загрузки: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
+      await window.sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
+
+      modalAvatarStatus.innerText = 'Готово!';
+      profileAvatar.src = publicUrl;
+      sideAvatar.src = publicUrl;
+      modalAvatarFile.value = '';
+      await loadAllProfiles();
+    });
+
     async function loadProfileFriends(userId) {
       profileFriendsList.innerHTML = 'Загрузка...';
       try {
@@ -2144,6 +2279,7 @@
 
       if (activeUser && userId !== activeUser.id) {
         btnFriendAction.style.display = 'inline-block';
+        btnProfileOpenSettings.style.display = 'none';
         if (userFriendIds.has(userId)) {
           btnFriendAction.innerText = '✓ В друзьях (Удалить)';
         } else if (pendingOutgoingIds.has(userId)) {
@@ -2153,12 +2289,11 @@
         } else {
           btnFriendAction.innerText = '+ Добавить в друзья';
         }
-        avatarUploadBox.style.display = 'none';
         playlistCreateBlock.style.display = 'none';
         profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
       } else {
         btnFriendAction.style.display = 'none';
-        avatarUploadBox.style.display = 'block';
+        btnProfileOpenSettings.style.display = 'inline-block';
         playlistCreateBlock.style.display = 'block';
         profilePostsLegend.innerText = 'Мои публикации';
       }
@@ -2183,30 +2318,6 @@
 
       profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
     }
-
-    avatarFileInput.addEventListener('change', async () => {
-      const file = avatarFileInput.files[0];
-      if (!file || !activeUser) return;
-
-      avatarStatus.innerText = 'Загрузка...';
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
-      if (uploadError) {
-        avatarStatus.innerText = '';
-        return alert('Ошибка загрузки: ' + uploadError.message);
-      }
-
-      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
-      await window.sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
-
-      avatarStatus.innerText = 'Готово!';
-      profileAvatar.src = publicUrl;
-      sideAvatar.src = publicUrl;
-      avatarFileInput.value = '';
-      await loadAllProfiles();
-    });
 
     btnFriendAction.addEventListener('click', async () => {
       if (!activeUser || !viewingUserId) return;
