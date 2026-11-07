@@ -9,470 +9,205 @@
   <style>
     * { box-sizing: border-box; }
     body {
-      margin: 0;
-      padding: 0;
+      margin: 0; padding: 0;
       background: #004e98 url('bg.jpg') no-repeat center center fixed;
       background-size: cover;
       font-family: "Tahoma", sans-serif;
       height: 100vh;
-      display: flex;
-      flex-direction: column;
-      justify-content: space-between;
+      display: flex; flex-direction: column; justify-content: space-between;
       overflow: hidden;
     }
     .desktop {
-      flex: 1;
-      padding: 10px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: relative;
-      overflow: hidden;
+      flex: 1; padding: 10px;
+      display: flex; justify-content: center; align-items: center;
+      position: relative; overflow: hidden;
     }
     .modal-overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.6);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 2000;
-      padding: 12px;
+      display: flex; justify-content: center; align-items: center;
+      z-index: 2000; padding: 12px;
     }
-    .auth-window {
-      width: 350px;
-      max-width: 100%;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-    }
+    .auth-window { width: 350px; max-width: 100%; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
     .ie-window {
-      width: 990px;
-      max-width: 98vw;
-      height: 720px;
-      max-height: 90vh;
-      display: flex;
-      flex-direction: column;
-      position: relative;
+      width: 1000px; max-width: 98vw; height: 740px; max-height: 92vh;
+      display: flex; flex-direction: column; position: relative;
     }
     .address-bar {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 3px 6px;
-      background: #ece9d8;
-      border-bottom: 1px solid #aca899;
-      font-size: 11px;
+      display: flex; align-items: center; gap: 6px; padding: 3px 6px;
+      background: #ece9d8; border-bottom: 1px solid #aca899; font-size: 11px;
     }
     .address-bar input { flex: 1; font-size: 11px; min-width: 0; }
-    .btn-mobile-menu {
-      display: none;
-      font-weight: bold;
-      font-size: 11px;
-      cursor: pointer;
-      white-space: nowrap;
-    }
+    .btn-mobile-menu { display: none; font-weight: bold; font-size: 11px; cursor: pointer; white-space: nowrap; }
     .window-body-layout {
-      flex: 1;
-      display: flex;
-      background: #fff;
-      overflow: hidden;
-      margin: 0 !important;
-      padding: 0 !important;
-      position: relative;
+      flex: 1; display: flex; background: #fff; overflow: hidden;
+      margin: 0 !important; padding: 0 !important; position: relative;
     }
-
-    /* Frutiger Aero Sidebar */
     .sidebar {
-      width: 215px;
+      width: 220px;
       background: linear-gradient(135deg, rgba(225, 245, 255, 0.88) 0%, rgba(185, 225, 250, 0.78) 50%, rgba(150, 210, 245, 0.88) 100%);
-      backdrop-filter: blur(10px);
-      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       border-right: 1px solid rgba(255, 255, 255, 0.7);
       box-shadow: inset -1px 0 0 rgba(0, 110, 200, 0.15), 2px 0 8px rgba(0, 60, 120, 0.08);
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-      flex-shrink: 0;
-      transition: transform 0.25s ease-out;
-      z-index: 100;
-      overflow-y: auto;
+      padding: 10px; display: flex; flex-direction: column; gap: 5px; flex-shrink: 0;
+      transition: transform 0.25s ease-out; z-index: 100; overflow-y: auto;
     }
     .sidebar-usercard {
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(230, 245, 255, 0.85) 100%);
-      border: 1px solid rgba(255, 255, 255, 0.9);
-      border-radius: 8px;
+      border: 1px solid rgba(255, 255, 255, 0.9); border-radius: 8px;
       box-shadow: 0 2px 6px rgba(0, 90, 180, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
-      padding: 6px 8px;
-      margin-bottom: 4px;
+      padding: 6px 8px; margin-bottom: 4px;
     }
     .sidebar-btn {
-      width: 100%;
-      text-align: left;
-      font-size: 11px;
-      font-weight: 500;
-      color: #0b388f;
-      padding: 6px 10px;
-      cursor: pointer;
-      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      width: 100%; text-align: left; font-size: 11px; font-weight: 500; color: #0b388f;
+      padding: 5px 8px; cursor: pointer; border: 1px solid rgba(255, 255, 255, 0.8) !important;
       border-radius: 6px;
       background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(225, 240, 255, 0.65) 50%, rgba(195, 225, 250, 0.8) 100%) !important;
       box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 70, 160, 0.1);
-      transition: all 0.2s ease;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
+      display: flex; align-items: center; justify-content: space-between;
     }
     .sidebar-btn:hover {
       background: linear-gradient(180deg, #ffffff 0%, #d8efff 50%, #b5e2ff 100%) !important;
-      border-color: #64b5f6 !important;
-      box-shadow: 0 0 8px rgba(33, 150, 243, 0.4), inset 0 1px 0 #fff;
-      transform: translateY(-1px);
+      border-color: #64b5f6 !important; transform: translateY(-1px);
     }
     .sidebar-btn.active {
       background: linear-gradient(180deg, #388bf2 0%, #1a6fe3 50%, #0d59c8 100%) !important;
-      color: #fff !important;
-      border-color: #0d47a1 !important;
-      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 70, 160, 0.3);
-      font-weight: bold;
+      color: #fff !important; border-color: #0d47a1 !important; font-weight: bold;
     }
-
     .sidebar-backdrop {
-      display: none;
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.35);
-      z-index: 90;
+      display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.35); z-index: 90;
     }
-    .main-view {
-      flex: 1;
-      overflow-y: auto;
-      padding: 12px;
-      scroll-behavior: smooth;
-    }
+    .main-view { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; }
     .post-box {
-      background: #fbfbfb;
-      border: 1px solid #7f9db9;
-      padding: 8px 12px;
-      margin-bottom: 12px;
-      position: relative;
-      transition: background 0.3s, border-color 0.3s;
+      background: #fbfbfb; border: 1px solid #7f9db9; padding: 8px 12px;
+      margin-bottom: 12px; position: relative;
     }
-    .post-box.highlight {
-      border: 2px solid #0055ea !important;
-      background: #edf4ff !important;
-    }
-    .post-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 6px;
-    }
-    .author-info {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      cursor: pointer;
-    }
+    .post-box.highlight { border: 2px solid #0055ea !important; background: #edf4ff !important; }
+    .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .author-info { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .author-info:hover .post-author { text-decoration: underline; }
     .post-author { font-weight: bold; color: #0b388f; }
     .avatar-mini {
-      width: 26px;
-      height: 26px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 1px solid #7f9db9;
-      background: #eee;
+      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+      border: 1px solid #7f9db9; background: #eee;
     }
     .profile-card {
-      display: flex;
-      align-items: center;
-      gap: 14px;
-      background: #f4f4f4;
-      padding: 10px;
-      border: 1px solid #aca899;
-      margin-bottom: 12px;
-      flex-wrap: wrap;
+      display: flex; align-items: center; gap: 14px; background: #f4f4f4;
+      padding: 10px; border: 1px solid #aca899; margin-bottom: 12px; flex-wrap: wrap;
     }
     .profile-avatar-big {
-      width: 64px;
-      height: 64px;
-      border-radius: 50%;
-      object-fit: cover;
-      border: 2px solid #0055ea;
-      background: #fff;
+      width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
+      border: 2px solid #0055ea; background: #fff;
     }
     .btn-delete-post {
-      background: none;
-      border: 1px solid #c0c0c0;
-      color: #a00;
-      cursor: pointer;
-      font-size: 10px;
-      padding: 1px 4px;
+      background: none; border: 1px solid #c0c0c0; color: #a00; cursor: pointer; font-size: 10px; padding: 1px 4px;
     }
-    .btn-delete-post:hover { background: #ffe6e6; }
-    .post-image {
-      max-width: 100%;
-      max-height: 350px;
-      display: block;
-      margin: 8px 0;
-      border: 1px solid #aca899;
-      object-fit: contain;
-    }
+    .post-image { max-width: 100%; max-height: 350px; display: block; margin: 8px 0; border: 1px solid #aca899; object-fit: contain; }
     .post-actions {
-      display: flex;
-      gap: 8px;
-      margin-top: 8px;
-      align-items: center;
-      padding-top: 4px;
-      border-top: 1px dashed #dcdcdc;
-      flex-wrap: wrap;
+      display: flex; gap: 8px; margin-top: 8px; align-items: center; padding-top: 4px;
+      border-top: 1px dashed #dcdcdc; flex-wrap: wrap;
     }
     .comments-section {
-      display: grid;
-      grid-template-rows: 0fr;
-      transition: grid-template-rows 0.25s ease-out, opacity 0.2s ease-out, margin-top 0.25s ease-out;
-      opacity: 0;
-      margin-top: 0;
-      background: #f0f0f0;
-      border-left: 2px solid #0055ea;
-      overflow: hidden;
+      display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.25s ease-out, opacity 0.2s ease-out;
+      opacity: 0; background: #f0f0f0; border-left: 2px solid #0055ea; overflow: hidden;
     }
-    .comments-section.open {
-      grid-template-rows: 1fr;
-      opacity: 1;
-      margin-top: 8px;
-    }
-    .comments-inner { min-height: 0; padding: 0 10px; transition: padding 0.25s ease-out; }
+    .comments-section.open { grid-template-rows: 1fr; opacity: 1; margin-top: 8px; }
+    .comments-inner { min-height: 0; padding: 0 10px; }
     .comments-section.open .comments-inner { padding: 6px 10px; }
     .comment-item {
-      font-size: 11px;
-      margin-bottom: 6px;
-      border-bottom: 1px dotted #ccc;
-      padding-bottom: 4px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 6px;
+      font-size: 11px; margin-bottom: 6px; border-bottom: 1px dotted #ccc; padding-bottom: 4px;
+      display: flex; justify-content: space-between; align-items: center; gap: 6px;
     }
     .comment-content { word-break: break-word; }
     .comment-content b { color: #2b579a; cursor: pointer; }
     .comment-content b:hover { text-decoration: underline; }
     .comment-controls { display: flex; gap: 4px; align-items: center; flex-shrink: 0; }
-    .btn-comment-del {
-      border: none;
-      background: transparent;
-      color: #b00;
-      font-size: 12px;
-      line-height: 12px;
-      cursor: pointer;
-      padding: 0 3px;
-      font-weight: bold;
-    }
-    .btn-comment-reply {
-      border: none;
-      background: transparent;
-      color: #0055ea;
-      font-size: 10px;
-      cursor: pointer;
-      padding: 0 2px;
-      text-decoration: underline;
-    }
-    .notification-item {
-      font-size: 11px;
-      padding: 8px 10px;
-      background: #fbfbfb;
-      border: 1px solid #7f9db9;
-      margin-bottom: 6px;
-    }
+    .btn-comment-del { border: none; background: transparent; color: #b00; font-size: 12px; cursor: pointer; }
+    .btn-comment-reply { border: none; background: transparent; color: #0055ea; font-size: 10px; cursor: pointer; text-decoration: underline; }
+    .notification-item { font-size: 11px; padding: 8px 10px; background: #fbfbfb; border: 1px solid #7f9db9; margin-bottom: 6px; }
     .notification-item:hover { background: #edf4ff; }
     .badge {
-      background: #d90000;
-      color: white;
-      font-size: 10px;
-      padding: 1px 5px;
-      border-radius: 9px;
-      margin-left: 4px;
-      font-weight: bold;
+      background: #d90000; color: white; font-size: 10px; padding: 1px 5px; border-radius: 9px;
+      margin-left: 4px; font-weight: bold;
     }
-    .friends-list-container {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
+
+    /* Messenger UI */
+    .messenger-container {
+      display: flex; height: 560px; border: 1px solid #7f9db9; background: #fff;
     }
-    .friend-row-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background: #fff;
-      border: 1px solid #7f9db9;
-      padding: 6px 8px;
-      font-size: 11px;
+    .messenger-chats {
+      width: 250px; border-right: 1px solid #7f9db9; overflow-y: auto; background: #f9f9f9;
     }
-    .friend-row-card:hover { background: #edf4ff; }
-    .friend-row-info {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
+    .messenger-chat-item {
+      display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid #e0e0e0;
+      cursor: pointer; font-size: 11px;
     }
-    .friends-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
-      gap: 8px;
-      margin-top: 4px;
+    .messenger-chat-item:hover, .messenger-chat-item.active { background: #e3efff; }
+    .messenger-body {
+      flex: 1; display: flex; flex-direction: column; background: #fff;
     }
+    .messenger-header {
+      padding: 8px; background: #ece9d8; border-bottom: 1px solid #aca899;
+      display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: bold;
+    }
+    .messenger-messages {
+      flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
+    }
+    .msg-bubble {
+      max-width: 75%; padding: 6px 10px; border-radius: 8px; font-size: 11px; word-break: break-word;
+    }
+    .msg-in { align-self: flex-start; background: #ece9d8; border: 1px solid #aca899; }
+    .msg-out { align-self: flex-end; background: #d0e7ff; border: 1px solid #7f9db9; }
+    .messenger-inputbox {
+      padding: 6px; border-top: 1px solid #aca899; display: flex; gap: 6px; background: #f4f4f4;
+    }
+
+    .community-card {
+      display: flex; align-items: center; justify-content: space-between; padding: 8px;
+      background: #fff; border: 1px solid #7f9db9; margin-bottom: 6px;
+    }
+    .community-info { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+    .friends-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 8px; }
     .friend-card {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      text-align: center;
-      padding: 4px;
-      cursor: pointer;
-      background: #fff;
-      border: 1px solid #dfdfdf;
+      display: flex; flex-direction: column; align-items: center; text-align: center;
+      padding: 4px; cursor: pointer; background: #fff; border: 1px solid #dfdfdf;
     }
     .friend-card:hover { background: #edf4ff; border-color: #0055ea; }
-    .friend-card img {
-      width: 40px;
-      height: 40px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 2px;
-    }
-    .friend-name {
-      font-size: 10px;
-      color: #000080;
-      max-width: 70px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
+    .friend-card img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
+    .friend-name { font-size: 10px; color: #000080; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
     .xp-balloon {
-      position: fixed;
-      bottom: 38px;
-      right: 14px;
-      width: 270px;
-      background: #ffffe1;
-      border: 1px solid #000;
-      box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
-      border-radius: 4px;
-      padding: 8px 10px;
-      z-index: 9999;
-      font-size: 11px;
-      cursor: pointer;
-      display: none;
-      animation: balloonPop 0.25s ease-out;
-    }
-    @keyframes balloonPop {
-      from { transform: translateY(15px); opacity: 0; }
-      to { transform: translateY(0); opacity: 1; }
+      position: fixed; bottom: 38px; right: 14px; width: 270px; background: #ffffe1;
+      border: 1px solid #000; box-shadow: 2px 2px 6px rgba(0,0,0,0.4); border-radius: 4px;
+      padding: 8px 10px; z-index: 9999; font-size: 11px; cursor: pointer; display: none;
     }
     .xp-balloon-header {
-      display: flex;
-      justify-content: space-between;
-      font-weight: bold;
-      color: #000080;
-      border-bottom: 1px solid #d4d0c8;
-      padding-bottom: 2px;
-      margin-bottom: 4px;
-    }
-    .xp-balloon-close {
-      cursor: pointer;
-      color: #888;
-      font-weight: bold;
-      padding: 0 2px;
+      display: flex; justify-content: space-between; font-weight: bold; color: #000080;
+      border-bottom: 1px solid #d4d0c8; margin-bottom: 4px;
     }
     .player-dock {
-      background: #ece9d8;
-      border-top: 2px groove #fff;
-      padding: 5px 8px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 8px;
-      font-size: 11px;
-      flex-wrap: wrap;
+      background: #ece9d8; border-top: 2px groove #fff; padding: 5px 8px; display: flex;
+      align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; flex-wrap: wrap;
     }
-    .player-controls {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-    }
-    .player-info {
-      display: flex;
-      flex-direction: column;
-      flex: 1;
-      min-width: 140px;
-    }
-    .player-title {
-      font-weight: bold;
-      color: #000080;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      max-width: 250px;
-    }
+    .player-controls { display: flex; align-items: center; gap: 4px; }
+    .player-info { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
+    .player-title { font-weight: bold; color: #000080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
     .track-list-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 4px 6px;
-      background: #fff;
-      border: 1px solid #7f9db9;
-      margin-bottom: 4px;
-      font-size: 11px;
-    }
-    .track-list-item:hover { background: #edf4ff; }
-    .loop-active {
-      background: #0055ea !important;
-      color: #fff !important;
-      font-weight: bold;
-    }
-    .community-card {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      padding: 8px;
-      background: #fff;
-      border: 1px solid #7f9db9;
-      margin-bottom: 6px;
-    }
-    .community-info {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between; padding: 4px 6px;
+      background: #fff; border: 1px solid #7f9db9; margin-bottom: 4px; font-size: 11px;
     }
     .taskbar {
-      height: 30px;
-      background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
-      flex-shrink: 0;
+      height: 30px; background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
+      display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
     }
     .start-button {
-      height: 100%;
-      background: linear-gradient(to bottom, #388e3c 0%, #4caf50 10%, #2e7d32 100%);
-      border: none;
-      color: white;
-      font-weight: bold;
-      font-style: italic;
-      padding: 0 14px;
-      border-top-right-radius: 8px;
-      border-bottom-right-radius: 8px;
-      cursor: pointer;
+      height: 100%; background: linear-gradient(to bottom, #388e3c 0%, #4caf50 10%, #2e7d32 100%);
+      border: none; color: white; font-weight: bold; font-style: italic; padding: 0 14px;
+      border-top-right-radius: 8px; border-bottom-right-radius: 8px; cursor: pointer;
     }
-    .tray {
-      background: #0f8fee;
-      height: 100%;
-      padding: 0 12px;
-      display: flex;
-      align-items: center;
-      color: white;
-      font-size: 11px;
-    }
+    .tray { background: #0f8fee; height: 100%; padding: 0 12px; display: flex; align-items: center; color: white; font-size: 11px; }
+
     @media (max-width: 768px) {
       .desktop { padding: 0; }
       .ie-window { width: 100vw; max-width: 100vw; height: 100%; max-height: 100%; border: none; }
@@ -483,9 +218,8 @@
       }
       .sidebar.open { transform: translateX(0); }
       .sidebar-backdrop.open { display: block; }
-      .player-dock { padding: 4px; }
-      .player-title { max-width: 140px; }
-      .xp-balloon { right: 8px; left: 8px; width: auto; bottom: 36px; }
+      .messenger-container { flex-direction: column; height: 480px; }
+      .messenger-chats { width: 100%; height: 140px; border-right: none; border-bottom: 1px solid #7f9db9; }
     }
   </style>
 </head>
@@ -494,9 +228,7 @@
   <!-- Авторизация -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
-      <div class="title-bar">
-        <div class="title-bar-text">Bubble — Вход / Регистрация</div>
-      </div>
+      <div class="title-bar"><div class="title-bar-text">Bubble — Вход / Регистрация</div></div>
       <div class="window-body">
         <div style="margin-bottom: 6px;">
           <label style="display:block; font-size:11px;">Никнейм:</label>
@@ -519,86 +251,45 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Настройки профиля -->
-  <div class="modal-overlay" id="profileSettingsModal" style="display:none;">
+  <!-- Модальное окно: Звонок (Incoming/Active Call) -->
+  <div class="modal-overlay" id="callModal" style="display:none;">
+    <div class="window" style="width: 320px; max-width: 95%;">
+      <div class="title-bar"><div class="title-bar-text" id="callModalTitle">📞 Аудиозвонок Bubble</div></div>
+      <div class="window-body" style="text-align: center;">
+        <img id="callUserAvatar" src="" class="profile-avatar-big" style="margin: 8px auto;" alt="avatar">
+        <div style="font-size: 14px; font-weight: bold; margin-bottom: 6px;" id="callUserName">Пользователь</div>
+        <div style="font-size: 11px; color: #555; margin-bottom: 12px;" id="callStatusText">Идёт вызов...</div>
+        <div style="display: flex; justify-content: center; gap: 8px;">
+          <button id="btnAcceptCall" style="display:none; background:#d4edda; font-weight:bold;">Принять</button>
+          <button id="btnRejectCall" style="color:#a00;">Завершить</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Создание группового чата -->
+  <div class="modal-overlay" id="createGroupModal" style="display:none;">
     <div class="window" style="width: 360px; max-width: 95%;">
       <div class="title-bar">
-        <div class="title-bar-text">⚙️ Настройки профиля</div>
+        <div class="title-bar-text">Создать групповой чат</div>
         <div class="title-bar-controls">
-          <button aria-label="Close" onclick="document.getElementById('profileSettingsModal').style.display='none'"></button>
+          <button aria-label="Close" onclick="document.getElementById('createGroupModal').style.display='none'"></button>
         </div>
       </div>
       <div class="window-body">
-        <fieldset style="margin-bottom: 10px;">
-          <legend>Аватар пользователя</legend>
-          <label style="font-size:11px; cursor:pointer; display:block; margin-bottom:4px;">
-            Выбрать новое изображение:
-            <input type="file" id="modalAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-top:4px;">
-          </label>
-          <span id="modalAvatarStatus" style="font-size:10px; color:#555;"></span>
-        </fieldset>
-        <div style="text-align: right;">
-          <button onclick="document.getElementById('profileSettingsModal').style.display='none'">Закрыть</button>
+        <label style="font-size:11px; display:block; margin-bottom:4px;">Название беседы:</label>
+        <input type="text" id="groupChatTitle" placeholder="Моя крутая беседа" style="width:100%; margin-bottom:8px; font-size:11px;">
+        <div style="font-size:11px; margin-bottom:4px;">Выберите друзей для добавления:</div>
+        <div id="groupFriendsChecklist" style="max-height: 140px; overflow-y: auto; border:1px solid #7f9db9; padding:4px; margin-bottom:8px; font-size:11px;"></div>
+        <div style="text-align: right; display:flex; justify-content:space-between;">
+          <button onclick="document.getElementById('createGroupModal').style.display='none'">Отмена</button>
+          <button id="btnSubmitCreateGroup" style="font-weight:bold;">Создать чат</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Модальное окно: Настройки сообщества -->
-  <div class="modal-overlay" id="commSettingsModal" style="display:none;">
-    <div class="window" style="width: 440px; max-width: 95%;">
-      <div class="title-bar">
-        <div class="title-bar-text">⚙️ Управление сообществом</div>
-        <div class="title-bar-controls">
-          <button aria-label="Close" onclick="document.getElementById('commSettingsModal').style.display='none'"></button>
-        </div>
-      </div>
-      <div class="window-body">
-        <fieldset style="margin-bottom: 10px;" id="commSettingsAvatarBox">
-          <legend>Аватарка сообщества</legend>
-          <label style="font-size:11px; cursor:pointer; display:block; margin-bottom:4px;">
-            Загрузить новый логотип:
-            <input type="file" id="modalCommAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-top:4px;">
-          </label>
-          <span id="modalCommAvatarStatus" style="font-size:10px; color:#555;"></span>
-        </fieldset>
-
-        <fieldset style="margin-bottom: 10px;" id="commSettingsRolesBox">
-          <legend>Управление участниками и назначение ролей</legend>
-          <div id="modalCommMembersList" style="max-height: 160px; overflow-y: auto; font-size: 11px;">Загрузка участников...</div>
-        </fieldset>
-
-        <fieldset style="margin-bottom: 10px;">
-          <legend>Опасная зона</legend>
-          <button id="btnModalCommDanger" style="font-size:11px; color:#a00;">Покинуть сообщество</button>
-        </fieldset>
-
-        <div style="text-align: right;">
-          <button onclick="document.getElementById('commSettingsModal').style.display='none'">Закрыть</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Модальное окно выбора музыки для сообщества -->
-  <div class="modal-overlay" id="commMusicModal" style="display:none;">
-    <div class="window" style="width: 380px; max-width: 95%;">
-      <div class="title-bar">
-        <div class="title-bar-text">Прикрепить музыку в сообщество</div>
-        <div class="title-bar-controls">
-          <button aria-label="Close" onclick="document.getElementById('commMusicModal').style.display='none'"></button>
-        </div>
-      </div>
-      <div class="window-body">
-        <div style="font-size:11px; margin-bottom:8px;">Выберите трек из добавленных в ваш профиль:</div>
-        <div id="commMusicModalList" style="max-height: 240px; overflow-y: auto; margin-bottom: 8px;"></div>
-        <div style="text-align: right;">
-          <button onclick="document.getElementById('commMusicModal').style.display='none'">Закрыть</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
+  <!-- Окно браузера IE / ОС -->
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -620,11 +311,11 @@
       <div class="window-body window-body-layout">
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-        <!-- Меню Frutiger Aero -->
+        <!-- Frutiger Aero Меню -->
         <div class="sidebar" id="sidebarPanel">
           <div class="sidebar-usercard">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-              <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
+              <img id="sideAvatar" src="" class="avatar-mini" alt="avatar">
               <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0b388f; word-break: break-all;">...</div>
             </div>
             <button id="btnLogout" type="button" style="width:100%; font-size:10px;">Выйти</button>
@@ -632,6 +323,8 @@
 
           <button class="sidebar-btn" id="btnTabFeed" type="button"><span>📰 Общая лента</span></button>
           <button class="sidebar-btn" id="btnTabFriendsFeed" type="button"><span>📰 Лента друзей</span></button>
+          <button class="sidebar-btn" id="btnTabCommunitiesFeed" type="button"><span>📰 Лента сообществ</span></button>
+          <button class="sidebar-btn" id="btnTabMessenger" type="button"><span>💬 Мессенджер</span><span id="msgBadge" class="badge" style="display:none;">0</span></button>
           <button class="sidebar-btn" id="btnTabFriendsManager" type="button"><span>👥 Друзья</span><span id="friendsBadge" class="badge" style="display:none;">0</span></button>
           <button class="sidebar-btn" id="btnTabMusic" type="button"><span>🎵 Вся музыка</span></button>
           <button class="sidebar-btn" id="btnTabCommunities" type="button"><span>🌐 Сообщества</span></button>
@@ -641,7 +334,7 @@
 
         <div class="main-view" id="mainContainer">
           
-          <!-- Лента -->
+          <!-- Ленты записей -->
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
@@ -662,18 +355,44 @@
             </fieldset>
           </div>
 
-          <!-- Друзья -->
+          <!-- Мессенджер (Личные, Групповые, Паблик-чаты и Звонки) -->
+          <div id="sectionMessenger" style="display:none;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+              <div style="font-weight:bold; font-size:12px; color:#0b388f;">Чаты и сообщения Bubble</div>
+              <button id="btnOpenCreateGroupModal" style="font-size:11px;">+ Создать беседу</button>
+            </div>
+
+            <div class="messenger-container">
+              <div class="messenger-chats" id="chatsListContainer">Загрузка диалогов...</div>
+              
+              <div class="messenger-body">
+                <div class="messenger-header" id="chatHeaderBar" style="display:none;">
+                  <span id="activeChatTitle">Выберите диалог</span>
+                  <div style="display:flex; gap:6px;">
+                    <button id="btnCallDirectUser" style="display:none; font-size:10px;">📞 Позвонить</button>
+                  </div>
+                </div>
+                <div class="messenger-messages" id="chatMessagesList">
+                  <div style="font-size:11px; color:#777; margin:auto;">Выберите беседу слева для начала общения</div>
+                </div>
+                <div class="messenger-inputbox" id="chatInputBar" style="display:none;">
+                  <input type="text" id="chatMsgInput" placeholder="Напишите сообщение..." style="flex:1; font-size:11px;">
+                  <button id="btnSendChatMessage" style="font-weight:bold; font-size:11px;">Отправить</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Раздел: Друзья -->
           <div id="sectionFriendsManager" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>📥 Входящие заявки в друзья (<span id="countIncoming">0</span>)</legend>
               <div id="listIncomingReqs" class="friends-list-container">Загрузка заявок...</div>
             </fieldset>
-
             <fieldset style="margin-bottom: 12px;">
               <legend>👥 Подтверждённые друзья (<span id="countAccepted">0</span>)</legend>
               <div id="listAcceptedFriends" class="friends-list-container">Загрузка друзей...</div>
             </fieldset>
-
             <fieldset>
               <legend>📤 Отправленные заявки (<span id="countOutgoing">0</span>)</legend>
               <div id="listOutgoingReqs" class="friends-list-container">Загрузка заявок...</div>
@@ -697,12 +416,9 @@
               </div>
               <div id="globalAudioUploadStatus" style="font-size: 10px; color: #555; margin-top: 2px;"></div>
             </fieldset>
-
             <fieldset>
               <legend>🎵 Все песни, загруженные пользователями Bubble</legend>
-              <div style="margin-bottom: 6px;">
-                <input type="text" id="searchGlobalMusic" placeholder="Поиск по названию или исполнителю..." style="width: 100%; font-size: 11px;">
-              </div>
+              <input type="text" id="searchGlobalMusic" placeholder="Поиск по названию или исполнителю..." style="width: 100%; font-size: 11px; margin-bottom: 6px;">
               <div id="allTracksList" style="max-height: 400px; overflow-y: auto;">Загрузка треков...</div>
             </fieldset>
           </div>
@@ -712,30 +428,30 @@
             <div id="communityViewList">
               <fieldset style="margin-bottom: 12px;">
                 <legend>Создать новое сообщество</legend>
-                <div style="display: flex; gap: 4px; margin-bottom: 4px;">
-                  <input type="text" id="newCommTitle" placeholder="Название сообщества" style="flex: 1; font-size: 11px;">
-                </div>
+                <input type="text" id="newCommTitle" placeholder="Название сообщества" style="width:100%; font-size:11px; margin-bottom:4px;">
                 <textarea id="newCommDesc" rows="2" placeholder="Краткое описание сообщества..." style="width: 100%; font-size: 11px; margin-bottom: 4px;"></textarea>
                 <button id="btnCreateCommunity" style="font-weight: bold; font-size: 11px;">Создать сообщество</button>
               </fieldset>
 
               <fieldset>
-                <legend>🌐 Список сообществ Bubble</legend>
+                <legend>🌐 Каталог сообществ Bubble</legend>
+                <input type="text" id="searchCommunityInput" placeholder="Поиск сообщества по названию..." style="width: 100%; font-size: 11px; margin-bottom: 6px;">
                 <div id="communitiesListContainer">Загрузка сообществ...</div>
               </fieldset>
             </div>
 
+            <!-- Страница открытого сообщества -->
             <div id="communityViewSingle" style="display:none;">
-              <button id="btnBackToCommunities" style="margin-bottom: 8px;">← Назад к списку сообществ</button>
+              <button id="btnBackToCommunities" style="margin-bottom: 8px;">← Назад к каталогу</button>
               
               <div class="profile-card">
-                <img id="commAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="comm avatar">
+                <img id="commAvatar" src="" class="profile-avatar-big" alt="comm avatar">
                 <div style="flex:1;">
                   <div style="display:flex; justify-content:space-between; align-items:center;">
                     <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="commTitle">...</div>
                     <div style="display:flex; gap:4px;">
                       <button id="btnCommJoinDirect" style="font-size:11px;">Вступить</button>
-                      <button id="btnCommOpenSettings" style="font-size:11px; display:none;">⚙️ Настройки</button>
+                      <button id="btnOpenCommChat" style="font-size:11px;">💬 Чат группы</button>
                     </div>
                   </div>
                   <div style="font-size:11px; color:#555; margin-top:4px;" id="commDesc">...</div>
@@ -743,23 +459,16 @@
                 </div>
               </div>
 
-              <fieldset style="margin-bottom: 12px;">
-                <legend>🎵 Музыка сообщества</legend>
-                <div id="commMusicControls" style="margin-bottom: 6px; display:none;">
-                  <button id="btnOpenCommMusicModal" style="font-size:11px;">+ Добавить песню из своей музыки</button>
-                </div>
-                <div id="commTracksList" style="max-height: 160px; overflow-y: auto;">Загрузка треков...</div>
-              </fieldset>
-
+              <!-- Стена сообщества: публикация от имени группы -->
               <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
-                <legend>Новая запись в сообществе</legend>
-                <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость в сообщество..."></textarea>
+                <legend>Опубликовать запись от имени сообщества</legend>
+                <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость от лица сообщества..."></textarea>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
                   <label style="font-size: 11px; cursor: pointer;">
                     📷 Фото:
                     <input type="file" id="commPostImage" accept="image/*" style="font-size: 11px;">
                   </label>
-                  <button id="btnCreateCommPost" type="button" style="font-weight: bold;">Опубликовать в группу</button>
+                  <button id="btnCreateCommPost" type="button" style="font-weight: bold;">Опубликовать от группы</button>
                 </div>
               </fieldset>
 
@@ -784,13 +493,14 @@
           <!-- Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
-              <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
+              <img id="profileAvatar" src="" class="profile-avatar-big" alt="avatar">
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="profileNick">...</div>
                   <div style="display:flex; gap:4px;">
+                    <button id="btnProfileSendMsg" style="font-size:11px; display:none;">💬 Написать</button>
+                    <button id="btnProfileCallUser" style="font-size:11px; display:none;">📞 Звонок</button>
                     <button id="btnFriendAction" style="font-size:11px; display:none;">+ Добавить в друзья</button>
-                    <button id="btnProfileOpenSettings" style="font-size:11px; display:none;">⚙️ Настройки</button>
                   </div>
                 </div>
               </div>
@@ -803,14 +513,6 @@
 
             <fieldset style="margin-bottom: 12px;">
               <legend>🎵 Музыка пользователя</legend>
-              
-              <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
-                <div style="display: flex; gap: 4px;">
-                  <input type="text" id="newPlaylistTitle" placeholder="Название нового плейлиста..." style="flex: 1; font-size: 11px;">
-                  <button id="btnCreatePlaylist" style="font-size: 11px;">Создать плейлист</button>
-                </div>
-              </div>
-
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
               <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
@@ -824,17 +526,18 @@
         </div>
       </div>
 
+      <!-- Аудиоплеер -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">⏹ Ничего не играет</div>
           <div style="font-size: 9px; color: #666;" id="currentPlaylistDisplay">Список воспроизведения пуст</div>
         </div>
         <div class="player-controls">
-          <button id="btnPrevTrack" title="Предыдущий трек">⏮</button>
-          <button id="btnPlayPause" title="Воспроизведение / Пауза" style="font-weight: bold;">▶</button>
-          <button id="btnNextTrack" title="Следующий трек">⏭</button>
-          <button id="btnLoopTrack" title="Зациклить текущую песню">🔂 Трек</button>
-          <button id="btnLoopAll" title="Зациклить весь список">🔁 Все</button>
+          <button id="btnPrevTrack">⏮</button>
+          <button id="btnPlayPause" style="font-weight: bold;">▶</button>
+          <button id="btnNextTrack">⏭</button>
+          <button id="btnLoopTrack">🔂 Трек</button>
+          <button id="btnLoopAll">🔁 Все</button>
         </div>
         <audio id="globalAudioPlayer" preload="none"></audio>
       </div>
@@ -844,7 +547,7 @@
   <div class="xp-balloon" id="xpBalloon">
     <div class="xp-balloon-header">
       <span>🫧 Новое событие в Bubble</span>
-      <span class="xp-balloon-close" id="xpBalloonClose">✕</span>
+      <span class="xp-balloon-close" id="xpBalloonClose" style="cursor:pointer;">✕</span>
     </div>
     <div id="xpBalloonText" style="margin-top: 3px;">Текст уведомления...</div>
   </div>
@@ -864,6 +567,7 @@
     let viewingUserId = localStorage.getItem('bubble_viewing_user_id') || null;
     let currentCommunityId = localStorage.getItem('bubble_current_comm_id') ? parseInt(localStorage.getItem('bubble_current_comm_id')) : null;
     let currentCommunityRole = null;
+    let activeConversationId = null;
 
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
@@ -872,7 +576,14 @@
     let pendingIncomingIds = new Set();
 
     let profilesMap = {};
-    let realtimeChannel = null;
+    let communitiesMap = {};
+    let allCommunitiesCache = [];
+
+    // WebRTC звонки
+    let peerConnection = null;
+    let localStream = null;
+    let activeCallRecord = null;
+    const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
 
     let playlistQueue = [];
     let currentTrackIndex = -1;
@@ -880,6 +591,7 @@
     const audioPlayer = document.getElementById('globalAudioPlayer');
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
+    // UI элементы
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
@@ -896,6 +608,8 @@
 
     const btnTabFeed = document.getElementById('btnTabFeed');
     const btnTabFriendsFeed = document.getElementById('btnTabFriendsFeed');
+    const btnTabCommunitiesFeed = document.getElementById('btnTabCommunitiesFeed');
+    const btnTabMessenger = document.getElementById('btnTabMessenger');
     const btnTabFriendsManager = document.getElementById('btnTabFriendsManager');
     const btnTabMusic = document.getElementById('btnTabMusic');
     const btnTabCommunities = document.getElementById('btnTabCommunities');
@@ -904,8 +618,10 @@
 
     const notifBadge = document.getElementById('notifBadge');
     const friendsBadge = document.getElementById('friendsBadge');
+    const msgBadge = document.getElementById('msgBadge');
 
     const sectionFeed = document.getElementById('sectionFeed');
+    const sectionMessenger = document.getElementById('sectionMessenger');
     const sectionFriendsManager = document.getElementById('sectionFriendsManager');
     const sectionMusic = document.getElementById('sectionMusic');
     const sectionCommunities = document.getElementById('sectionCommunities');
@@ -918,48 +634,35 @@
     const notificationsList = document.getElementById('notificationsList');
     const btnMarkAllRead = document.getElementById('btnMarkAllRead');
 
-    const listIncomingReqs = document.getElementById('listIncomingReqs');
-    const listAcceptedFriends = document.getElementById('listAcceptedFriends');
-    const listOutgoingReqs = document.getElementById('listOutgoingReqs');
-    const countIncoming = document.getElementById('countIncoming');
-    const countAccepted = document.getElementById('countAccepted');
-    const countOutgoing = document.getElementById('countOutgoing');
+    // Messenger DOM
+    const chatsListContainer = document.getElementById('chatsListContainer');
+    const chatHeaderBar = document.getElementById('chatHeaderBar');
+    const activeChatTitle = document.getElementById('activeChatTitle');
+    const btnCallDirectUser = document.getElementById('btnCallDirectUser');
+    const chatMessagesList = document.getElementById('chatMessagesList');
+    const chatInputBar = document.getElementById('chatInputBar');
+    const chatMsgInput = document.getElementById('chatMsgInput');
+    const btnSendChatMessage = document.getElementById('btnSendChatMessage');
+    const btnOpenCreateGroupModal = document.getElementById('btnOpenCreateGroupModal');
+    const createGroupModal = document.getElementById('createGroupModal');
+    const groupChatTitle = document.getElementById('groupChatTitle');
+    const groupFriendsChecklist = document.getElementById('groupFriendsChecklist');
+    const btnSubmitCreateGroup = document.getElementById('btnSubmitCreateGroup');
 
-    const profileNick = document.getElementById('profileNick');
-    const profileAvatar = document.getElementById('profileAvatar');
-    const btnFriendAction = document.getElementById('btnFriendAction');
-    const btnProfileOpenSettings = document.getElementById('btnProfileOpenSettings');
-    const profileSettingsModal = document.getElementById('profileSettingsModal');
-    const modalAvatarFile = document.getElementById('modalAvatarFile');
-    const modalAvatarStatus = document.getElementById('modalAvatarStatus');
-
-    const profilePostsLegend = document.getElementById('profilePostsLegend');
-    const profileFriendsList = document.getElementById('profileFriendsList');
-    const friendsBlockLegend = document.getElementById('friendsBlockLegend');
-
-    const postContent = document.getElementById('postContent');
-    const postImageFile = document.getElementById('postImageFile');
-    const btnCreatePost = document.getElementById('btnCreatePost');
-    const uploadStatus = document.getElementById('uploadStatus');
-
-    // Музыка DOM
-    const allTracksList = document.getElementById('allTracksList');
-    const searchGlobalMusic = document.getElementById('searchGlobalMusic');
-    const globalTrackTitle = document.getElementById('globalTrackTitle');
-    const globalTrackArtist = document.getElementById('globalTrackArtist');
-    const globalAudioFile = document.getElementById('globalAudioFile');
-    const btnUploadGlobalTrack = document.getElementById('btnUploadGlobalTrack');
-    const globalAudioUploadStatus = document.getElementById('globalAudioUploadStatus');
-    const playlistCreateBlock = document.getElementById('playlistCreateBlock');
-    const newPlaylistTitle = document.getElementById('newPlaylistTitle');
-    const btnCreatePlaylist = document.getElementById('btnCreatePlaylist');
-    const playlistSelectContainer = document.getElementById('playlistSelectContainer');
-    const profileTracksList = document.getElementById('profileTracksList');
+    // Call Modal DOM
+    const callModal = document.getElementById('callModal');
+    const callModalTitle = document.getElementById('callModalTitle');
+    const callUserAvatar = document.getElementById('callUserAvatar');
+    const callUserName = document.getElementById('callUserName');
+    const callStatusText = document.getElementById('callStatusText');
+    const btnAcceptCall = document.getElementById('btnAcceptCall');
+    const btnRejectCall = document.getElementById('btnRejectCall');
 
     // Сообщества DOM
     const communityViewList = document.getElementById('communityViewList');
     const communityViewSingle = document.getElementById('communityViewSingle');
     const communitiesListContainer = document.getElementById('communitiesListContainer');
+    const searchCommunityInput = document.getElementById('searchCommunityInput');
     const newCommTitle = document.getElementById('newCommTitle');
     const newCommDesc = document.getElementById('newCommDesc');
     const btnCreateCommunity = document.getElementById('btnCreateCommunity');
@@ -968,28 +671,40 @@
     const commDesc = document.getElementById('commDesc');
     const commAvatar = document.getElementById('commAvatar');
     const btnCommJoinDirect = document.getElementById('btnCommJoinDirect');
-    const btnCommOpenSettings = document.getElementById('btnCommOpenSettings');
+    const btnOpenCommChat = document.getElementById('btnOpenCommChat');
     const commUserRole = document.getElementById('commUserRole');
-
-    const commSettingsModal = document.getElementById('commSettingsModal');
-    const commSettingsAvatarBox = document.getElementById('commSettingsAvatarBox');
-    const modalCommAvatarFile = document.getElementById('modalCommAvatarFile');
-    const modalCommAvatarStatus = document.getElementById('modalCommAvatarStatus');
-    const commSettingsRolesBox = document.getElementById('commSettingsRolesBox');
-    const modalCommMembersList = document.getElementById('modalCommMembersList');
-    const btnModalCommDanger = document.getElementById('btnModalCommDanger');
-
-    const commMusicControls = document.getElementById('commMusicControls');
-    const btnOpenCommMusicModal = document.getElementById('btnOpenCommMusicModal');
-    const commMusicModal = document.getElementById('commMusicModal');
-    const commMusicModalList = document.getElementById('commMusicModalList');
-    const commTracksList = document.getElementById('commTracksList');
+    const commCreatePostBox = document.getElementById('commCreatePostBox');
     const commPostContent = document.getElementById('commPostContent');
     const commPostImage = document.getElementById('commPostImage');
     const btnCreateCommPost = document.getElementById('btnCreateCommPost');
     const commPostsList = document.getElementById('commPostsList');
 
-    // Плеер DOM
+    // Профиль DOM
+    const profileNick = document.getElementById('profileNick');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const btnFriendAction = document.getElementById('btnFriendAction');
+    const btnProfileSendMsg = document.getElementById('btnProfileSendMsg');
+    const btnProfileCallUser = document.getElementById('btnProfileCallUser');
+    const profileFriendsList = document.getElementById('profileFriendsList');
+    const friendsBlockLegend = document.getElementById('friendsBlockLegend');
+    const profilePostsLegend = document.getElementById('profilePostsLegend');
+    const profileTracksList = document.getElementById('profileTracksList');
+    const playlistSelectContainer = document.getElementById('playlistSelectContainer');
+
+    // Посты & Музыка
+    const postContent = document.getElementById('postContent');
+    const postImageFile = document.getElementById('postImageFile');
+    const btnCreatePost = document.getElementById('btnCreatePost');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const allTracksList = document.getElementById('allTracksList');
+    const searchGlobalMusic = document.getElementById('searchGlobalMusic');
+    const globalTrackTitle = document.getElementById('globalTrackTitle');
+    const globalTrackArtist = document.getElementById('globalTrackArtist');
+    const globalAudioFile = document.getElementById('globalAudioFile');
+    const btnUploadGlobalTrack = document.getElementById('btnUploadGlobalTrack');
+    const globalAudioUploadStatus = document.getElementById('globalAudioUploadStatus');
+
+    // Плеер
     const currentTrackDisplay = document.getElementById('currentTrackDisplay');
     const currentPlaylistDisplay = document.getElementById('currentPlaylistDisplay');
     const btnPlayPause = document.getElementById('btnPlayPause');
@@ -998,6 +713,7 @@
     const btnLoopTrack = document.getElementById('btnLoopTrack');
     const btnLoopAll = document.getElementById('btnLoopAll');
 
+    // Уведомления
     const xpBalloon = document.getElementById('xpBalloon');
     const xpBalloonText = document.getElementById('xpBalloonText');
     const xpBalloonClose = document.getElementById('xpBalloonClose');
@@ -1051,6 +767,19 @@
       }
     }
 
+    async function loadAllCommunitiesCache() {
+      try {
+        const { data } = await window.sbClient.from('communities').select('*');
+        communitiesMap = {};
+        allCommunitiesCache = data || [];
+        (data || []).forEach(c => {
+          communitiesMap[c.id] = c;
+        });
+      } catch (e) {
+        console.warn('loadAllCommunitiesCache:', e);
+      }
+    }
+
     async function loadFriends() {
       if (!activeUser) return;
       try {
@@ -1068,11 +797,8 @@
             const friendId = row.user_id === activeUser.id ? row.friend_id : row.user_id;
             userFriendIds.add(friendId);
           } else {
-            if (row.user_id === activeUser.id) {
-              pendingOutgoingIds.add(row.friend_id);
-            } else {
-              pendingIncomingIds.add(row.user_id);
-            }
+            if (row.user_id === activeUser.id) pendingOutgoingIds.add(row.friend_id);
+            else pendingIncomingIds.add(row.user_id);
           }
         });
 
@@ -1093,6 +819,7 @@
         authModal.style.display = 'none';
         await ensureProfile(activeUser);
         await loadAllProfiles();
+        await loadAllCommunitiesCache();
         await loadFriends();
 
         const myProf = profilesMap[activeUser.id];
@@ -1101,13 +828,11 @@
 
         await loadUserLikes();
         await updateUnreadBadge();
-        initRealtimeNotifications();
+        initRealtimeEvents();
 
-        // Переключаем вкладку только при первичной загрузке, сохраняя текущий раздел
         if (isInitial) {
-          if (currentTab === 'profile') {
-            switchTab('profile', viewingUserId || activeUser.id);
-          } else if (currentTab === 'communities' && currentCommunityId) {
+          if (currentTab === 'profile') switchTab('profile', viewingUserId || activeUser.id);
+          else if (currentTab === 'communities' && currentCommunityId) {
             switchTab('communities');
             openCommunity(currentCommunityId);
           } else {
@@ -1116,185 +841,120 @@
         }
       } else {
         authModal.style.display = 'flex';
-        if (realtimeChannel) {
-          window.sbClient.removeChannel(realtimeChannel);
-          realtimeChannel = null;
-        }
       }
     }
 
     window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session, true));
-
-    // Слушатель смены сессии без сброса вкладки при обновлении токена
     window.sbClient.auth.onAuthStateChange((event, session) => {
-      if (event === 'SIGNED_OUT') {
-        updateSessionState(null, false);
-      } else if (event === 'SIGNED_IN') {
-        updateSessionState(session, true);
-      }
+      if (event === 'SIGNED_OUT') updateSessionState(null, false);
+      else if (event === 'SIGNED_IN') updateSessionState(session, true);
     });
 
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
-      authStatus.style.color = '#333';
-      authStatus.innerText = 'Создание...';
       const username = inputUsername.value.trim();
       const email = inputEmail.value.trim();
       const password = inputPass.value.trim();
       if (!username || !email || !password) return authStatus.innerText = 'Заполните все поля!';
-      if (password.length < 6) return authStatus.innerText = 'Пароль от 6 символов!';
-
-      const { data, error } = await window.sbClient.auth.signUp({
-        email, password, options: { data: { username } }
-      });
-      if (error) {
-        authStatus.style.color = 'red';
-        authStatus.innerText = error.message;
-      } else if (data.session) {
-        updateSessionState(data.session, true);
-      } else {
-        authStatus.style.color = 'green';
-        authStatus.innerText = 'Создано! Нажмите «Войти».';
-      }
+      const { data, error } = await window.sbClient.auth.signUp({ email, password, options: { data: { username } } });
+      if (error) authStatus.innerText = error.message;
+      else if (data.session) updateSessionState(data.session, true);
+      else authStatus.innerText = 'Создано! Нажмите «Войти».';
     });
 
     document.getElementById('btnActionLogin').addEventListener('click', async () => {
-      authStatus.style.color = '#333';
-      authStatus.innerText = 'Проверка...';
       const email = inputEmail.value.trim();
       const password = inputPass.value.trim();
       if (!email || !password) return authStatus.innerText = 'Введите почту и пароль!';
-
       const { data, error } = await window.sbClient.auth.signInWithPassword({ email, password });
-      if (error) {
-        authStatus.style.color = 'red';
-        authStatus.innerText = error.message;
-      } else {
-        updateSessionState(data.session, true);
-      }
+      if (error) authStatus.innerText = error.message;
+      else updateSessionState(data.session, true);
     });
 
     document.getElementById('btnLogout').addEventListener('click', () => {
-      localStorage.removeItem('bubble_active_tab');
-      localStorage.removeItem('bubble_viewing_user_id');
-      localStorage.removeItem('bubble_current_comm_id');
+      localStorage.clear();
       window.sbClient.auth.signOut();
     });
 
-    async function updateUnreadBadge() {
-      if (!activeUser) return;
-      try {
-        const { data } = await window.sbClient.from('notifications').select('id').eq('user_id', activeUser.id).eq('is_read', false);
-        const count = (data || []).length;
-        if (count > 0) {
-          notifBadge.style.display = 'inline-block';
-          notifBadge.innerText = count;
-        } else {
-          notifBadge.style.display = 'none';
-        }
-      } catch (e) {
-        console.warn('updateUnreadBadge:', e);
-      }
-    }
-
     function showXPBalloon(notif) {
-      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username || 'Пользователь')}</b> ${escapeHtml(notif.message)}`;
+      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username || 'Bubble')}</b> ${escapeHtml(notif.message)}`;
       xpBalloon.style.display = 'block';
-
-      xpBalloon.onclick = (e) => {
-        if (e.target.id === 'xpBalloonClose') return;
-        if (notif.post_id) {
-          openTargetPost(notif.post_id, notif.id);
-        } else if (notif.type === 'friend_request' || notif.type === 'friend_accept') {
-          switchTab('friends_manager');
-        } else {
-          switchTab('notifications');
-        }
-        hideXPBalloon();
+      xpBalloon.onclick = () => {
+        if (notif.post_id) openTargetPost(notif.post_id, notif.id);
+        else switchTab('notifications');
+        xpBalloon.style.display = 'none';
       };
-
       if (balloonTimer) clearTimeout(balloonTimer);
-      balloonTimer = setTimeout(hideXPBalloon, 8000);
+      balloonTimer = setTimeout(() => xpBalloon.style.display = 'none', 8000);
     }
+    xpBalloonClose.onclick = (e) => { e.stopPropagation(); xpBalloon.style.display = 'none'; };
 
-    function hideXPBalloon() {
-      xpBalloon.style.display = 'none';
-      if (balloonTimer) clearTimeout(balloonTimer);
-    }
-    xpBalloonClose.addEventListener('click', (e) => {
-      e.stopPropagation();
-      hideXPBalloon();
-    });
-
-    function initRealtimeNotifications() {
+    // ==================== REALTIME: СООБЩЕНИЯ, ЗВОНКИ, УВЕДОМЛЕНИЯ ====================
+    function initRealtimeEvents() {
       if (!activeUser) return;
-      if (realtimeChannel) {
-        window.sbClient.removeChannel(realtimeChannel);
-        realtimeChannel = null;
-      }
-
-      realtimeChannel = window.sbClient
-        .channel('bubble_public_events')
+      window.sbClient
+        .channel('bubble_core_events')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
           if (payload?.new && payload.new.user_id === activeUser.id) {
             updateUnreadBadge();
             loadFriends();
             showXPBalloon(payload.new);
             if (currentTab === 'notifications') loadNotifications();
-            if (currentTab === 'friends_manager') loadFriendsManager();
           }
+        })
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+          if (payload?.new) {
+            if (activeConversationId && payload.new.conversation_id === activeConversationId) {
+              appendMessageToDOM(payload.new);
+            } else {
+              loadConversationsList();
+            }
+          }
+        })
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'calls' }, (payload) => {
+          handleCallRealtimeEvent(payload);
         })
         .subscribe();
     }
 
+    async function updateUnreadBadge() {
+      if (!activeUser) return;
+      const { data } = await window.sbClient.from('notifications').select('id').eq('user_id', activeUser.id).eq('is_read', false);
+      const count = (data || []).length;
+      notifBadge.style.display = count > 0 ? 'inline-block' : 'none';
+      notifBadge.innerText = count;
+    }
+
     async function createNotification(targetUserId, type, message, postId) {
       if (!targetUserId || !activeUser || targetUserId === activeUser.id) return;
-      try {
-        const myProf = profilesMap[activeUser.id] || {};
-        const senderNick = myProf.username || getUserName(activeUser);
-        await window.sbClient.from('notifications').insert([{
-          user_id: targetUserId, from_user_id: activeUser.id, from_username: senderNick,
-          type, message, post_id: postId, is_read: false
-        }]);
-      } catch (e) {
-        console.warn('createNotification:', e);
-      }
+      const myProf = profilesMap[activeUser.id] || {};
+      await window.sbClient.from('notifications').insert([{
+        user_id: targetUserId, from_user_id: activeUser.id,
+        from_username: myProf.username || getUserName(activeUser),
+        type, message, post_id: postId, is_read: false
+      }]);
     }
 
-    async function parseMentions(text, postId) {
-      try {
-        const matches = text.match(/@([a-zA-Z0-9_\u0400-\u04FF\-]+)/g);
-        if (!matches) return;
-        const rawUsernames = matches.map(m => m.replace('@', '').toLowerCase());
-        const { data: profiles } = await window.sbClient.from('profiles').select('id, username');
-        if (profiles) {
-          for (const p of profiles) {
-            if (rawUsernames.includes(p.username.toLowerCase())) {
-              await createNotification(p.id, 'mention', `упомянул(а) вас: "${text.substring(0, 45)}..."`, postId);
-            }
-          }
-        }
-      } catch (e) {
-        console.warn('parseMentions:', e);
-      }
-    }
-
+    // ==================== НАВИГАЦИЯ ====================
     function switchTab(tab, targetUserId = null) {
       currentTab = tab;
       localStorage.setItem('bubble_active_tab', tab);
       toggleMobileMenu(true);
 
-      const navButtons = [btnTabFeed, btnTabFriendsFeed, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile];
+      const navButtons = [btnTabFeed, btnTabFriendsFeed, btnTabCommunitiesFeed, btnTabMessenger, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile];
       navButtons.forEach(btn => btn.classList.remove('active'));
 
       if (tab === 'feed') btnTabFeed.classList.add('active');
       if (tab === 'friends_feed') btnTabFriendsFeed.classList.add('active');
+      if (tab === 'communities_feed') btnTabCommunitiesFeed.classList.add('active');
+      if (tab === 'messenger') btnTabMessenger.classList.add('active');
       if (tab === 'friends_manager') btnTabFriendsManager.classList.add('active');
       if (tab === 'music') btnTabMusic.classList.add('active');
       if (tab === 'communities') btnTabCommunities.classList.add('active');
       if (tab === 'notifications') btnTabNotifications.classList.add('active');
       if (tab === 'profile' && activeUser && targetUserId === activeUser.id) btnTabProfile.classList.add('active');
 
-      sectionFeed.style.display = (tab === 'feed' || tab === 'friends_feed') ? 'block' : 'none';
+      sectionFeed.style.display = (tab === 'feed' || tab === 'friends_feed' || tab === 'communities_feed') ? 'block' : 'none';
+      sectionMessenger.style.display = tab === 'messenger' ? 'block' : 'none';
       sectionFriendsManager.style.display = tab === 'friends_manager' ? 'block' : 'none';
       sectionMusic.style.display = tab === 'music' ? 'block' : 'none';
       sectionCommunities.style.display = tab === 'communities' ? 'block' : 'none';
@@ -1304,11 +964,18 @@
       if (tab === 'feed') {
         urlInput.value = 'https://bubble.net/feed/all';
         feedLegend.innerText = 'Общая лента записей Bubble';
-        loadFeed(false);
+        loadFeed('all');
       } else if (tab === 'friends_feed') {
         urlInput.value = 'https://bubble.net/feed/friends';
         feedLegend.innerText = '👥 Лента записей друзей';
-        loadFeed(true);
+        loadFeed('friends');
+      } else if (tab === 'communities_feed') {
+        urlInput.value = 'https://bubble.net/feed/communities';
+        feedLegend.innerText = '🌐 Лента публикаций всех сообществ';
+        loadFeed('communities');
+      } else if (tab === 'messenger') {
+        urlInput.value = 'https://bubble.net/messenger';
+        loadConversationsList();
       } else if (tab === 'friends_manager') {
         urlInput.value = 'https://bubble.net/friends';
         loadFriendsManager();
@@ -1330,50 +997,61 @@
       }
     }
 
-    btnTabFeed.addEventListener('click', () => switchTab('feed'));
-    btnTabFriendsFeed.addEventListener('click', () => switchTab('friends_feed'));
-    btnTabFriendsManager.addEventListener('click', () => switchTab('friends_manager'));
-    btnTabMusic.addEventListener('click', () => switchTab('music'));
-    btnTabCommunities.addEventListener('click', () => switchTab('communities'));
-    btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
-    btnTabProfile.addEventListener('click', () => {
-      if (activeUser) switchTab('profile', activeUser.id);
-    });
-    document.getElementById('btnGoReload').addEventListener('click', () => switchTab(currentTab, viewingUserId));
+    btnTabFeed.onclick = () => switchTab('feed');
+    btnTabFriendsFeed.onclick = () => switchTab('friends_feed');
+    btnTabCommunitiesFeed.onclick = () => switchTab('communities_feed');
+    btnTabMessenger.onclick = () => switchTab('messenger');
+    btnTabFriendsManager.onclick = () => switchTab('friends_manager');
+    btnTabMusic.onclick = () => switchTab('music');
+    btnTabCommunities.onclick = () => switchTab('communities');
+    btnTabNotifications.onclick = () => switchTab('notifications');
+    btnTabProfile.onclick = () => { if (activeUser) switchTab('profile', activeUser.id); };
+    document.getElementById('btnGoReload').onclick = () => switchTab(currentTab, viewingUserId);
+    window.goToProfile = (uId) => switchTab('profile', uId);
 
-    window.goToProfile = function(userId) {
-      switchTab('profile', userId);
-    };
-
+    // ==================== ЛЕНТА И ПУБЛИКАЦИИ ====================
     async function loadUserLikes() {
       if (!activeUser) return;
-      try {
-        const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
-        userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
-        const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
-        userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
-      } catch (e) {
-        console.warn('loadUserLikes:', e);
-      }
+      const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
+      userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
+      const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
+      userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
     }
 
+    // Карточка поста (поддерживает отображение автора-сообщества)
     function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false) {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
       const currentUserId = activeUser ? activeUser.id : null;
       const isMyPost = currentUserId && p.user_id === currentUserId;
       const canDelete = isMyPost || canModerate;
-      const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
       const uniquePostKey = `${context}-${p.id}`;
+
+      let authorDisplay = '';
+      if (p.community_id && communitiesMap[p.community_id]) {
+        const comm = communitiesMap[p.community_id];
+        authorDisplay = `
+          <div class="author-info" onclick="openCommunity(${comm.id})">
+            <img src="${comm.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+            <span class="post-author">🌐 ${escapeHtml(comm.title)}</span>
+            <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+          </div>
+        `;
+      } else {
+        const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
+        authorDisplay = `
+          <div class="author-info" onclick="goToProfile('${p.user_id}')">
+            <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+            <span class="post-author">🫧 ${escapeHtml(prof.username)}</span>
+            <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+          </div>
+        `;
+      }
 
       return `
         <div class="post-box" id="post-${uniquePostKey}">
           <div class="post-header">
-            <div class="author-info" onclick="goToProfile('${p.user_id}')">
-              <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
-              <span class="post-author">🫧 ${escapeHtml(prof.username)}</span>
-              <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-            </div>
+            ${authorDisplay}
             ${canDelete ? `<button class="btn-delete-post" onclick="deletePost(${p.id}, '${uniquePostKey}')">✖ Удалить</button>` : ''}
           </div>
 
@@ -1425,48 +1103,48 @@
       `;
     }
 
-    async function loadFeed(onlyFriends = false) {
+    async function loadFeed(feedType = 'all') {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
       await loadAllProfiles();
+      await loadAllCommunitiesCache();
       await loadFriends();
 
-      let query = window.sbClient.from('posts').select('*').is('community_id', null).order('id', { ascending: false }).limit(30);
+      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
 
-      if (onlyFriends) {
+      if (feedType === 'all') {
+        query = query.is('community_id', null);
+      } else if (feedType === 'friends') {
         const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
         if (feedTargetIds.length === 0) {
-          feedList.innerHTML = '<p>У вас пока нет друзей или отправленных заявок. Отправьте заявку пользователю, и его посты появятся здесь!</p>';
+          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
           return;
         }
-        query = query.in('user_id', feedTargetIds);
+        query = query.is('community_id', null).in('user_id', feedTargetIds);
+      } else if (feedType === 'communities') {
+        query = query.not('community_id', 'is', null);
       }
 
       const { data: posts, error } = await query;
       if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) {
-        feedList.innerHTML = onlyFriends ? '<p>В ленте друзей пока нет записей.</p>' : '<p>Пока нет записей. Оставьте первое сообщение!</p>';
-        return;
-      }
+      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
 
       const postIds = posts.map(p => p.id);
       const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-
       const commentsByPost = {};
       (comments || []).forEach(c => {
         if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
         commentsByPost[c.post_id].push(c);
       });
 
-      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, onlyFriends ? 'friends' : 'feed')).join('');
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
     }
 
-    // Локальные операции
     window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
       if (!activeUser) return;
       const countEl = document.getElementById(`like-count-${uniquePostKey}`);
       const btnEl = document.getElementById(`like-btn-${uniquePostKey}`);
-      let count = parseInt(countEl ? countEl.innerText : '0') || 0;
+      let count = parseInt(countEl?.innerText || '0') || 0;
 
       if (userLikedPosts.has(postId)) {
         userLikedPosts.delete(postId);
@@ -1488,7 +1166,7 @@
       if (!activeUser) return;
       const countEl = document.getElementById(`clike-count-${commentId}`);
       const btnEl = document.getElementById(`clike-btn-${commentId}`);
-      let count = parseInt(countEl ? countEl.innerText : '0') || 0;
+      let count = parseInt(countEl?.innerText || '0') || 0;
 
       if (userLikedComments.has(commentId)) {
         userLikedComments.delete(commentId);
@@ -1509,142 +1187,85 @@
     window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
       if (!activeUser) return;
       const input = document.getElementById(`comment-input-${uniquePostKey}`);
-      const text = input ? input.value.trim() : '';
+      const text = input?.value.trim();
       if (!text) return;
 
       const myProf = profilesMap[activeUser.id] || {};
-      const { data: newComment, error } = await window.sbClient.from('comments').insert([{
-        post_id: postId,
-        user_id: activeUser.id,
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        likes_count: 0
+      const { data: newComment } = await window.sbClient.from('comments').insert([{
+        post_id: postId, user_id: activeUser.id,
+        author: myProf.username || getUserName(activeUser), content: text, likes_count: 0
       }]).select().single();
-
-      if (error) {
-        alert('Ошибка комментария: ' + error.message);
-        return;
-      }
 
       input.value = '';
       const listEl = document.getElementById(`comments-list-${uniquePostKey}`);
-      if (listEl && newComment) {
-        listEl.insertAdjacentHTML('beforeend', renderCommentHTML(newComment, postId, uniquePostKey, false));
-      }
+      if (listEl && newComment) listEl.insertAdjacentHTML('beforeend', renderCommentHTML(newComment, postId, uniquePostKey, false));
       const countEl = document.getElementById(`comments-count-${uniquePostKey}`);
-      if (countEl) {
-        countEl.innerText = (parseInt(countEl.innerText) || 0) + 1;
-      }
+      if (countEl) countEl.innerText = (parseInt(countEl.innerText) || 0) + 1;
 
       await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
-      await parseMentions(text, postId);
     };
 
     window.deleteComment = async function(commentId, uniquePostKey) {
       if (!confirm('Удалить комментарий?')) return;
       await window.sbClient.from('comments').delete().eq('id', commentId);
-      const cEl = document.getElementById(`comment-${commentId}`);
-      if (cEl) cEl.remove();
+      document.getElementById(`comment-${commentId}`)?.remove();
       const countEl = document.getElementById(`comments-count-${uniquePostKey}`);
-      if (countEl) {
-        countEl.innerText = Math.max(0, (parseInt(countEl.innerText) || 1) - 1);
-      }
+      if (countEl) countEl.innerText = Math.max(0, (parseInt(countEl.innerText) || 1) - 1);
     };
 
     window.deletePost = async function(postId, uniquePostKey) {
       if (!confirm('Удалить этот пост?')) return;
       await window.sbClient.from('posts').delete().eq('id', postId);
-      const postEl = document.getElementById(`post-${uniquePostKey}`);
-      if (postEl) postEl.remove();
+      document.getElementById(`post-${uniquePostKey}`)?.remove();
     };
 
-    // ==================== РАЗДЕЛ: ВСЯ МУЗЫКА ====================
-    let allTracksCache = [];
+    window.toggleCommentsVisibility = (key) => document.getElementById(`comments-box-${key}`)?.classList.toggle('open');
+    window.replyToComment = (key, author) => {
+      const box = document.getElementById(`comments-box-${key}`);
+      if (box && !box.classList.contains('open')) box.classList.add('open');
+      const input = document.getElementById(`comment-input-${key}`);
+      if (input) { input.value = `@${author} ` + input.value; input.focus(); }
+    };
 
-    async function loadAllGlobalMusic() {
-      allTracksList.innerHTML = 'Загрузка музыки Bubble...';
-      const { data: tracks, error } = await window.sbClient.from('tracks').select('*').order('id', { ascending: false });
-      if (error) return allTracksList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!tracks || tracks.length === 0) return allTracksList.innerHTML = '<p>Пока никто не загрузил музыку.</p>';
-
-      allTracksCache = tracks;
-      renderGlobalTracks(tracks);
-    }
-
-    function renderGlobalTracks(tracks) {
-      if (tracks.length === 0) {
-        allTracksList.innerHTML = '<p>Ничего не найдено.</p>';
-        return;
-      }
-      allTracksList.innerHTML = tracks.map((t, idx) => `
-        <div class="track-list-item">
-          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека Bubble')">
-            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
-          </div>
-          <div style="display:flex; gap:4px; align-items:center;">
-            <button onclick="addTrackToMyLibrary(${t.id})" title="Добавить к себе в профиль" style="font-size:10px;">➕ к себе</button>
-          </div>
-        </div>
-      `).join('');
-    }
-
-    searchGlobalMusic.addEventListener('input', () => {
-      const q = searchGlobalMusic.value.toLowerCase().trim();
-      if (!q) return renderGlobalTracks(allTracksCache);
-      const filtered = allTracksCache.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q)));
-      renderGlobalTracks(filtered);
-    });
-
-    btnUploadGlobalTrack.addEventListener('click', async () => {
-      const file = globalAudioFile.files[0];
-      const title = globalTrackTitle.value.trim();
-      const artist = globalTrackArtist.value.trim() || 'Неизвестный исполнитель';
-
-      if (!file || !title) return alert('Выберите MP3-файл и укажите название!');
+    btnCreatePost.onclick = async () => {
       if (!activeUser) return;
+      const text = postContent.value.trim();
+      const file = postImageFile.files[0];
+      if (!text && !file) return alert('Введите текст или прикрепите фото!');
 
-      btnUploadGlobalTrack.disabled = true;
-      globalAudioUploadStatus.innerText = 'Загрузка трека...';
-
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await window.sbClient.storage.from('audio_tracks').upload(fileName, file);
-      if (uploadError) {
-        globalAudioUploadStatus.innerText = '';
-        btnUploadGlobalTrack.disabled = false;
-        return alert('Ошибка загрузки аудио: ' + uploadError.message);
+      btnCreatePost.disabled = true;
+      let imageUrl = null;
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+        const { error } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (!error) imageUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
       }
 
-      const { data: { publicUrl } } = window.sbClient.storage.from('audio_tracks').getPublicUrl(fileName);
-      const { data: trackData, error: trackError } = await window.sbClient.from('tracks').insert([{
-        title, artist, audio_url: publicUrl, uploader_id: activeUser.id
-      }]).select().single();
+      const myProf = profilesMap[activeUser.id] || {};
+      await window.sbClient.from('posts').insert([{
+        author: myProf.username || getUserName(activeUser), content: text,
+        user_id: activeUser.id, community_id: null, image_url: imageUrl, likes_count: 0
+      }]);
 
-      if (trackError) {
-        alert('Ошибка сохранения: ' + trackError.message);
-      } else {
-        await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackData.id }]);
-        globalTrackTitle.value = '';
-        globalTrackArtist.value = '';
-        globalAudioFile.value = '';
-        globalAudioUploadStatus.innerText = 'Трек опубликован!';
-        setTimeout(() => globalAudioUploadStatus.innerText = '', 2000);
-        loadAllGlobalMusic();
-      }
-      btnUploadGlobalTrack.disabled = false;
-    });
+      btnCreatePost.disabled = false;
+      postContent.value = ''; postImageFile.value = '';
+      loadFeed(currentTab === 'friends_feed' ? 'friends' : (currentTab === 'communities_feed' ? 'communities' : 'all'));
+    };
 
-    // ==================== РАЗДЕЛ: СООБЩЕСТВА ====================
+    // ==================== СООБЩЕСТВА (ПОИСК И ПУБЛИКАЦИЯ ОТ ГРУППЫ) ====================
     async function showCommunitiesList() {
       communityViewList.style.display = 'block';
       communityViewSingle.style.display = 'none';
-      communitiesListContainer.innerHTML = 'Загрузка...';
+      await loadAllCommunitiesCache();
+      renderCommunitiesList(allCommunitiesCache);
+    }
 
-      const { data: comms, error } = await window.sbClient.from('communities').select('*').order('id', { ascending: false });
-      if (error) return communitiesListContainer.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!comms || comms.length === 0) return communitiesListContainer.innerHTML = '<p>Пока нет сообществ. Создайте первое!</p>';
-
+    function renderCommunitiesList(comms) {
+      if (!comms || comms.length === 0) {
+        communitiesListContainer.innerHTML = '<p>Сообществ не найдено.</p>';
+        return;
+      }
       communitiesListContainer.innerHTML = comms.map(c => `
         <div class="community-card">
           <div class="community-info" onclick="openCommunity(${c.id})">
@@ -1659,35 +1280,38 @@
       `).join('');
     }
 
-    btnCreateCommunity.addEventListener('click', async () => {
+    searchCommunityInput.addEventListener('input', () => {
+      const q = searchCommunityInput.value.toLowerCase().trim();
+      const filtered = allCommunitiesCache.filter(c => c.title && c.title.toLowerCase().includes(q));
+      renderCommunitiesList(filtered);
+    });
+
+    btnCreateCommunity.onclick = async () => {
       const title = newCommTitle.value.trim();
       const desc = newCommDesc.value.trim();
       if (!title || !activeUser) return alert('Введите название сообщества!');
 
-      const { data: comm, error } = await window.sbClient.from('communities').insert([{
+      const { data: comm } = await window.sbClient.from('communities').insert([{
         title, description: desc, creator_id: activeUser.id
       }]).select().single();
-
-      if (error) return alert('Ошибка создания сообщества: ' + error.message);
 
       await window.sbClient.from('community_members').insert([{
         community_id: comm.id, user_id: activeUser.id, role: 'creator'
       }]);
 
-      newCommTitle.value = '';
-      newCommDesc.value = '';
+      newCommTitle.value = ''; newCommDesc.value = '';
+      await loadAllCommunitiesCache();
       openCommunity(comm.id);
-    });
+    };
 
-    btnBackToCommunities.addEventListener('click', () => {
+    btnBackToCommunities.onclick = () => {
       localStorage.removeItem('bubble_current_comm_id');
       showCommunitiesList();
-    });
+    };
 
     async function openCommunity(commId) {
       currentCommunityId = commId;
       localStorage.setItem('bubble_current_comm_id', commId);
-
       communityViewList.style.display = 'none';
       communityViewSingle.style.display = 'block';
       urlInput.value = `https://bubble.net/community/${commId}`;
@@ -1702,236 +1326,66 @@
       currentCommunityRole = null;
       if (activeUser) {
         const { data: member } = await window.sbClient
-          .from('community_members')
-          .select('role')
-          .eq('community_id', commId)
-          .eq('user_id', activeUser.id)
-          .maybeSingle();
-
+          .from('community_members').select('role').eq('community_id', commId).eq('user_id', activeUser.id).maybeSingle();
         if (member) currentCommunityRole = member.role;
       }
 
       if (!currentCommunityRole) {
         btnCommJoinDirect.style.display = 'inline-block';
-        btnCommJoinDirect.innerText = '+ Вступить';
-        btnCommOpenSettings.style.display = 'none';
         commUserRole.innerText = 'Вы не состоите в сообществе';
+        commCreatePostBox.style.display = 'none';
       } else {
         btnCommJoinDirect.style.display = 'none';
-        btnCommOpenSettings.style.display = 'inline-block';
         const roleNames = { creator: 'Создатель 👑', admin: 'Администратор 🛡️', moderator: 'Модератор 🔨', member: 'Участник 👤' };
         commUserRole.innerText = 'Ваша роль: ' + (roleNames[currentCommunityRole] || 'Участник');
+        commCreatePostBox.style.display = (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') ? 'block' : 'none';
       }
 
-      // Доступ к добавлению музыки в паблик
-      if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
-        commMusicControls.style.display = 'block';
-      } else {
-        commMusicControls.style.display = 'none';
-      }
-
-      loadCommunityMusic(commId);
       loadCommunityPosts(commId);
     }
 
-    // Вступление для не-участников
-    btnCommJoinDirect.addEventListener('click', async () => {
+    btnCommJoinDirect.onclick = async () => {
       if (!activeUser || !currentCommunityId) return;
       await window.sbClient.from('community_members').insert([{
         community_id: currentCommunityId, user_id: activeUser.id, role: 'member'
       }]);
       openCommunity(currentCommunityId);
-    });
-
-    // Открытие модального окна настроек сообщества
-    btnCommOpenSettings.addEventListener('click', () => {
-      if (!currentCommunityId) return;
-      const isPrivileged = currentCommunityRole === 'creator' || currentCommunityRole === 'admin';
-      commSettingsAvatarBox.style.display = isPrivileged ? 'block' : 'none';
-      commSettingsRolesBox.style.display = isPrivileged ? 'block' : 'none';
-
-      if (currentCommunityRole === 'creator') {
-        btnModalCommDanger.innerText = 'Удалить всё сообщество';
-      } else {
-        btnModalCommDanger.innerText = 'Покинуть сообщество';
-      }
-
-      if (isPrivileged) {
-        loadCommunityMembers(currentCommunityId, currentCommunityRole);
-      }
-      commSettingsModal.style.display = 'flex';
-    });
-
-    modalCommAvatarFile.addEventListener('change', async () => {
-      const file = modalCommAvatarFile.files[0];
-      if (!file || !currentCommunityId) return;
-
-      modalCommAvatarStatus.innerText = 'Загрузка...';
-      const fileExt = file.name.split('.').pop();
-      const fileName = `comm_${currentCommunityId}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
-      if (uploadError) {
-        modalCommAvatarStatus.innerText = '';
-        return alert('Ошибка загрузки: ' + uploadError.message);
-      }
-
-      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
-      await window.sbClient.from('communities').update({ avatar_url: publicUrl }).eq('id', currentCommunityId);
-
-      modalCommAvatarStatus.innerText = 'Готово!';
-      commAvatar.src = publicUrl;
-      modalCommAvatarFile.value = '';
-    });
-
-    btnModalCommDanger.addEventListener('click', async () => {
-      if (!confirm('Вы уверены?')) return;
-      if (currentCommunityRole === 'creator') {
-        await window.sbClient.from('communities').delete().eq('id', currentCommunityId);
-        commSettingsModal.style.display = 'none';
-        showCommunitiesList();
-      } else {
-        await window.sbClient.from('community_members').delete().match({
-          community_id: currentCommunityId, user_id: activeUser.id
-        });
-        commSettingsModal.style.display = 'none';
-        openCommunity(currentCommunityId);
-      }
-    });
-
-    async function loadCommunityMembers(commId, myRole) {
-      modalCommMembersList.innerHTML = 'Загрузка участников...';
-      const { data: members } = await window.sbClient.from('community_members').select('*').eq('community_id', commId);
-
-      modalCommMembersList.innerHTML = (members || []).map(m => {
-        const prof = profilesMap[m.user_id] || { username: 'Пользователь' };
-        const isSelf = m.user_id === activeUser.id;
-        const canManage = (myRole === 'creator' && !isSelf) || (myRole === 'admin' && m.role !== 'creator' && m.role !== 'admin' && !isSelf);
-
-        return `
-          <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px dotted #ccc;">
-            <span><b>${escapeHtml(prof.username)}</b> (${m.role})</span>
-            ${canManage ? `
-              <select onchange="changeMemberRole(${m.id}, this.value)" style="font-size:10px;">
-                <option value="">Сменить роль...</option>
-                ${myRole === 'creator' ? '<option value="admin">Сделать Админом</option>' : ''}
-                <option value="moderator">Сделать Модератором</option>
-                <option value="member">Сделать Участником</option>
-                <option value="kick">Исключить</option>
-              </select>
-            ` : ''}
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.changeMemberRole = async function(memberRecordId, action) {
-      if (!action) return;
-      if (action === 'kick') {
-        await window.sbClient.from('community_members').delete().eq('id', memberRecordId);
-      } else {
-        await window.sbClient.from('community_members').update({ role: action }).eq('id', memberRecordId);
-      }
-      loadCommunityMembers(currentCommunityId, currentCommunityRole);
-      openCommunity(currentCommunityId);
     };
 
-    async function loadCommunityMusic(commId) {
-      commTracksList.innerHTML = 'Загрузка...';
-      const { data: rows } = await window.sbClient
-        .from('community_tracks')
-        .select('track_id, tracks(*)')
-        .eq('community_id', commId);
-
-      const tracks = (rows || []).map(r => r.tracks).filter(Boolean);
-      if (tracks.length === 0) {
-        commTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В сообществе пока нет музыки.</div>';
-        return;
-      }
-
-      commTracksList.innerHTML = tracks.map((t, idx) => `
-        <div class="track-list-item">
-          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка сообщества')">
-            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
-          </div>
-          <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>
-        </div>
-      `).join('');
-    }
-
-    btnOpenCommMusicModal.addEventListener('click', async () => {
-      const { data: userTracks } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', activeUser.id);
-      const myMusic = (userTracks || []).map(u => u.tracks).filter(Boolean);
-      if (myMusic.length === 0) return alert('Сначала добавьте музыку в свой профиль!');
-
-      commMusicModalList.innerHTML = myMusic.map(t => `
-        <div class="track-list-item">
-          <div style="flex:1;"><b>${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}</div>
-          <button onclick="addTrackToCommDirect(${t.id})" style="font-size:10px;">Прикрепить</button>
-        </div>
-      `).join('');
-
-      commMusicModal.style.display = 'flex';
-    });
-
-    window.addTrackToCommDirect = async function(trackId) {
-      const { error } = await window.sbClient.from('community_tracks').insert([{
-        community_id: currentCommunityId, track_id: trackId
-      }]);
-      commMusicModal.style.display = 'none';
-      if (error && error.code !== '23505') alert('Ошибка добавления: ' + error.message);
-      else loadCommunityMusic(currentCommunityId);
-    };
-
-    btnCreateCommPost.addEventListener('click', async () => {
+    // Публикация от имени сообщества
+    btnCreateCommPost.onclick = async () => {
       if (!activeUser || !currentCommunityId) return;
-      if (!currentCommunityRole) return alert('Вступите в сообщество, чтобы писать на стене!');
-
       const text = commPostContent.value.trim();
       const file = commPostImage.files[0];
       if (!text && !file) return alert('Введите текст или прикрепите фото!');
 
       btnCreateCommPost.disabled = true;
       let imageUrl = null;
-
       if (file) {
         const fileExt = file.name.split('.').pop();
         const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
-        if (!uploadError) {
-          const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
-          imageUrl = publicUrl;
-        }
+        const { error } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (!error) imageUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
       }
 
-      const myProf = profilesMap[activeUser.id] || {};
-      const { data: insertedPost } = await window.sbClient.from('posts').insert([{
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        user_id: activeUser.id,
-        community_id: currentCommunityId,
-        image_url: imageUrl,
-        likes_count: 0
-      }]).select().single();
+      const comm = communitiesMap[currentCommunityId] || {};
+      await window.sbClient.from('posts').insert([{
+        author: comm.title || 'Сообщество', content: text,
+        user_id: activeUser.id, community_id: currentCommunityId, image_url: imageUrl, likes_count: 0
+      }]);
 
       btnCreateCommPost.disabled = false;
-      commPostContent.value = '';
-      commPostImage.value = '';
-      if (insertedPost) await parseMentions(text, insertedPost.id);
+      commPostContent.value = ''; commPostImage.value = '';
       loadCommunityPosts(currentCommunityId);
-    });
+    };
 
     async function loadCommunityPosts(commId) {
       commPostsList.innerHTML = 'Загрузка...';
-      const { data: posts, error } = await window.sbClient
-        .from('posts')
-        .select('*')
-        .eq('community_id', commId)
-        .order('id', { ascending: false });
-
-      if (error) return commPostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return commPostsList.innerHTML = '<p>В сообществе пока нет записей.</p>';
-
+      const { data: posts } = await window.sbClient.from('posts').select('*').eq('community_id', commId).order('id', { ascending: false });
+      if (!posts || posts.length === 0) {
+        commPostsList.innerHTML = '<p>В сообществе пока нет записей.</p>';
+        return;
+      }
       const postIds = posts.map(p => p.id);
       const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
       const commentsByPost = {};
@@ -1944,124 +1398,435 @@
       commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
     }
 
-    // ==================== РАЗДЕЛ: ДРУЗЬЯ ====================
-    async function loadFriendsManager() {
-      await loadAllProfiles();
-      await loadFriends();
+    // ==================== МЕССЕНДЖЕР (ЛИЧНЫЕ, ГРУППЫ, ЧАТЫ СООБЩЕСТВ) ====================
+    async function loadConversationsList() {
+      if (!activeUser) return;
+      chatsListContainer.innerHTML = 'Загрузка...';
 
-      countIncoming.innerText = pendingIncomingIds.size;
-      countAccepted.innerText = userFriendIds.size;
-      countOutgoing.innerText = pendingOutgoingIds.size;
+      const { data: participations } = await window.sbClient
+        .from('conversation_participants').select('conversation_id').eq('user_id', activeUser.id);
+      const convIds = (participations || []).map(p => p.conversation_id);
 
-      if (pendingIncomingIds.size === 0) {
-        listIncomingReqs.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Нет входящих заявок.</div>';
-      } else {
-        listIncomingReqs.innerHTML = Array.from(pendingIncomingIds).map(userId => {
-          const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
-          return `
-            <div class="friend-row-card">
-              <div class="friend-row-info" onclick="goToProfile('${userId}')">
-                <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
-                <b>${escapeHtml(prof.username)}</b>
-              </div>
-              <div style="display:flex; gap:4px;">
-                <button onclick="handleFriendRequestInManager('${userId}', true)">Принять</button>
-                <button onclick="handleFriendRequestInManager('${userId}', false)" style="color:#a00;">Отклонить</button>
-              </div>
-            </div>
-          `;
-        }).join('');
+      if (convIds.length === 0) {
+        chatsListContainer.innerHTML = '<div style="font-size:11px; padding:10px; color:#777;">Нет диалогов. Напишите другу или вступите в чат!</div>';
+        return;
       }
 
-      if (userFriendIds.size === 0) {
-        listAcceptedFriends.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Список друзей пуст.</div>';
-      } else {
-        listAcceptedFriends.innerHTML = Array.from(userFriendIds).map(userId => {
-          const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
-          return `
-            <div class="friend-row-card">
-              <div class="friend-row-info" onclick="goToProfile('${userId}')">
-                <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
-                <b>${escapeHtml(prof.username)}</b>
-              </div>
-              <div>
-                <button onclick="removeFriendFromManager('${userId}')" style="color:#a00; font-size:10px;">Удалить</button>
-              </div>
-            </div>
-          `;
-        }).join('');
+      const { data: convs } = await window.sbClient.from('conversations').select('*').in('id', convIds).order('id', { ascending: false });
+      chatsListContainer.innerHTML = (convs || []).map(c => {
+        let title = c.title || 'Диалог';
+        let avatar = DEFAULT_AVATAR;
+
+        if (c.type === 'community' && c.community_id && communitiesMap[c.community_id]) {
+          title = `🌐 ${communitiesMap[c.community_id].title}`;
+          avatar = communitiesMap[c.community_id].avatar_url || DEFAULT_AVATAR;
+        } else if (c.type === 'group') {
+          title = `👥 ${c.title || 'Групповой чат'}`;
+        }
+        return `
+          <div class="messenger-chat-item ${activeConversationId === c.id ? 'active' : ''}" onclick="openConversation(${c.id})">
+            <img src="${avatar}" class="avatar-mini" alt="chat">
+            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><b>${escapeHtml(title)}</b></div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function openConversation(convId) {
+      activeConversationId = convId;
+      chatHeaderBar.style.display = 'flex';
+      chatInputBar.style.display = 'flex';
+      chatMessagesList.innerHTML = 'Загрузка сообщений...';
+
+      const { data: conv } = await window.sbClient.from('conversations').select('*').eq('id', convId).single();
+      let title = conv.title || 'Беседа';
+      btnCallDirectUser.style.display = 'none';
+
+      if (conv.type === 'direct') {
+        const { data: parts } = await window.sbClient.from('conversation_participants').select('user_id').eq('conversation_id', convId);
+        const partnerId = (parts || []).map(p => p.user_id).find(id => id !== activeUser.id);
+        if (partnerId) {
+          title = profilesMap[partnerId]?.username || 'Собеседник';
+          btnCallDirectUser.style.display = 'inline-block';
+          btnCallDirectUser.onclick = () => startAudioCall(partnerId);
+        }
+      } else if (conv.type === 'community' && conv.community_id) {
+        title = `Чат группы: ${communitiesMap[conv.community_id]?.title || ''}`;
+      }
+      activeChatTitle.innerText = title;
+
+      const { data: msgs } = await window.sbClient.from('messages').select('*').eq('conversation_id', convId).order('id', { ascending: true });
+      chatMessagesList.innerHTML = '';
+      (msgs || []).forEach(m => appendMessageToDOM(m));
+      chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
+    }
+
+    function appendMessageToDOM(msg) {
+      const isMine = activeUser && msg.sender_id === activeUser.id;
+      const senderNick = profilesMap[msg.sender_id]?.username || 'Пользователь';
+      const el = document.createElement('div');
+      el.className = `msg-bubble ${isMine ? 'msg-out' : 'msg-in'}`;
+      el.innerHTML = `
+        <div style="font-weight:bold; font-size:9px; color:#555; margin-bottom:2px;">${escapeHtml(senderNick)}</div>
+        <div>${escapeHtml(msg.content)}</div>
+      `;
+      chatMessagesList.appendChild(el);
+      chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
+    }
+
+    async function sendChatMessage() {
+      const text = chatMsgInput.value.trim();
+      if (!text || !activeConversationId || !activeUser) return;
+      chatMsgInput.value = '';
+      await window.sbClient.from('messages').insert([{
+        conversation_id: activeConversationId, sender_id: activeUser.id, content: text
+      }]);
+    }
+
+    btnSendChatMessage.onclick = sendChatMessage;
+    chatMsgInput.onkeydown = (e) => { if (e.key === 'Enter') sendChatMessage(); };
+
+    // Создание/переход в личный диалог
+    async function getOrCreateDirectChat(targetUserId) {
+      if (!activeUser || targetUserId === activeUser.id) return;
+      const { data: myConvs } = await window.sbClient.from('conversation_participants').select('conversation_id').eq('user_id', activeUser.id);
+      const myConvIds = (myConvs || []).map(c => c.conversation_id);
+
+      if (myConvIds.length > 0) {
+        const { data: directConvs } = await window.sbClient
+          .from('conversations').select('id').in('id', myConvIds).eq('type', 'direct');
+        const directIds = (directConvs || []).map(c => c.id);
+
+        if (directIds.length > 0) {
+          const { data: common } = await window.sbClient
+            .from('conversation_participants').select('conversation_id')
+            .in('conversation_id', directIds).eq('user_id', targetUserId).maybeSingle();
+          if (common) {
+            switchTab('messenger');
+            openConversation(common.conversation_id);
+            return;
+          }
+        }
       }
 
-      if (pendingOutgoingIds.size === 0) {
-        listOutgoingReqs.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Нет отправленных заявок.</div>';
-      } else {
-        listOutgoingReqs.innerHTML = Array.from(pendingOutgoingIds).map(userId => {
-          const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
-          return `
-            <div class="friend-row-card">
-              <div class="friend-row-info" onclick="goToProfile('${userId}')">
-                <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
-                <span><b>${escapeHtml(prof.username)}</b> (ожидание ответа)</span>
-              </div>
-              <div>
-                <button onclick="cancelOutgoingRequest('${userId}')" style="font-size:10px;">Отменить заявку</button>
-              </div>
-            </div>
-          `;
-        }).join('');
+      const { data: newConv } = await window.sbClient.from('conversations').insert([{ type: 'direct' }]).select().single();
+      await window.sbClient.from('conversation_participants').insert([
+        { conversation_id: newConv.id, user_id: activeUser.id },
+        { conversation_id: newConv.id, user_id: targetUserId }
+      ]);
+      switchTab('messenger');
+      openConversation(newConv.id);
+    }
+
+    // Чат сообщества
+    btnOpenCommChat.onclick = async () => {
+      if (!activeUser || !currentCommunityId) return;
+      const { data: existing } = await window.sbClient
+        .from('conversations').select('id').eq('type', 'community').eq('community_id', currentCommunityId).maybeSingle();
+
+      let convId = existing?.id;
+      if (!convId) {
+        const { data: newConv } = await window.sbClient.from('conversations').insert([{
+          type: 'community', community_id: currentCommunityId
+        }]).select().single();
+        convId = newConv.id;
+      }
+
+      await window.sbClient.from('conversation_participants').upsert([
+        { conversation_id: convId, user_id: activeUser.id }
+      ], { onConflict: 'conversation_id,user_id' });
+
+      switchTab('messenger');
+      openConversation(convId);
+    };
+
+    // Создание беседы
+    btnOpenCreateGroupModal.onclick = () => {
+      groupChatTitle.value = '';
+      groupFriendsChecklist.innerHTML = Array.from(userFriendIds).map(fId => `
+        <label style="display:block; margin-bottom:2px;">
+          <input type="checkbox" value="${fId}"> ${escapeHtml(profilesMap[fId]?.username || 'Друг')}
+        </label>
+      `).join('') || 'У вас пока нет друзей для добавления.';
+      createGroupModal.style.display = 'flex';
+    };
+
+    btnSubmitCreateGroup.onclick = async () => {
+      const title = groupChatTitle.value.trim() || 'Беседа';
+      const checkedBoxes = groupFriendsChecklist.querySelectorAll('input[type="checkbox"]:checked');
+      const selectedUserIds = Array.from(checkedBoxes).map(b => b.value);
+
+      const { data: newConv } = await window.sbClient.from('conversations').insert([{
+        type: 'group', title
+      }]).select().single();
+
+      const participants = [{ conversation_id: newConv.id, user_id: activeUser.id }];
+      selectedUserIds.forEach(uId => participants.push({ conversation_id: newConv.id, user_id: uId }));
+      await window.sbClient.from('conversation_participants').insert(participants);
+
+      createGroupModal.style.display = 'none';
+      switchTab('messenger');
+      openConversation(newConv.id);
+    };
+
+    // ==================== ЗВОНКИ (WebRTC P2P AUDIO) ====================
+    async function startAudioCall(targetUserId) {
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      } catch (err) {
+        return alert('Не удалось получить доступ к микрофону: ' + err.message);
+      }
+
+      peerConnection = new RTCPeerConnection(rtcConfig);
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+
+      peerConnection.ontrack = (event) => {
+        const audioEl = new Audio();
+        audioEl.srcObject = event.streams[0];
+        audioEl.play();
+      };
+
+      const offer = await peerConnection.createOffer();
+      await peerConnection.setLocalDescription(offer);
+
+      const { data: callRow } = await window.sbClient.from('calls').insert([{
+        caller_id: activeUser.id, callee_id: targetUserId, status: 'ringing',
+        offer: JSON.stringify(offer)
+      }]).select().single();
+
+      activeCallRecord = callRow;
+      showCallWindow('Исходящий звонок', targetUserId, 'Вызов...', false);
+    }
+
+    async function handleCallRealtimeEvent(payload) {
+      if (!activeUser) return;
+      const call = payload.new;
+
+      // Входящий звонок мне
+      if (payload.eventType === 'INSERT' && call.callee_id === activeUser.id && call.status === 'ringing') {
+        activeCallRecord = call;
+        showCallWindow('Входящий звонок', call.caller_id, 'Вам звонят...', true);
+      }
+
+      // Ответ на мой исходящий звонок
+      if (payload.eventType === 'UPDATE' && activeCallRecord && call.id === activeCallRecord.id) {
+        if (call.status === 'accepted' && call.answer && peerConnection) {
+          await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(call.answer)));
+          callStatusText.innerText = 'Соединение установлено (разговор)';
+        } else if (call.status === 'rejected' || call.status === 'ended') {
+          endCurrentCall(false);
+        }
       }
     }
 
-    window.handleFriendRequestInManager = async function(senderId, accept) {
-      if (!activeUser) return;
-      if (accept) {
-        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: senderId, friend_id: activeUser.id });
-        await createNotification(senderId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
-      } else {
-        await window.sbClient.from('friends').delete().match({ user_id: senderId, friend_id: activeUser.id, status: 'pending' });
+    function showCallWindow(title, targetUserId, status, showAccept) {
+      callModalTitle.innerText = title;
+      callUserAvatar.src = profilesMap[targetUserId]?.avatar_url || DEFAULT_AVATAR;
+      callUserName.innerText = profilesMap[targetUserId]?.username || 'Пользователь';
+      callStatusText.innerText = status;
+      btnAcceptCall.style.display = showAccept ? 'inline-block' : 'none';
+      callModal.style.display = 'flex';
+    }
+
+    btnAcceptCall.onclick = async () => {
+      if (!activeCallRecord) return;
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+      } catch (err) {
+        return alert('Нет доступа к микрофону: ' + err.message);
       }
-      await loadFriendsManager();
+
+      peerConnection = new RTCPeerConnection(rtcConfig);
+      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
+      peerConnection.ontrack = (event) => {
+        const audioEl = new Audio();
+        audioEl.srcObject = event.streams[0];
+        audioEl.play();
+      };
+
+      await peerConnection.setRemoteDescription(new RTCSessionDescription(JSON.parse(activeCallRecord.offer)));
+      const answer = await peerConnection.createAnswer();
+      await peerConnection.setLocalDescription(answer);
+
+      await window.sbClient.from('calls').update({
+        status: 'accepted', answer: JSON.stringify(answer)
+      }).eq('id', activeCallRecord.id);
+
+      btnAcceptCall.style.display = 'none';
+      callStatusText.innerText = 'Соединение установлено (разговор)';
     };
 
-    window.cancelOutgoingRequest = async function(friendId) {
+    btnRejectCall.onclick = () => endCurrentCall(true);
+
+    async function endCurrentCall(notifyServer = true) {
+      if (notifyServer && activeCallRecord) {
+        await window.sbClient.from('calls').update({ status: 'ended' }).eq('id', activeCallRecord.id);
+      }
+      if (localStream) {
+        localStream.getTracks().forEach(t => t.stop());
+        localStream = null;
+      }
+      if (peerConnection) {
+        peerConnection.close();
+        peerConnection = null;
+      }
+      activeCallRecord = null;
+      callModal.style.display = 'none';
+    }
+
+    // ==================== ПРОФИЛЬ ====================
+    async function openUserProfile(userId) {
+      await loadAllProfiles();
+      await loadFriends();
+      const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+
+      profileNick.innerText = prof.username;
+      profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
+      urlInput.value = `https://bubble.net/user/${prof.username}`;
+
+      if (activeUser && userId !== activeUser.id) {
+        btnFriendAction.style.display = 'inline-block';
+        btnProfileSendMsg.style.display = 'inline-block';
+        btnProfileCallUser.style.display = 'inline-block';
+
+        btnProfileSendMsg.onclick = () => getOrCreateDirectChat(userId);
+        btnProfileCallUser.onclick = () => startAudioCall(userId);
+
+        btnFriendAction.innerText = userFriendIds.has(userId) ? '✓ В друзьях (Удалить)' : (pendingOutgoingIds.has(userId) ? '⏳ Заявка отправлена' : '+ Добавить в друзья');
+        profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
+      } else {
+        btnFriendAction.style.display = 'none';
+        btnProfileSendMsg.style.display = 'none';
+        btnProfileCallUser.style.display = 'none';
+        profilePostsLegend.innerText = 'Мои публикации';
+      }
+
+      loadProfileFriends(userId);
+      loadUserMusic(userId);
+
+      const { data: posts } = await window.sbClient.from('posts').select('*').eq('user_id', userId).is('community_id', null).order('id', { ascending: false });
+      profilePostsList.innerHTML = (!posts || posts.length === 0) ? '<p>Публикаций пока нет.</p>' : '';
+      if (posts && posts.length > 0) {
+        const postIds = posts.map(p => p.id);
+        const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+        const commentsByPost = {};
+        (comments || []).forEach(c => {
+          if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+          commentsByPost[c.post_id].push(c);
+        });
+        profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
+      }
+    }
+
+    async function loadProfileFriends(userId) {
+      const { data: fRows } = await window.sbClient.from('friends').select('*').eq('status', 'accepted').or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+      const confirmedIds = (fRows || []).map(r => r.user_id === userId ? r.friend_id : r.user_id);
+      friendsBlockLegend.innerText = `👥 Друзья (${confirmedIds.length})`;
+      profileFriendsList.innerHTML = confirmedIds.length === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
+        confirmedIds.map(fId => `
+          <div class="friend-card" onclick="goToProfile('${fId}')">
+            <img src="${profilesMap[fId]?.avatar_url || DEFAULT_AVATAR}" alt="friend">
+            <div class="friend-name">${escapeHtml(profilesMap[fId]?.username || 'Пользователь')}</div>
+          </div>
+        `).join('');
+    }
+
+    btnFriendAction.onclick = async () => {
+      if (!activeUser || !viewingUserId) return;
+      if (userFriendIds.has(viewingUserId)) {
+        if (!confirm('Удалить из друзей?')) return;
+        await window.sbClient.from('friends').delete().or(`and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`);
+      } else if (pendingOutgoingIds.has(viewingUserId)) {
+        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
+      } else {
+        await window.sbClient.from('friends').insert([{ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' }]);
+        await createNotification(viewingUserId, 'friend_request', 'хочет добавить вас в друзья', null);
+      }
+      await loadFriends();
+      openUserProfile(viewingUserId);
+    };
+
+    // ==================== МУЗЫКА И ПЛЕЕР ====================
+    async function loadAllGlobalMusic() {
+      allTracksList.innerHTML = 'Загрузка...';
+      const { data: tracks } = await window.sbClient.from('tracks').select('*').order('id', { ascending: false });
+      if (!tracks || tracks.length === 0) { allTracksList.innerHTML = '<p>Музыки пока нет.</p>'; return; }
+      allTracksList.innerHTML = tracks.map((t, idx) => `
+        <div class="track-list-item">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека Bubble')">
+            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+          </div>
+          <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>
+        </div>
+      `).join('');
+    }
+
+    async function loadUserMusic(userId) {
+      profileTracksList.innerHTML = 'Загрузка...';
+      const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', userId);
+      const tracks = (data || []).map(d => d.tracks).filter(Boolean);
+      profileTracksList.innerHTML = tracks.length === 0 ? '<div style="font-size:11px; color:#666;">Музыка не добавлена.</div>' :
+        tracks.map((t, idx) => `
+          <div class="track-list-item">
+            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка профиля')">
+              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+            </div>
+            ${userId === activeUser?.id ? `<button onclick="removeTrackFromProfile(${t.id})" style="font-size:10px; color:#a00;">×</button>` : `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>`}
+          </div>
+        `).join('');
+    }
+
+    window.addTrackToMyLibrary = async (tId) => {
       if (!activeUser) return;
-      await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: friendId, status: 'pending' });
-      await loadFriendsManager();
+      await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: tId }]);
+      alert('Трек добавлен в ваш профиль!');
+    };
+    window.removeTrackFromProfile = async (tId) => {
+      if (!confirm('Удалить трек?')) return;
+      await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: tId });
+      loadUserMusic(activeUser.id);
     };
 
-    window.removeFriendFromManager = async function(friendId) {
-      if (!confirm('Удалить пользователя из друзей?')) return;
-      await window.sbClient.from('friends').delete().or(
-        `and(user_id.eq.${activeUser.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${activeUser.id})`
-      );
-      await loadFriendsManager();
+    window.playQueue = (tracks, startIndex, name = 'Список') => {
+      playlistQueue = tracks; currentTrackIndex = startIndex;
+      currentPlaylistDisplay.innerText = `${name} (${tracks.length} треков)`;
+      playCurrentTrack();
+    };
+    function playCurrentTrack() {
+      if (currentTrackIndex < 0 || currentTrackIndex >= playlistQueue.length) return;
+      const t = playlistQueue[currentTrackIndex];
+      audioPlayer.src = t.audio_url; audioPlayer.play();
+      btnPlayPause.innerText = '⏸'; currentTrackDisplay.innerText = `🔊 ${t.artist} — ${t.title}`;
+    }
+    btnPlayPause.onclick = () => {
+      if (!audioPlayer.src) return;
+      if (audioPlayer.paused) { audioPlayer.play(); btnPlayPause.innerText = '⏸'; }
+      else { audioPlayer.pause(); btnPlayPause.innerText = '▶'; }
+    };
+    btnNextTrack.onclick = () => { currentTrackIndex = (currentTrackIndex + 1) % playlistQueue.length; playCurrentTrack(); };
+    btnPrevTrack.onclick = () => { currentTrackIndex = (currentTrackIndex - 1 + playlistQueue.length) % playlistQueue.length; playCurrentTrack(); };
+    btnLoopTrack.onclick = () => { loopMode = (loopMode === 'track' ? 'none' : 'track'); btnLoopTrack.classList.toggle('loop-active', loopMode === 'track'); btnLoopAll.classList.remove('loop-active'); };
+    btnLoopAll.onclick = () => { loopMode = (loopMode === 'all' ? 'none' : 'all'); btnLoopAll.classList.toggle('loop-active', loopMode === 'all'); btnLoopTrack.classList.remove('loop-active'); };
+    audioPlayer.onended = () => {
+      if (loopMode === 'track') { audioPlayer.currentTime = 0; audioPlayer.play(); }
+      else if (loopMode === 'all' || currentTrackIndex + 1 < playlistQueue.length) {
+        currentTrackIndex = (currentTrackIndex + 1) % playlistQueue.length; playCurrentTrack();
+      }
     };
 
-    // ==================== РАЗДЕЛ: УВЕДОМЛЕНИЯ ====================
+    // ==================== УВЕДОМЛЕНИЯ И ДРУЗЬЯ ====================
     async function loadNotifications() {
       if (!activeUser) return;
-      notificationsList.innerHTML = 'Загрузка...';
-
-      const { data: notifs, error } = await window.sbClient
-        .from('notifications')
-        .select('*')
-        .eq('user_id', activeUser.id)
-        .order('id', { ascending: false })
-        .limit(40);
-
-      if (error) return notificationsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!notifs || notifs.length === 0) return notificationsList.innerHTML = '<p>Уведомлений пока нет.</p>';
-
-      notificationsList.innerHTML = notifs.map(n => {
-        const isFriendReq = n.type === 'friend_request';
-        return `
+      const { data: notifs } = await window.sbClient.from('notifications').select('*').eq('user_id', activeUser.id).order('id', { ascending: false });
+      notificationsList.innerHTML = (!notifs || notifs.length === 0) ? '<p>Уведомлений нет.</p>' :
+        notifs.map(n => `
           <div class="notification-item" style="${n.is_read ? 'opacity:0.8;' : 'background:#fff8db; font-weight:bold; border-color:#d49b00;'}">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
               <div onclick="${n.post_id ? `openTargetPost(${n.post_id}, ${n.id})` : `goToProfile('${n.from_user_id}')`}" style="cursor:pointer; flex:1;">
                 <b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}
-                <div style="font-size:9px; color:#888; font-weight:normal;">${new Date(n.created_at).toLocaleString()}</div>
+                <div style="font-size:9px; color:#888;">${new Date(n.created_at).toLocaleString()}</div>
               </div>
-              ${isFriendReq ? `
+              ${n.type === 'friend_request' ? `
                 <div style="display:flex; gap:4px;">
                   <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, true)" style="font-size:10px;">Принять</button>
                   <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, false)" style="font-size:10px; color:#a00;">Отклонить</button>
@@ -2069,18 +1834,17 @@
               ` : ''}
             </div>
           </div>
-        `;
-      }).join('');
+        `).join('');
     }
 
-    btnMarkAllRead.addEventListener('click', async () => {
+    btnMarkAllRead.onclick = async () => {
       if (!activeUser) return;
-      await window.sbClient.from('notifications').update({ is_read: true }).eq('user_id', activeUser.id).eq('is_read', false);
+      await window.sbClient.from('notifications').update({ is_read: true }).eq('user_id', activeUser.id);
       await updateUnreadBadge();
       loadNotifications();
-    });
+    };
 
-    window.respondFriendRequest = async function(senderId, notifId, accept) {
+    window.respondFriendRequest = async (senderId, notifId, accept) => {
       if (!activeUser) return;
       if (accept) {
         await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: senderId, friend_id: activeUser.id });
@@ -2094,396 +1858,75 @@
       loadNotifications();
     };
 
-    window.openTargetPost = async function(postId, notifId) {
-      if (notifId && activeUser) {
-        await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
-        await updateUnreadBadge();
-      }
-      if (!postId) return switchTab('notifications');
-
+    window.openTargetPost = async (postId, notifId) => {
+      if (notifId && activeUser) await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
       switchTab('feed');
       setTimeout(() => {
-        const postEl = document.getElementById(`post-feed-${postId}`);
-        if (postEl) {
-          postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          postEl.classList.add('highlight');
-          setTimeout(() => postEl.classList.remove('highlight'), 2500);
-
-          const commentsBox = document.getElementById(`comments-box-feed-${postId}`);
-          if (commentsBox && !commentsBox.classList.contains('open')) {
-            commentsBox.classList.add('open');
-          }
-        }
+        const el = document.getElementById(`post-feed-${postId}`);
+        if (el) { el.scrollIntoView({ behavior: 'smooth', block: 'center' }); el.classList.add('highlight'); }
       }, 500);
     };
 
-    // ==================== ПРОФИЛЬ, МУЗЫКА И ПЛЕЙЛИСТЫ ====================
-    btnProfileOpenSettings.addEventListener('click', () => {
-      modalAvatarStatus.innerText = '';
-      profileSettingsModal.style.display = 'flex';
-    });
-
-    modalAvatarFile.addEventListener('change', async () => {
-      const file = modalAvatarFile.files[0];
-      if (!file || !activeUser) return;
-
-      modalAvatarStatus.innerText = 'Загрузка...';
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
-      if (uploadError) {
-        modalAvatarStatus.innerText = '';
-        return alert('Ошибка загрузки: ' + uploadError.message);
-      }
-
-      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
-      await window.sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
-
-      modalAvatarStatus.innerText = 'Готово!';
-      profileAvatar.src = publicUrl;
-      sideAvatar.src = publicUrl;
-      modalAvatarFile.value = '';
-      await loadAllProfiles();
-    });
-
-    async function loadProfileFriends(userId) {
-      profileFriendsList.innerHTML = 'Загрузка...';
-      try {
-        const { data: fRows } = await window.sbClient
-          .from('friends')
-          .select('*')
-          .eq('status', 'accepted')
-          .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
-
-        const confirmedIds = (fRows || []).map(r => r.user_id === userId ? r.friend_id : r.user_id);
-        friendsBlockLegend.innerText = `👥 Друзья (${confirmedIds.length})`;
-
-        if (confirmedIds.length === 0) {
-          profileFriendsList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Список друзей пуст.</div>';
-          return;
-        }
-
-        profileFriendsList.innerHTML = confirmedIds.map(fId => {
-          const prof = profilesMap[fId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
-          return `
-            <div class="friend-card" onclick="goToProfile('${fId}')" title="${escapeHtml(prof.username)}">
-              <img src="${prof.avatar_url}" alt="friend">
-              <div class="friend-name">${escapeHtml(prof.username)}</div>
+    async function loadFriendsManager() {
+      await loadFriends();
+      countIncoming.innerText = pendingIncomingIds.size;
+      countAccepted.innerText = userFriendIds.size;
+      countOutgoing.innerText = pendingOutgoingIds.size;
+      listIncomingReqs.innerHTML = pendingIncomingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет входящих заявок.</div>' :
+        Array.from(pendingIncomingIds).map(uId => `
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+              <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
-          `;
-        }).join('');
-      } catch (e) {
-        profileFriendsList.innerHTML = '<div style="font-size:11px; color:red;">Ошибка загрузки друзей.</div>';
-      }
-    }
-
-    async function loadUserMusic(userId, activePlaylistId = null) {
-      profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
-
-      const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
-      playlistSelectContainer.innerHTML = `
-        <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
-        ${(playlists || []).map(pl => `
-          <button style="${activePlaylistId === pl.id ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', ${pl.id})">💿 ${escapeHtml(pl.title)}</button>
-        `).join('')}
-      `;
-
-      let tracks = [];
-      if (activePlaylistId) {
-        const { data } = await window.sbClient
-          .from('playlist_tracks')
-          .select('track_id, tracks(*)')
-          .eq('playlist_id', activePlaylistId);
-        tracks = (data || []).map(d => d.tracks).filter(Boolean);
-      } else {
-        const { data } = await window.sbClient
-          .from('user_tracks')
-          .select('track_id, tracks(*)')
-          .eq('user_id', userId);
-        tracks = (data || []).map(d => d.tracks).filter(Boolean);
-      }
-
-      if (tracks.length === 0) {
-        profileTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В этом списке пока нет аудиозаписей.</div>';
-        return;
-      }
-
-      const isMyProfile = activeUser && userId === activeUser.id;
-
-      let myPlaylists = [];
-      if (activeUser) {
-        const { data: myPl } = await window.sbClient.from('playlists').select('id, title').eq('user_id', activeUser.id);
-        myPlaylists = myPl || [];
-      }
-
-      profileTracksList.innerHTML = tracks.map((t, idx) => `
-        <div class="track-list-item">
-          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, '${activePlaylistId ? 'Плейлист' : 'Библиотека'}')">
-            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+            <div>
+              <button onclick="handleFriendRequestInManager('${uId}', true)">Принять</button>
+              <button onclick="handleFriendRequestInManager('${uId}', false)" style="color:#a00;">Отклонить</button>
+            </div>
           </div>
-          <div style="display:flex; gap:4px; align-items:center;">
-            ${!isMyProfile ? `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>` : ''}
-            ${(isMyProfile && myPlaylists.length > 0) ? `
-              <select onchange="addTrackToPlaylist(${t.id}, this.value); this.value='';" style="font-size:10px;">
-                <option value="">+ В плейлист...</option>
-                ${myPlaylists.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('')}
-              </select>
-            ` : ''}
-            ${isMyProfile ? `<button onclick="removeTrackFromProfile(${t.id}, ${activePlaylistId})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
+        `).join('');
+
+      listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
+        Array.from(userFriendIds).map(uId => `
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+              <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
+            </div>
+            <div><button onclick="removeFriendFromManager('${uId}')" style="color:#a00; font-size:10px;">Удалить</button></div>
           </div>
-        </div>
-      `).join('');
+        `).join('');
+
+      listOutgoingReqs.innerHTML = pendingOutgoingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет отправленных заявок.</div>' :
+        Array.from(pendingOutgoingIds).map(uId => `
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+              <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
+            </div>
+            <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить</button></div>
+          </div>
+        `).join('');
     }
 
-    btnCreatePlaylist.addEventListener('click', async () => {
-      const title = newPlaylistTitle.value.trim();
-      if (!title || !activeUser) return alert('Введите название плейлиста!');
-      await window.sbClient.from('playlists').insert([{ user_id: activeUser.id, title }]);
-      newPlaylistTitle.value = '';
-      loadUserMusic(activeUser.id);
-    });
-
-    window.addTrackToPlaylist = async function(trackId, playlistId) {
-      if (!playlistId || !activeUser) return;
-      const { error } = await window.sbClient.from('playlist_tracks').insert([{ playlist_id: playlistId, track_id: trackId }]);
-      if (error && error.code !== '23505') alert('Ошибка добавления: ' + error.message);
-      else alert('Трек успешно добавлен в плейлист!');
+    window.handleFriendRequestInManager = async (sId, accept) => {
+      if (accept) {
+        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: sId, friend_id: activeUser.id });
+        await createNotification(sId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
+      } else {
+        await window.sbClient.from('friends').delete().match({ user_id: sId, friend_id: activeUser.id, status: 'pending' });
+      }
+      loadFriendsManager();
     };
-
-    window.removeTrackFromProfile = async function(trackId, activePlaylistId) {
-      if (!confirm('Удалить трек?')) return;
-      if (activePlaylistId) {
-        await window.sbClient.from('playlist_tracks').delete().match({ playlist_id: activePlaylistId, track_id: trackId });
-      } else {
-        await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: trackId });
-      }
-      loadUserMusic(activeUser.id, activePlaylistId);
+    window.cancelOutgoingRequest = async (fId) => {
+      await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: fId, status: 'pending' });
+      loadFriendsManager();
     };
-
-    window.addTrackToMyLibrary = async function(trackId) {
-      if (!activeUser) return;
-      const { error } = await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackId }]);
-      if (error && error.code !== '23505') alert('Ошибка: ' + error.message);
-      else alert('Трек добавлен в ваш профиль!');
+    window.removeFriendFromManager = async (fId) => {
+      if (!confirm('Удалить пользователя из друзей?')) return;
+      await window.sbClient.from('friends').delete().or(`and(user_id.eq.${activeUser.id},friend_id.eq.${fId}),and(user_id.eq.${fId},friend_id.eq.${activeUser.id})`);
+      loadFriendsManager();
     };
-
-    async function openUserProfile(userId) {
-      await loadAllProfiles();
-      await loadFriends();
-      const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
-
-      profileNick.innerText = prof.username;
-      profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
-      urlInput.value = `https://bubble.net/user/${prof.username}`;
-
-      if (activeUser && userId !== activeUser.id) {
-        btnFriendAction.style.display = 'inline-block';
-        btnProfileOpenSettings.style.display = 'none';
-        if (userFriendIds.has(userId)) {
-          btnFriendAction.innerText = '✓ В друзьях (Удалить)';
-        } else if (pendingOutgoingIds.has(userId)) {
-          btnFriendAction.innerText = '⏳ Заявка отправлена (Отменить)';
-        } else if (pendingIncomingIds.has(userId)) {
-          btnFriendAction.innerText = '📩 Принять заявку';
-        } else {
-          btnFriendAction.innerText = '+ Добавить в друзья';
-        }
-        playlistCreateBlock.style.display = 'none';
-        profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
-      } else {
-        btnFriendAction.style.display = 'none';
-        btnProfileOpenSettings.style.display = 'inline-block';
-        playlistCreateBlock.style.display = 'block';
-        profilePostsLegend.innerText = 'Мои публикации';
-      }
-
-      loadProfileFriends(userId);
-      loadUserMusic(userId);
-
-      profilePostsList.innerHTML = 'Загрузка записей...';
-      const { data: posts, error } = await window.sbClient.from('posts').select('*').eq('user_id', userId).is('community_id', null).order('id', { ascending: false });
-
-      if (error) return profilePostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return profilePostsList.innerHTML = '<p>Публикаций пока нет.</p>';
-
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
-    }
-
-    btnFriendAction.addEventListener('click', async () => {
-      if (!activeUser || !viewingUserId) return;
-      btnFriendAction.disabled = true;
-
-      const isFriend = userFriendIds.has(viewingUserId);
-      const isOutgoing = pendingOutgoingIds.has(viewingUserId);
-      const isIncoming = pendingIncomingIds.has(viewingUserId);
-
-      if (isFriend) {
-        if (!confirm('Удалить пользователя из друзей?')) {
-          btnFriendAction.disabled = false;
-          return;
-        }
-        await window.sbClient.from('friends').delete().or(
-          `and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`
-        );
-      } else if (isOutgoing) {
-        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
-      } else if (isIncoming) {
-        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: viewingUserId, friend_id: activeUser.id });
-        await createNotification(viewingUserId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
-      } else {
-        await window.sbClient.from('friends').insert([{ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' }]);
-        await createNotification(viewingUserId, 'friend_request', 'хочет добавить вас в друзья', null);
-      }
-
-      await loadFriends();
-      openUserProfile(viewingUserId);
-      btnFriendAction.disabled = false;
-    });
-
-    window.toggleCommentsVisibility = function(uniquePostKey) {
-      const box = document.getElementById(`comments-box-${uniquePostKey}`);
-      if (!box) return;
-      box.classList.toggle('open');
-    };
-
-    window.replyToComment = function(uniquePostKey, author) {
-      const box = document.getElementById(`comments-box-${uniquePostKey}`);
-      if (box && !box.classList.contains('open')) box.classList.add('open');
-      const input = document.getElementById(`comment-input-${uniquePostKey}`);
-      if (input) {
-        input.value = `@${author} ` + input.value;
-        input.focus();
-      }
-    };
-
-    btnCreatePost.addEventListener('click', async () => {
-      if (!activeUser) return;
-      const text = postContent.value.trim();
-      const file = postImageFile.files[0];
-      if (!text && !file) return alert('Введите текст или прикрепите фото!');
-
-      btnCreatePost.disabled = true;
-      let imageUrl = null;
-
-      if (file) {
-        uploadStatus.innerText = 'Загрузка фото...';
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
-        if (!uploadError) {
-          const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
-          imageUrl = publicUrl;
-        }
-      }
-
-      uploadStatus.innerText = 'Публикация...';
-      const myProf = profilesMap[activeUser.id] || {};
-      const { data: insertedPost } = await window.sbClient.from('posts').insert([{
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        user_id: activeUser.id,
-        community_id: null,
-        image_url: imageUrl,
-        likes_count: 0
-      }]).select().single();
-
-      btnCreatePost.disabled = false;
-      uploadStatus.innerText = '';
-      postContent.value = '';
-      postImageFile.value = '';
-      if (insertedPost) await parseMentions(text, insertedPost.id);
-      loadFeed(currentTab === 'friends_feed');
-    });
-
-    // ==================== ПЛЕЕР ====================
-    window.playQueue = function(tracks, startIndex, playlistName = 'Список') {
-      playlistQueue = tracks;
-      currentTrackIndex = startIndex;
-      currentPlaylistDisplay.innerText = `${playlistName} (${tracks.length} треков)`;
-      playCurrentTrack();
-    };
-
-    function playCurrentTrack() {
-      if (currentTrackIndex < 0 || currentTrackIndex >= playlistQueue.length) return;
-      const track = playlistQueue[currentTrackIndex];
-      audioPlayer.src = track.audio_url;
-      audioPlayer.play();
-      btnPlayPause.innerText = '⏸';
-      currentTrackDisplay.innerText = `🔊 ${track.artist} — ${track.title}`;
-    }
-
-    btnPlayPause.addEventListener('click', () => {
-      if (!audioPlayer.src) return;
-      if (audioPlayer.paused) {
-        audioPlayer.play();
-        btnPlayPause.innerText = '⏸';
-      } else {
-        audioPlayer.pause();
-        btnPlayPause.innerText = '▶';
-      }
-    });
-
-    btnNextTrack.addEventListener('click', () => {
-      if (playlistQueue.length === 0) return;
-      currentTrackIndex = (currentTrackIndex + 1) % playlistQueue.length;
-      playCurrentTrack();
-    });
-
-    btnPrevTrack.addEventListener('click', () => {
-      if (playlistQueue.length === 0) return;
-      currentTrackIndex = (currentTrackIndex - 1 + playlistQueue.length) % playlistQueue.length;
-      playCurrentTrack();
-    });
-
-    btnLoopTrack.addEventListener('click', () => {
-      if (loopMode === 'track') {
-        loopMode = 'none';
-        btnLoopTrack.classList.remove('loop-active');
-      } else {
-        loopMode = 'track';
-        btnLoopTrack.classList.add('loop-active');
-        btnLoopAll.classList.remove('loop-active');
-      }
-    });
-
-    btnLoopAll.addEventListener('click', () => {
-      if (loopMode === 'all') {
-        loopMode = 'none';
-        btnLoopAll.classList.remove('loop-active');
-      } else {
-        loopMode = 'all';
-        btnLoopAll.classList.add('loop-active');
-        btnLoopTrack.classList.remove('loop-active');
-      }
-    });
-
-    audioPlayer.addEventListener('ended', () => {
-      if (loopMode === 'track') {
-        audioPlayer.currentTime = 0;
-        audioPlayer.play();
-      } else if (loopMode === 'all') {
-        currentTrackIndex = (currentTrackIndex + 1) % playlistQueue.length;
-        playCurrentTrack();
-      } else {
-        if (currentTrackIndex + 1 < playlistQueue.length) {
-          currentTrackIndex++;
-          playCurrentTrack();
-        } else {
-          btnPlayPause.innerText = '▶';
-          currentTrackDisplay.innerText = '⏹ Воспроизведение завершено';
-        }
-      }
-    });
 
     setInterval(() => {
       document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
