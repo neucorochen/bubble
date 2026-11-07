@@ -2,11 +2,14 @@
 <html lang="ru">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <title>Bubble — Убежище от интернета</title>
   <link rel="stylesheet" href="https://unpkg.com/xp.css/dist/XP.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
       margin: 0;
       padding: 0;
@@ -21,11 +24,12 @@
     }
     .desktop {
       flex: 1;
-      padding: 12px;
+      padding: 10px;
       display: flex;
       justify-content: center;
       align-items: center;
       position: relative;
+      overflow: hidden;
     }
     .modal-overlay {
       position: fixed;
@@ -34,19 +38,22 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      z-index: 1000;
+      z-index: 2000;
+      padding: 12px;
     }
     .auth-window {
-      width: 340px;
+      width: 350px;
+      max-width: 100%;
       box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
     }
     .ie-window {
-      width: 920px;
+      width: 940px;
       max-width: 98vw;
-      height: 670px;
-      max-height: 88vh;
+      height: 680px;
+      max-height: 90vh;
       display: flex;
       flex-direction: column;
+      position: relative;
     }
     .address-bar {
       display: flex;
@@ -57,7 +64,18 @@
       border-bottom: 1px solid #aca899;
       font-size: 11px;
     }
-    .address-bar input { flex: 1; font-size: 11px; }
+    .address-bar input {
+      flex: 1;
+      font-size: 11px;
+      min-width: 0;
+    }
+    .btn-mobile-menu {
+      display: none;
+      font-weight: bold;
+      font-size: 11px;
+      cursor: pointer;
+      white-space: nowrap;
+    }
     .window-body-layout {
       flex: 1;
       display: flex;
@@ -65,21 +83,32 @@
       overflow: hidden;
       margin: 0 !important;
       padding: 0 !important;
+      position: relative;
     }
     .sidebar {
-      width: 175px;
+      width: 180px;
       background: #ece9d8;
       border-right: 2px groove #fff;
       padding: 8px;
       display: flex;
       flex-direction: column;
       gap: 6px;
+      flex-shrink: 0;
+      transition: transform 0.25s ease-out;
+      z-index: 100;
     }
     .sidebar button {
       width: 100%;
       text-align: left;
       font-size: 11px;
       cursor: pointer;
+    }
+    .sidebar-backdrop {
+      display: none;
+      position: absolute;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.35);
+      z-index: 90;
     }
     .main-view {
       flex: 1;
@@ -129,15 +158,16 @@
     .profile-card {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
       background: #f4f4f4;
       padding: 10px;
       border: 1px solid #aca899;
       margin-bottom: 12px;
+      flex-wrap: wrap;
     }
     .profile-avatar-big {
-      width: 68px;
-      height: 68px;
+      width: 64px;
+      height: 64px;
       border-radius: 50%;
       object-fit: cover;
       border: 2px solid #0055ea;
@@ -160,6 +190,7 @@
       display: block;
       margin: 8px 0;
       border: 1px solid #aca899;
+      object-fit: contain;
     }
     .post-actions {
       display: flex;
@@ -168,13 +199,32 @@
       align-items: center;
       padding-top: 4px;
       border-top: 1px dashed #dcdcdc;
+      flex-wrap: wrap;
     }
+
+    /* Плавное раскрытие блока комментариев */
     .comments-section {
-      margin-top: 8px;
+      display: grid;
+      grid-template-rows: 0fr;
+      transition: grid-template-rows 0.25s ease-out, opacity 0.2s ease-out, margin-top 0.25s ease-out;
+      opacity: 0;
+      margin-top: 0;
       background: #f0f0f0;
-      padding: 6px 10px;
       border-left: 2px solid #0055ea;
-      display: none;
+      overflow: hidden;
+    }
+    .comments-section.open {
+      grid-template-rows: 1fr;
+      opacity: 1;
+      margin-top: 8px;
+    }
+    .comments-inner {
+      min-height: 0;
+      padding: 0 10px;
+      transition: padding 0.25s ease-out;
+    }
+    .comments-section.open .comments-inner {
+      padding: 6px 10px;
     }
     .comment-item {
       font-size: 11px;
@@ -184,6 +234,10 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
+      gap: 6px;
+    }
+    .comment-content {
+      word-break: break-word;
     }
     .comment-content b {
       color: #2b579a;
@@ -196,6 +250,7 @@
       display: flex;
       gap: 4px;
       align-items: center;
+      flex-shrink: 0;
     }
     .btn-comment-del {
       border: none;
@@ -204,7 +259,7 @@
       font-size: 12px;
       line-height: 12px;
       cursor: pointer;
-      padding: 0 2px;
+      padding: 0 3px;
       font-weight: bold;
     }
     .btn-comment-reply {
@@ -243,6 +298,7 @@
       justify-content: space-between;
       align-items: center;
       box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+      flex-shrink: 0;
     }
     .start-button {
       height: 100%;
@@ -265,10 +321,47 @@
       color: white;
       font-size: 11px;
     }
+
+    /* Адаптивные стили для мобильных устройств */
+    @media (max-width: 768px) {
+      .desktop {
+        padding: 0;
+      }
+      .ie-window {
+        width: 100vw;
+        max-width: 100vw;
+        height: 100%;
+        max-height: 100%;
+        border-radius: 0;
+        border: none;
+      }
+      .btn-mobile-menu {
+        display: inline-block;
+      }
+      .sidebar {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 220px;
+        transform: translateX(-100%);
+        box-shadow: 2px 0 10px rgba(0,0,0,0.4);
+      }
+      .sidebar.open {
+        transform: translateX(0);
+      }
+      .sidebar-backdrop.open {
+        display: block;
+      }
+      .post-box {
+        padding: 6px 8px;
+      }
+    }
   </style>
 </head>
 <body>
 
+  <!-- Окно логина / регистрации -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
@@ -277,15 +370,15 @@
       <div class="window-body">
         <div style="margin-bottom: 6px;">
           <label style="display:block; font-size:11px;">Никнейм:</label>
-          <input type="text" id="inputUsername" placeholder="BubbleUser" style="width: 100%; box-sizing: border-box;">
+          <input type="text" id="inputUsername" placeholder="BubbleUser" style="width: 100%;">
         </div>
         <div style="margin-bottom: 6px;">
           <label style="display:block; font-size:11px;">Электронная почта:</label>
-          <input type="email" id="inputEmail" placeholder="user@mail.com" style="width: 100%; box-sizing: border-box;">
+          <input type="email" id="inputEmail" placeholder="user@mail.com" style="width: 100%;">
         </div>
         <div style="margin-bottom: 10px;">
           <label style="display:block; font-size:11px;">Пароль (от 6 символов):</label>
-          <input type="password" id="inputPass" placeholder="******" style="width: 100%; box-sizing: border-box;">
+          <input type="password" id="inputPass" placeholder="******" style="width: 100%;">
         </div>
         <div style="display: flex; justify-content: space-between;">
           <button id="btnActionLogin" type="button" style="font-weight: bold;">Войти</button>
@@ -296,6 +389,7 @@
     </div>
   </div>
 
+  <!-- Главное окно ОС / Браузера -->
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -308,13 +402,19 @@
       </div>
 
       <div class="address-bar">
+        <!-- Кнопка вызова выдвижного меню для мобильных -->
+        <button class="btn-mobile-menu" id="btnToggleSidebar">📁 Меню</button>
         <span>Address:</span>
         <input type="text" id="urlInput" value="https://bubble.net/feed/all" readonly>
-        <button style="min-width: 40px;" id="btnGoReload">Go</button>
+        <button style="min-width: 36px;" id="btnGoReload">Go</button>
       </div>
 
       <div class="window-body window-body-layout">
-        <div class="sidebar">
+        <!-- Затемнение при открытой шторке меню на телефоне -->
+        <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+        <!-- Выдвижная боковая панель -->
+        <div class="sidebar" id="sidebarPanel">
           <fieldset style="padding: 4px; margin-bottom: 6px;">
             <legend>Сессия</legend>
             <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
@@ -330,11 +430,12 @@
         </div>
 
         <div class="main-view" id="mainContainer">
+          <!-- Раздел: Лента -->
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
               <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble? (упоминания через @никнейм)"></textarea>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
                 <label style="font-size: 11px; cursor: pointer;">
                   📷 Прикрепить фото:
                   <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
@@ -350,6 +451,7 @@
             </fieldset>
           </div>
 
+          <!-- Раздел: Уведомления -->
           <div id="sectionNotifications" style="display:none;">
             <fieldset>
               <legend>Уведомления</legend>
@@ -357,10 +459,11 @@
             </fieldset>
           </div>
 
+          <!-- Раздел: Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
-              <div style="flex:1;">
+              <div style="flex:1; min-width: 160px;">
                 <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="profileNick">...</div>
                 
                 <div id="avatarUploadBox" style="margin-top:6px; display:none;">
@@ -389,6 +492,7 @@
   </div>
 
   <script>
+    // 1. Инициализация глобального клиента Supabase
     window.SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co';
     window.SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
     window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -403,6 +507,7 @@
 
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
+    // Элементы интерфейса
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
@@ -412,6 +517,10 @@
     const sideUserName = document.getElementById('sideUserName');
     const sideAvatar = document.getElementById('sideAvatar');
     const urlInput = document.getElementById('urlInput');
+
+    const sidebarPanel = document.getElementById('sidebarPanel');
+    const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+    const btnToggleSidebar = document.getElementById('btnToggleSidebar');
 
     const btnTabFeed = document.getElementById('btnTabFeed');
     const btnTabNotifications = document.getElementById('btnTabNotifications');
@@ -438,6 +547,20 @@
     const btnCreatePost = document.getElementById('btnCreatePost');
     const uploadStatus = document.getElementById('uploadStatus');
 
+    // Управление мобильной шторкой меню
+    function toggleMobileMenu(forceClose = false) {
+      if (forceClose) {
+        sidebarPanel.classList.remove('open');
+        sidebarBackdrop.classList.remove('open');
+      } else {
+        sidebarPanel.classList.toggle('open');
+        sidebarBackdrop.classList.toggle('open');
+      }
+    }
+
+    btnToggleSidebar.addEventListener('click', () => toggleMobileMenu());
+    sidebarBackdrop.addEventListener('click', () => toggleMobileMenu(true));
+
     function escapeHtml(text) {
       const div = document.createElement('div');
       div.innerText = text || '';
@@ -462,7 +585,7 @@
           }]);
         }
       } catch (e) {
-        console.warn('ensureProfile warning:', e);
+        console.warn('ensureProfile:', e);
       }
     }
 
@@ -477,7 +600,7 @@
           };
         });
       } catch (e) {
-        console.warn('loadAllProfiles warning:', e);
+        console.warn('loadAllProfiles:', e);
       }
     }
 
@@ -508,6 +631,7 @@
     window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     window.sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
+    // Авторизация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Создание...';
@@ -567,7 +691,7 @@
           notifBadge.style.display = 'none';
         }
       } catch (e) {
-        console.warn('updateUnreadBadge error:', e);
+        console.warn('updateUnreadBadge:', e);
       }
     }
 
@@ -609,7 +733,7 @@
           is_read: false
         }]);
       } catch (e) {
-        console.warn('createNotification error:', e);
+        console.warn('createNotification:', e);
       }
     }
 
@@ -628,12 +752,14 @@
           }
         }
       } catch (e) {
-        console.warn('parseMentions error:', e);
+        console.warn('parseMentions:', e);
       }
     }
 
     function switchTab(tab, targetUserId = null) {
       currentTab = tab;
+      toggleMobileMenu(true); // Закрываем меню на телефоне при переходе
+
       btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
       btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
       btnTabProfile.style.fontWeight = (tab === 'profile' && activeUser && targetUserId === activeUser.id) ? 'bold' : 'normal';
@@ -674,19 +800,22 @@
         const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
         userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
       } catch (e) {
-        console.warn('loadUserLikes error:', e);
+        console.warn('loadUserLikes:', e);
       }
     }
 
-    function renderPostItem(p, commentsByPost) {
+    // Карточка поста с разделением контекста ('feed' или 'profile')
+    function renderPostItem(p, commentsByPost, context = 'feed') {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
       const currentUserId = activeUser ? activeUser.id : null;
       const isMyPost = currentUserId && p.user_id === currentUserId;
       const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
 
+      const uniquePostKey = `${context}-${p.id}`;
+
       return `
-        <div class="post-box" id="post-${p.id}">
+        <div class="post-box" id="post-${uniquePostKey}">
           <div class="post-header">
             <div class="author-info" onclick="goToProfile('${p.user_id}')">
               <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
@@ -696,44 +825,47 @@
             ${isMyPost ? `<button class="btn-delete-post" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
           </div>
 
-          <div style="margin: 6px 0;">${escapeHtml(p.content)}</div>
+          <div style="margin: 6px 0; word-break: break-word;">${escapeHtml(p.content)}</div>
           ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
 
           <div class="post-actions">
             <button onclick="togglePostLike(${p.id}, ${p.likes_count || 0}, '${p.user_id}')">
               ${isPostLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
             </button>
-            <button onclick="toggleCommentsVisibility(${p.id})" style="font-size:11px;">
+            <button onclick="toggleCommentsVisibility('${uniquePostKey}')" style="font-size:11px;">
               💬 Комментарии (${postComments.length})
             </button>
           </div>
 
-          <div class="comments-section" id="comments-box-${p.id}">
-            <div id="comments-list-${p.id}">
-              ${postComments.map(c => {
-                const isCommentLiked = userLikedComments.has(c.id);
-                const isMyComment = currentUserId && c.user_id === currentUserId;
-                const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
+          <!-- Плавный аккордеон комментариев -->
+          <div class="comments-section" id="comments-box-${uniquePostKey}">
+            <div class="comments-inner">
+              <div id="comments-list-${uniquePostKey}">
+                ${postComments.map(c => {
+                  const isCommentLiked = userLikedComments.has(c.id);
+                  const isMyComment = currentUserId && c.user_id === currentUserId;
+                  const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
 
-                return `
-                  <div class="comment-item" id="comment-${c.id}">
-                    <div class="comment-content">
-                      <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
+                  return `
+                    <div class="comment-item" id="comment-${c.id}">
+                      <div class="comment-content">
+                        <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
+                      </div>
+                      <div class="comment-controls">
+                        <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0}, '${c.user_id}', ${p.id})" style="font-size:10px; padding:1px 4px;">
+                          ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
+                        </button>
+                        <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
+                        ${isMyComment ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
+                      </div>
                     </div>
-                    <div class="comment-controls">
-                      <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0}, '${c.user_id}', ${p.id})" style="font-size:10px; padding:1px 4px;">
-                        ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
-                      </button>
-                      <button class="btn-comment-reply" onclick="replyToComment(${p.id}, '${escapeHtml(cProf.username)}')">ответить</button>
-                      ${isMyComment ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
-                    </div>
-                  </div>
-                `;
-              }).join('')}
-            </div>
-            <div style="display:flex; gap:4px; margin-top:6px;">
-              <input type="text" id="comment-input-${p.id}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
-              <button onclick="sendComment(${p.id}, '${p.user_id}')" style="font-size:11px;">Ответить</button>
+                  `;
+                }).join('')}
+              </div>
+              <div style="display:flex; gap:4px; margin-top:6px;">
+                <input type="text" id="comment-input-${uniquePostKey}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
+                <button onclick="sendComment(${p.id}, '${p.user_id}', '${uniquePostKey}')" style="font-size:11px;">Ответить</button>
+              </div>
             </div>
           </div>
         </div>
@@ -763,7 +895,7 @@
         commentsByPost[c.post_id].push(c);
       });
 
-      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'feed')).join('');
     }
 
     async function openUserProfile(userId) {
@@ -801,7 +933,7 @@
         commentsByPost[c.post_id].push(c);
       });
 
-      profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
+      profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
     }
 
     async function loadNotifications() {
@@ -835,14 +967,16 @@
       switchTab('feed');
 
       setTimeout(() => {
-        const postEl = document.getElementById(`post-${postId}`);
+        const postEl = document.getElementById(`post-feed-${postId}`);
         if (postEl) {
           postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
           postEl.classList.add('highlight');
           setTimeout(() => postEl.classList.remove('highlight'), 2500);
 
-          const commentsBox = document.getElementById(`comments-box-${postId}`);
-          if (commentsBox) commentsBox.style.display = 'block';
+          const commentsBox = document.getElementById(`comments-box-feed-${postId}`);
+          if (commentsBox && !commentsBox.classList.contains('open')) {
+            commentsBox.classList.add('open');
+          }
         }
       }, 500);
     };
@@ -872,16 +1006,18 @@
       await loadAllProfiles();
     });
 
-    window.toggleCommentsVisibility = function(postId) {
-      const box = document.getElementById(`comments-box-${postId}`);
+    window.toggleCommentsVisibility = function(uniquePostKey) {
+      const box = document.getElementById(`comments-box-${uniquePostKey}`);
       if (!box) return;
-      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+      box.classList.toggle('open');
     };
 
-    window.replyToComment = function(postId, author) {
-      const box = document.getElementById(`comments-box-${postId}`);
-      if (box) box.style.display = 'block';
-      const input = document.getElementById(`comment-input-${postId}`);
+    window.replyToComment = function(uniquePostKey, author) {
+      const box = document.getElementById(`comments-box-${uniquePostKey}`);
+      if (box && !box.classList.contains('open')) {
+        box.classList.add('open');
+      }
+      const input = document.getElementById(`comment-input-${uniquePostKey}`);
       if (input) {
         input.value = `@${author} ` + input.value;
         input.focus();
@@ -978,10 +1114,10 @@
       switchTab(currentTab, viewingUserId);
     };
 
-    window.sendComment = async function(postId, postAuthorId) {
+    window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
       if (!activeUser) return;
-      const input = document.getElementById(`comment-input-${postId}`);
-      const text = input.value.trim();
+      const input = document.getElementById(`comment-input-${uniquePostKey}`);
+      const text = input ? input.value.trim() : '';
       if (!text) return;
 
       const myProf = profilesMap[activeUser.id] || {};
@@ -996,7 +1132,7 @@
       if (error) {
         alert('Ошибка комментария: ' + error.message);
       } else {
-        input.value = '';
+        if (input) input.value = '';
         await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
         await parseMentions(text, postId);
         switchTab(currentTab, viewingUserId);
