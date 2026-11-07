@@ -255,6 +255,81 @@
       margin-left: 4px;
       font-weight: bold;
     }
+
+    /* Сетка друзей в профиле */
+    .friends-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
+      gap: 8px;
+      margin-top: 4px;
+    }
+    .friend-card {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      text-align: center;
+      padding: 4px;
+      cursor: pointer;
+      background: #fff;
+      border: 1px solid #dfdfdf;
+    }
+    .friend-card:hover {
+      background: #edf4ff;
+      border-color: #0055ea;
+    }
+    .friend-card img {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 2px;
+    }
+    .friend-name {
+      font-size: 10px;
+      color: #000080;
+      max-width: 70px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* Всплывающее облачко Windows XP Balloon Tooltip */
+    .xp-balloon {
+      position: fixed;
+      bottom: 38px;
+      right: 14px;
+      width: 260px;
+      background: #ffffe1;
+      border: 1px solid #000;
+      box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
+      border-radius: 4px;
+      padding: 8px 10px;
+      z-index: 9999;
+      font-size: 11px;
+      cursor: pointer;
+      display: none;
+      animation: balloonPop 0.3s ease-out;
+    }
+    @keyframes balloonPop {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+    .xp-balloon-header {
+      display: flex;
+      justify-content: space-between;
+      font-weight: bold;
+      color: #000080;
+      border-bottom: 1px solid #d4d0c8;
+      padding-bottom: 2px;
+      margin-bottom: 4px;
+    }
+    .xp-balloon-close {
+      cursor: pointer;
+      color: #888;
+      font-weight: bold;
+    }
+    .xp-balloon-close:hover { color: #000; }
+
     .player-dock {
       background: #ece9d8;
       border-top: 2px groove #fff;
@@ -343,6 +418,7 @@
       .sidebar-backdrop.open { display: block; }
       .player-dock { padding: 4px; }
       .player-title { max-width: 140px; }
+      .xp-balloon { right: 8px; left: 8px; width: auto; bottom: 36px; }
     }
   </style>
 </head>
@@ -460,6 +536,12 @@
               </div>
             </div>
 
+            <!-- Блок друзей пользователя -->
+            <fieldset style="margin-bottom: 12px;">
+              <legend id="friendsBlockLegend">👥 Друзья (0)</legend>
+              <div id="profileFriendsList" class="friends-grid">Загрузка списка друзей...</div>
+            </fieldset>
+
             <fieldset style="margin-bottom: 12px;">
               <legend>🎵 Музыка пользователя</legend>
               
@@ -516,6 +598,15 @@
     </div>
   </div>
 
+  <!-- Всплывающее уведомление Windows XP (Balloon Tooltip) -->
+  <div class="xp-balloon" id="xpBalloon">
+    <div class="xp-balloon-header">
+      <span>🫧 Новое событие в Bubble</span>
+      <span class="xp-balloon-close" id="xpBalloonClose">✕</span>
+    </div>
+    <div id="xpBalloonText" style="margin-top: 3px;">Текст уведомления...</div>
+  </div>
+
   <div class="taskbar">
     <button class="start-button">start</button>
     <div class="tray" id="clock">12:00</div>
@@ -532,7 +623,6 @@
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
     
-    // Структуры для заявок и друзей
     let userFriendIds = new Set();
     let pendingOutgoingIds = new Set();
     let pendingIncomingIds = new Set();
@@ -540,7 +630,6 @@
     let profilesMap = {};
     let realtimeChannel = null;
 
-    // Плеер
     let playlistQueue = [];
     let currentTrackIndex = -1;
     let loopMode = 'none';
@@ -584,6 +673,8 @@
     const avatarFileInput = document.getElementById('avatarFileInput');
     const avatarStatus = document.getElementById('avatarStatus');
     const profilePostsLegend = document.getElementById('profilePostsLegend');
+    const profileFriendsList = document.getElementById('profileFriendsList');
+    const friendsBlockLegend = document.getElementById('friendsBlockLegend');
 
     const postContent = document.getElementById('postContent');
     const postImageFile = document.getElementById('postImageFile');
@@ -609,6 +700,11 @@
     const btnNextTrack = document.getElementById('btnNextTrack');
     const btnLoopTrack = document.getElementById('btnLoopTrack');
     const btnLoopAll = document.getElementById('btnLoopAll');
+
+    const xpBalloon = document.getElementById('xpBalloon');
+    const xpBalloonText = document.getElementById('xpBalloonText');
+    const xpBalloonClose = document.getElementById('xpBalloonClose');
+    let balloonTimer = null;
 
     function toggleMobileMenu(forceClose = false) {
       if (forceClose) {
@@ -658,7 +754,6 @@
       }
     }
 
-    // Загрузка списков друзей и статусов заявок
     async function loadFriends() {
       if (!activeUser) return;
       try {
@@ -773,21 +868,63 @@
       }
     }
 
+    // Всплывающее облачко Windows XP в правом нижнем углу
+    function showXPBalloon(notif) {
+      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username)}</b> ${escapeHtml(notif.message)}`;
+      xpBalloon.style.display = 'block';
+
+      xpBalloon.onclick = (e) => {
+        if (e.target.id === 'xpBalloonClose') return;
+        if (notif.post_id) {
+          openTargetPost(notif.post_id, notif.id);
+        } else {
+          switchTab('notifications');
+        }
+        hideXPBalloon();
+      };
+
+      if (balloonTimer) clearTimeout(balloonTimer);
+      balloonTimer = setTimeout(hideXPBalloon, 8000);
+    }
+
+    function hideXPBalloon() {
+      xpBalloon.style.display = 'none';
+      if (balloonTimer) clearTimeout(balloonTimer);
+    }
+    xpBalloonClose.addEventListener('click', (e) => {
+      e.stopPropagation();
+      hideXPBalloon();
+    });
+
+    // Мгновенная Realtime-подписка
     function initRealtimeNotifications() {
       if (!activeUser) return;
       if (realtimeChannel) {
         window.sbClient.removeChannel(realtimeChannel);
         realtimeChannel = null;
       }
+
       realtimeChannel = window.sbClient
-        .channel('user_notifications_' + activeUser.id)
+        .channel('realtime:user_notifs_' + activeUser.id)
         .on('postgres_changes', {
-          event: 'INSERT', schema: 'public', table: 'notifications', filter: `user_id=eq.${activeUser.id}`
-        }, () => {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'notifications',
+          filter: `user_id=eq.${activeUser.id}`
+        }, (payload) => {
           updateUnreadBadge();
-          if (currentTab === 'notifications') loadNotifications();
+          if (payload?.new) {
+            showXPBalloon(payload.new);
+          }
+          if (currentTab === 'notifications') {
+            loadNotifications();
+          }
         })
-        .subscribe();
+        .subscribe((status) => {
+          if (status === 'SUBSCRIBED') {
+            console.log('Realtime подключен успешно!');
+          }
+        });
     }
 
     async function createNotification(targetUserId, type, message, postId) {
@@ -876,7 +1013,6 @@
       }
     }
 
-    // Логика нажатия на кнопку дружбы в профиле
     btnFriendAction.addEventListener('click', async () => {
       if (!activeUser || !viewingUserId) return;
       btnFriendAction.disabled = true;
@@ -1013,6 +1149,39 @@
       feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, onlyFriends ? 'friends' : 'feed')).join('');
     }
 
+    // Загрузка друзей для отображения в профиле
+    async function loadProfileFriends(userId) {
+      profileFriendsList.innerHTML = 'Загрузка...';
+      try {
+        const { data: fRows } = await window.sbClient
+          .from('friends')
+          .select('*')
+          .eq('status', 'accepted')
+          .or(`user_id.eq.${userId},friend_id.eq.${userId}`);
+
+        const confirmedIds = (fRows || []).map(r => r.user_id === userId ? r.friend_id : r.user_id);
+        friendsBlockLegend.innerText = `👥 Друзья (${confirmedIds.length})`;
+
+        if (confirmedIds.length === 0) {
+          profileFriendsList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Список друзей пуст.</div>';
+          return;
+        }
+
+        profileFriendsList.innerHTML = confirmedIds.map(fId => {
+          const prof = profilesMap[fId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+          return `
+            <div class="friend-card" onclick="goToProfile('${fId}')" title="${escapeHtml(prof.username)}">
+              <img src="${prof.avatar_url}" alt="friend">
+              <div class="friend-name">${escapeHtml(prof.username)}</div>
+            </div>
+          `;
+        }).join('');
+      } catch (e) {
+        console.warn('loadProfileFriends:', e);
+        profileFriendsList.innerHTML = '<div style="font-size:11px; color:red;">Ошибка загрузки друзей.</div>';
+      }
+    }
+
     async function openUserProfile(userId) {
       await loadAllProfiles();
       await loadFriends();
@@ -1046,6 +1215,7 @@
         profilePostsLegend.innerText = 'Мои публикации';
       }
 
+      loadProfileFriends(userId);
       loadUserMusic(userId);
 
       profilePostsList.innerHTML = 'Загрузка записей...';
@@ -1281,7 +1451,6 @@
       }
     });
 
-    // Уведомления и обработка входящих заявок
     async function loadNotifications() {
       if (!activeUser) return;
       notificationsList.innerHTML = 'Загрузка...';
@@ -1317,7 +1486,6 @@
       }).join('');
     }
 
-    // Ответ на заявку в друзья прямо из уведомления
     window.respondFriendRequest = async function(senderId, notifId, accept) {
       if (!activeUser) return;
 
