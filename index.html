@@ -35,7 +35,7 @@
       display: flex; flex-direction: column; position: relative;
     }
 
-    /* Frutiger Aero Header / Title-bar */
+    /* Frutiger Aero Header */
     .aero-title-bar {
       background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%) !important;
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -101,7 +101,7 @@
       background: rgba(0, 0, 0, 0.35); z-index: 90;
     }
 
-    .main-view { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; }
+    .main-view { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; background: #fff; }
     .post-box {
       background: #fbfbfb; border: 1px solid #7f9db9; padding: 8px 12px;
       margin-bottom: 12px; position: relative;
@@ -111,17 +111,32 @@
     .author-info { display: flex; align-items: center; gap: 6px; cursor: pointer; }
     .author-info:hover .post-author { text-decoration: underline; }
     .post-author { font-weight: bold; color: #0b388f; }
+
+    /* Обертка аватара и накладываемая поверх рамка */
+    .avatar-wrapper {
+      position: relative; display: inline-flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
     .avatar-mini {
-      width: 26px; height: 26px; border-radius: 50%; object-fit: cover;
+      width: 28px; height: 28px; border-radius: 50% !important; object-fit: cover;
       border: 1px solid #7f9db9; background: #eee;
     }
+    .profile-avatar-big {
+      width: 68px; height: 68px; border-radius: 50% !important; object-fit: cover;
+      border: 2px solid #0055ea; background: #fff;
+    }
+    .avatar-frame-overlay {
+      position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
+      pointer-events: none; z-index: 2; box-sizing: border-box;
+    }
+    .avatar-frame-img {
+      position: absolute; top: -10px; left: -10px; width: calc(100% + 20px); height: calc(100% + 20px);
+      object-fit: contain; pointer-events: none; z-index: 3;
+    }
+
     .profile-card {
       display: flex; align-items: center; gap: 14px; background: #f4f4f4;
       padding: 10px; border: 1px solid #aca899; margin-bottom: 12px; flex-wrap: wrap;
-    }
-    .profile-avatar-big {
-      width: 64px; height: 64px; border-radius: 50%; object-fit: cover;
-      border: 2px solid #0055ea; background: #fff;
     }
     .btn-delete-post {
       background: none; border: 1px solid #c0c0c0; color: #a00; cursor: pointer; font-size: 10px; padding: 1px 4px;
@@ -185,7 +200,6 @@
       padding: 4px; cursor: pointer; background: #fff; border: 1px solid #dfdfdf;
     }
     .friend-card:hover { background: #edf4ff; border-color: #0055ea; }
-    .friend-card img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
     .friend-name { font-size: 10px; color: #000080; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
     /* Frutiger Aero Player Dock */
@@ -203,9 +217,6 @@
       border: 1px solid #6ca8dd; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer;
       box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(0,0,0,0.1);
     }
-    .player-controls button:hover {
-      background: linear-gradient(180deg, #ffffff 0%, #eef7ff 50%, #c4e8ff 100%);
-    }
     .player-info { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
     .player-title { font-weight: bold; color: #003366; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
     .track-list-item {
@@ -214,30 +225,31 @@
     }
     .loop-active { background: #0055ea !important; color: #fff !important; font-weight: bold; }
 
-    /* Frutiger Aero Creation / Workshop Cards */
+    /* Workshop Cards & Preview Box */
     .creation-grid {
-      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px;
     }
     .creation-card {
       background: #fff; border: 1px solid #7f9db9; padding: 8px; border-radius: 4px;
       display: flex; flex-direction: column; justify-content: space-between;
     }
-    .frame-preview-box {
-      width: 70px; height: 70px; margin: 8px auto; display: flex; justify-content: center; align-items: center;
+    .live-theme-preview {
+      border: 1px solid #7f9db9; padding: 8px; margin-bottom: 10px; border-radius: 6px;
+      display: flex; gap: 10px; align-items: center; transition: all 0.2s ease;
     }
 
-    /* Анимированные стили для рамочек */
+    /* Анимации и формы рамок */
     @keyframes glowPulse {
-      0% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)); }
-      50% { filter: drop-shadow(0 0 10px var(--frame-color, #00ffff)); }
-      100% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)); }
+      0% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
+      50% { filter: drop-shadow(0 0 8px var(--frame-color, #00ffff)); }
+      100% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
     }
     @keyframes rainbowRotate {
       0% { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
     .frame-shape-circle { border-radius: 50%; }
-    .frame-shape-square { border-radius: 0; }
+    .frame-shape-square { border-radius: 4px; }
     .frame-shape-hexagon {
       clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
     }
@@ -247,6 +259,15 @@
     .anim-glow { animation: glowPulse 2s infinite; }
     .anim-rainbow { animation: rainbowRotate 3s linear infinite; }
 
+    .xp-balloon {
+      position: fixed; bottom: 38px; right: 14px; width: 270px; background: #ffffe1;
+      border: 1px solid #000; box-shadow: 2px 2px 6px rgba(0,0,0,0.4); border-radius: 4px;
+      padding: 8px 10px; z-index: 9999; font-size: 11px; cursor: pointer; display: none;
+    }
+    .xp-balloon-header {
+      display: flex; justify-content: space-between; font-weight: bold; color: #000080;
+      border-bottom: 1px solid #d4d0c8; margin-bottom: 4px;
+    }
     .taskbar {
       height: 30px; background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
@@ -326,7 +347,6 @@
   <!-- Окно браузера IE / Рабочий стол -->
   <div class="desktop">
     <div class="window ie-window">
-      <!-- Frutiger Aero Заголовок окна -->
       <div class="aero-title-bar">
         <div class="aero-title-text">bubble</div>
         <div class="title-bar-controls">
@@ -349,7 +369,9 @@
         <div class="sidebar" id="sidebarPanel">
           <div class="sidebar-usercard">
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
-              <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
+              <div class="avatar-wrapper" id="sidebarAvatarContainer">
+                <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
+              </div>
               <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0b388f; word-break: break-all;">...</div>
             </div>
             <button id="btnLogout" type="button" style="width:100%; font-size:10px;">Выйти</button>
@@ -390,71 +412,115 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Работы сообщества (Конструктор тем и рамочек) -->
+          <!-- Раздел: Работы сообщества (Конструктор с живым предпросмотром) -->
           <div id="sectionWorkshop" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
-              <legend>Мастерская создания оформления</legend>
+              <legend>Мастерская оформления</legend>
               <div style="display:flex; gap:8px; margin-bottom:8px;">
-                <button id="btnSwitchToThemeCreator" style="font-weight:bold;">Создать тему</button>
-                <button id="btnSwitchToFrameCreator">Создать рамочку</button>
+                <button id="btnSwitchToThemeCreator" style="font-weight:bold;">Конструктор темы</button>
+                <button id="btnSwitchToFrameCreator">Конструктор рамочки</button>
                 <button id="btnResetAllStyles" style="margin-left:auto; color:#a00;">Сбросить оформление</button>
               </div>
 
-              <!-- Конструктор темы оформления -->
+              <!-- Конструктор темы -->
               <div id="boxThemeCreator">
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:6px;">
+                <input type="hidden" id="editingThemeId" value="">
+                
+                <!-- Окошко живого предпросмотра темы -->
+                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр темы:</div>
+                <div class="live-theme-preview" id="liveThemePreviewBox">
+                  <div id="prevSidebarPane" style="padding:6px; border-radius:4px; border:1px solid rgba(0,0,0,0.15);">
+                    <button id="prevBtnSample" style="font-size:10px; padding:3px 6px; border-radius:3px;">Кнопка</button>
+                  </div>
+                  <div style="flex:1;">
+                    <div id="prevPostSample" style="border:1px solid #ccc; padding:6px; border-radius:4px;">
+                      <div id="prevAuthorSample" style="font-weight:bold; font-size:11px;">Автор поста</div>
+                      <div id="prevTextSample" style="font-size:11px;">Так будет выглядеть текст, карточки и элементы сайта.</div>
+                    </div>
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:8px;">
                   <div>
                     <label>Название темы:</label>
-                    <input type="text" id="themeTitleInput" placeholder="Aero Glass Glow" style="width:100%; font-size:11px;">
+                    <input type="text" id="themeTitleInput" placeholder="Aero Dream" style="width:100%; font-size:11px;">
                   </div>
                   <div>
-                    <label>Шрифт:</label>
+                    <label>Шрифт текста:</label>
                     <select id="themeFontSelect" style="width:100%; font-size:11px;">
-                      <option value="Tahoma, sans-serif">Tahoma (XP Классика)</option>
-                      <option value="'Segoe UI', sans-serif">Segoe UI (Frutiger Aero)</option>
-                      <option value="'Comic Sans MS', cursive">Comic Sans (Ностальгия)</option>
+                      <option value="Tahoma, sans-serif">Tahoma (XP)</option>
+                      <option value="'Segoe UI', sans-serif">Segoe UI (Aero)</option>
+                      <option value="'Comic Sans MS', cursive">Comic Sans</option>
                       <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
-                      <option value="'Courier New', monospace">Courier New (Ретро)</option>
+                      <option value="'Courier New', monospace">Courier New</option>
                     </select>
                   </div>
                   <div>
-                    <label>Цвет панелей (Sidebar / Dock):</label>
+                    <label>Цвет основного фона окна (вместо белого):</label>
+                    <input type="color" id="themeMainBgColor" value="#ffffff" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Цвет боковой панели (Sidebar):</label>
                     <input type="color" id="themeSidebarColor" value="#b9e1fa" style="width:100%; height:24px;">
                   </div>
                   <div>
-                    <label>Цвет карточек / постов:</label>
-                    <input type="color" id="themeCardColor" value="#ffffff" style="width:100%; height:24px;">
+                    <label>Цвет карточек и постов:</label>
+                    <input type="color" id="themeCardColor" value="#fbfbfb" style="width:100%; height:24px;">
                   </div>
                   <div>
-                    <label>Цвет текста:</label>
+                    <label>Цвет кнопок:</label>
+                    <input type="color" id="themeBtnBgColor" value="#d8efff" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Цвет текста кнопок:</label>
+                    <input type="color" id="themeBtnTextColor" value="#0b388f" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Цвет основного текста:</label>
                     <input type="color" id="themeTextColor" value="#003366" style="width:100%; height:24px;">
                   </div>
-                  <div>
-                    <label>Фоновая картинка (URL):</label>
-                    <input type="text" id="themeBgUrl" placeholder="https://example.com/bg.jpg" style="width:100%; font-size:11px;">
+                  <div style="grid-column: 1 / -1;">
+                    <label>URL фоновой картинки всего сайта (необязательно):</label>
+                    <input type="text" id="themeBgUrl" placeholder="https://example.com/background.jpg" style="width:100%; font-size:11px;">
                   </div>
                 </div>
-                <button id="btnPublishTheme" style="font-weight:bold; font-size:11px;">Опубликовать тему</button>
+
+                <div style="display:flex; gap:6px;">
+                  <button id="btnPublishTheme" style="font-weight:bold; font-size:11px;">Опубликовать тему</button>
+                  <button id="btnCancelEditTheme" style="display:none; font-size:11px;">Отмена редактирования</button>
+                </div>
               </div>
 
-              <!-- Конструктор рамочек -->
+              <!-- Конструктор рамочки -->
               <div id="boxFrameCreator" style="display:none;">
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:6px;">
+                <input type="hidden" id="editingFrameId" value="">
+
+                <!-- Предпросмотр рамочки -->
+                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр надетой рамочки на круглый аватар:</div>
+                <div style="display:flex; justify-content:center; align-items:center; padding:10px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
+                  <div class="avatar-wrapper" style="width:68px; height:68px;">
+                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
+                    <div id="prevFrameOverlay" class="avatar-frame-overlay frame-shape-circle" style="border:3px solid #00e5ff;"></div>
+                    <img id="prevCustomFrameImg" class="avatar-frame-img" style="display:none;" alt="frame">
+                  </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:8px;">
                   <div>
                     <label>Название рамочки:</label>
-                    <input type="text" id="frameTitleInput" placeholder="Неоновая Звезда" style="width:100%; font-size:11px;">
+                    <input type="text" id="frameTitleInput" placeholder="Неоновое сияние" style="width:100%; font-size:11px;">
                   </div>
                   <div>
-                    <label>Форма:</label>
+                    <label>Форма рамки вокруг аватара:</label>
                     <select id="frameShapeSelect" style="width:100%; font-size:11px;">
-                      <option value="circle">Круглая</option>
-                      <option value="square">Квадратная</option>
-                      <option value="hexagon">Шестиугольник</option>
-                      <option value="star">Звезда</option>
+                      <option value="circle">Круглая рамка</option>
+                      <option value="square">Квадратная рамка</option>
+                      <option value="hexagon">Шестиугольная рамка</option>
+                      <option value="star">Звездная рамка</option>
                     </select>
                   </div>
                   <div>
-                    <label>Цвет обводки / свечения:</label>
+                    <label>Цвет рамки:</label>
                     <input type="color" id="frameColorInput" value="#00e5ff" style="width:100%; height:24px;">
                   </div>
                   <div>
@@ -462,17 +528,26 @@
                     <select id="frameAnimSelect" style="width:100%; font-size:11px;">
                       <option value="none">Без анимации</option>
                       <option value="glow">Пульсирующее свечение</option>
-                      <option value="rainbow">Радужное переливание</option>
+                      <option value="rainbow">Радужный перелив</option>
                     </select>
                   </div>
+                  <div style="grid-column: 1 / -1;">
+                    <label>Или прикрепить своё PNG-изображение рамки (с прозрачностью):</label>
+                    <input type="file" id="frameCustomFile" accept="image/png,image/*" style="font-size:11px; width:100%;">
+                    <div id="frameCustomUploadStatus" style="font-size:10px; color:#555;"></div>
+                  </div>
                 </div>
-                <button id="btnPublishFrame" style="font-weight:bold; font-size:11px;">Опубликовать рамочку</button>
+
+                <div style="display:flex; gap:6px;">
+                  <button id="btnPublishFrame" style="font-weight:bold; font-size:11px;">Опубликовать рамочку</button>
+                  <button id="btnCancelEditFrame" style="display:none; font-size:11px;">Отмена редактирования</button>
+                </div>
               </div>
             </fieldset>
 
             <fieldset>
-              <legend>Работы сообщества (Темы и рамочки с лайками)</legend>
-              <div id="creationsListContainer" class="creation-grid">Загрузка каталога работ...</div>
+              <legend>Каталог работ участников</legend>
+              <div id="creationsListContainer" class="creation-grid">Загрузка работ...</div>
             </fieldset>
           </div>
 
@@ -577,6 +652,7 @@
                 </div>
               </div>
 
+              <!-- Стена сообщества -->
               <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
                 <legend>Опубликовать запись от имени сообщества</legend>
                 <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость от лица сообщества..."></textarea>
@@ -610,8 +686,10 @@
           <!-- Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
-              <div id="profileAvatarContainer" style="position:relative; width:68px; height:68px; display:flex; justify-content:center; align-items:center;">
+              <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
                 <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
+                <div id="userProfileFrameOverlay" class="avatar-frame-overlay" style="display:none;"></div>
+                <img id="userProfileFrameImg" class="avatar-frame-img" style="display:none;" alt="frame">
               </div>
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -754,19 +832,42 @@
     const btnSwitchToFrameCreator = document.getElementById('btnSwitchToFrameCreator');
     const boxThemeCreator = document.getElementById('boxThemeCreator');
     const boxFrameCreator = document.getElementById('boxFrameCreator');
+    const editingThemeId = document.getElementById('editingThemeId');
+    const editingFrameId = document.getElementById('editingFrameId');
+
     const themeTitleInput = document.getElementById('themeTitleInput');
     const themeFontSelect = document.getElementById('themeFontSelect');
+    const themeMainBgColor = document.getElementById('themeMainBgColor');
     const themeSidebarColor = document.getElementById('themeSidebarColor');
     const themeCardColor = document.getElementById('themeCardColor');
+    const themeBtnBgColor = document.getElementById('themeBtnBgColor');
+    const themeBtnTextColor = document.getElementById('themeBtnTextColor');
     const themeTextColor = document.getElementById('themeTextColor');
     const themeBgUrl = document.getElementById('themeBgUrl');
     const btnPublishTheme = document.getElementById('btnPublishTheme');
+    const btnCancelEditTheme = document.getElementById('btnCancelEditTheme');
 
+    // Живой предпросмотр темы
+    const liveThemePreviewBox = document.getElementById('liveThemePreviewBox');
+    const prevSidebarPane = document.getElementById('prevSidebarPane');
+    const prevBtnSample = document.getElementById('prevBtnSample');
+    const prevPostSample = document.getElementById('prevPostSample');
+    const prevAuthorSample = document.getElementById('prevAuthorSample');
+    const prevTextSample = document.getElementById('prevTextSample');
+
+    // Рамочки DOM
     const frameTitleInput = document.getElementById('frameTitleInput');
     const frameShapeSelect = document.getElementById('frameShapeSelect');
     const frameColorInput = document.getElementById('frameColorInput');
     const frameAnimSelect = document.getElementById('frameAnimSelect');
+    const frameCustomFile = document.getElementById('frameCustomFile');
+    const frameCustomUploadStatus = document.getElementById('frameCustomUploadStatus');
     const btnPublishFrame = document.getElementById('btnPublishFrame');
+    const btnCancelEditFrame = document.getElementById('btnCancelEditFrame');
+
+    const prevFrameOverlay = document.getElementById('prevFrameOverlay');
+    const prevCustomFrameImg = document.getElementById('prevCustomFrameImg');
+
     const creationsListContainer = document.getElementById('creationsListContainer');
     const btnResetAllStyles = document.getElementById('btnResetAllStyles');
     const dynamicCustomThemeStyle = document.getElementById('dynamicCustomThemeStyle');
@@ -809,6 +910,8 @@
     // Профиль DOM
     const profileNick = document.getElementById('profileNick');
     const profileAvatar = document.getElementById('profileAvatar');
+    const userProfileFrameOverlay = document.getElementById('userProfileFrameOverlay');
+    const userProfileFrameImg = document.getElementById('userProfileFrameImg');
     const btnFriendAction = document.getElementById('btnFriendAction');
     const btnProfileSendMsg = document.getElementById('btnProfileSendMsg');
     const profileFriendsList = document.getElementById('profileFriendsList');
@@ -1131,7 +1234,7 @@
     document.getElementById('btnGoReload').onclick = () => switchTab(currentTab, viewingUserId);
     window.goToProfile = (uId) => switchTab('profile', uId);
 
-    // ==================== РАБОТЫ СООБЩЕСТВА (ТЕМЫ И РАМОЧКИ) ====================
+    // ==================== МАСТЕРСКАЯ ОФОРМЛЕНИЯ ====================
     btnSwitchToThemeCreator.onclick = () => {
       btnSwitchToThemeCreator.style.fontWeight = 'bold';
       btnSwitchToFrameCreator.style.fontWeight = 'normal';
@@ -1146,50 +1249,153 @@
       boxFrameCreator.style.display = 'block';
     };
 
+    // Обновление живого предпросмотра темы в конструкторе
+    function updateLiveThemePreview() {
+      liveThemePreviewBox.style.fontFamily = themeFontSelect.value;
+      liveThemePreviewBox.style.backgroundColor = themeMainBgColor.value;
+      prevSidebarPane.style.backgroundColor = themeSidebarColor.value;
+      prevPostSample.style.backgroundColor = themeCardColor.value;
+      prevBtnSample.style.backgroundColor = themeBtnBgColor.value;
+      prevBtnSample.style.color = themeBtnTextColor.value;
+      prevAuthorSample.style.color = themeTextColor.value;
+      prevTextSample.style.color = themeTextColor.value;
+    }
+
+    [themeFontSelect, themeMainBgColor, themeSidebarColor, themeCardColor, themeBtnBgColor, themeBtnTextColor, themeTextColor].forEach(el => {
+      el.addEventListener('input', updateLiveThemePreview);
+    });
+    updateLiveThemePreview();
+
+    // Обновление живого предпросмотра рамочки в конструкторе
+    let frameUploadedImgUrl = null;
+    function updateLiveFramePreview() {
+      const shape = frameShapeSelect.value;
+      const color = frameColorInput.value;
+      const anim = frameAnimSelect.value;
+
+      prevFrameOverlay.className = `avatar-frame-overlay frame-shape-${shape}`;
+      if (anim === 'glow') prevFrameOverlay.classList.add('anim-glow');
+      if (anim === 'rainbow') prevFrameOverlay.classList.add('anim-rainbow');
+      prevFrameOverlay.style.border = `3px solid ${color}`;
+      prevFrameOverlay.style.setProperty('--frame-color', color);
+
+      if (frameUploadedImgUrl) {
+        prevCustomFrameImg.src = frameUploadedImgUrl;
+        prevCustomFrameImg.style.display = 'block';
+        prevFrameOverlay.style.border = 'none';
+      } else {
+        prevCustomFrameImg.style.display = 'none';
+      }
+    }
+
+    [frameShapeSelect, frameColorInput, frameAnimSelect].forEach(el => {
+      el.addEventListener('input', updateLiveFramePreview);
+    });
+    updateLiveFramePreview();
+
+    // Загрузка кастомной PNG-рамки
+    frameCustomFile.addEventListener('change', async () => {
+      const file = frameCustomFile.files[0];
+      if (!file || !activeUser) return;
+
+      frameCustomUploadStatus.innerText = 'Загрузка PNG-рамки...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `frame_${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+      if (uploadError) {
+        frameCustomUploadStatus.innerText = '';
+        return alert('Ошибка загрузки рамки: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
+      frameUploadedImgUrl = publicUrl;
+      frameCustomUploadStatus.innerText = 'Рамка загружена!';
+      updateLiveFramePreview();
+    });
+
+    // Публикация/Обновление темы
     btnPublishTheme.onclick = async () => {
       if (!activeUser) return;
-      const title = themeTitleInput.value.trim() || 'Моя тема Frutiger';
+      const title = themeTitleInput.value.trim() || 'Моя тема Bubble';
       const config = {
         font: themeFontSelect.value,
+        mainBgColor: themeMainBgColor.value,
         sidebarColor: themeSidebarColor.value,
         cardColor: themeCardColor.value,
+        btnBgColor: themeBtnBgColor.value,
+        btnTextColor: themeBtnTextColor.value,
         textColor: themeTextColor.value,
         bgUrl: themeBgUrl.value.trim()
       };
 
-      const { error } = await window.sbClient.from('community_creations').insert([{
-        creator_id: activeUser.id, title, type: 'theme', config, likes_count: 0
-      }]);
-
-      if (error) alert('Ошибка публикации темы: ' + error.message);
-      else {
-        alert('Тема оформления успешно опубликована!');
-        themeTitleInput.value = ''; themeBgUrl.value = '';
-        loadCreationsList();
+      const editId = editingThemeId.value;
+      if (editId) {
+        await window.sbClient.from('community_creations').update({ title, config }).eq('id', editId);
+        editingThemeId.value = '';
+        btnPublishTheme.innerText = 'Опубликовать тему';
+        btnCancelEditTheme.style.display = 'none';
+        alert('Тема успешно обновлена!');
+      } else {
+        await window.sbClient.from('community_creations').insert([{
+          creator_id: activeUser.id, title, type: 'theme', config, likes_count: 0
+        }]);
+        alert('Тема успешно опубликована!');
       }
+
+      themeTitleInput.value = ''; themeBgUrl.value = '';
+      loadCreationsList();
     };
 
+    btnCancelEditTheme.onclick = () => {
+      editingThemeId.value = '';
+      btnPublishTheme.innerText = 'Опубликовать тему';
+      btnCancelEditTheme.style.display = 'none';
+      themeTitleInput.value = '';
+    };
+
+    // Публикация/Обновление рамочки
     btnPublishFrame.onclick = async () => {
       if (!activeUser) return;
-      const title = frameTitleInput.value.trim() || 'Моя рамочка';
+      const title = frameTitleInput.value.trim() || 'Кастомная рамка';
       const config = {
         shape: frameShapeSelect.value,
         color: frameColorInput.value,
-        animation: frameAnimSelect.value
+        animation: frameAnimSelect.value,
+        imgUrl: frameUploadedImgUrl || null
       };
 
-      const { error } = await window.sbClient.from('community_creations').insert([{
-        creator_id: activeUser.id, title, type: 'frame', config, likes_count: 0
-      }]);
-
-      if (error) alert('Ошибка публикации рамочки: ' + error.message);
-      else {
-        alert('Рамочка успешно опубликована!');
-        frameTitleInput.value = '';
-        loadCreationsList();
+      const editId = editingFrameId.value;
+      if (editId) {
+        await window.sbClient.from('community_creations').update({ title, config }).eq('id', editId);
+        editingFrameId.value = '';
+        btnPublishFrame.innerText = 'Опубликовать рамочку';
+        btnCancelEditFrame.style.display = 'none';
+        alert('Рамочка обновлена!');
+      } else {
+        await window.sbClient.from('community_creations').insert([{
+          creator_id: activeUser.id, title, type: 'frame', config, likes_count: 0
+        }]);
+        alert('Рамочка опубликована!');
       }
+
+      frameTitleInput.value = '';
+      frameCustomFile.value = '';
+      frameUploadedImgUrl = null;
+      updateLiveFramePreview();
+      loadCreationsList();
     };
 
+    btnCancelEditFrame.onclick = () => {
+      editingFrameId.value = '';
+      btnPublishFrame.innerText = 'Опубликовать рамочку';
+      btnCancelEditFrame.style.display = 'none';
+      frameTitleInput.value = '';
+      frameUploadedImgUrl = null;
+      updateLiveFramePreview();
+    };
+
+    // Каталог работ
     async function loadCreationsList() {
       creationsListContainer.innerHTML = 'Загрузка каталога работ...';
       const { data: creations, error } = await window.sbClient.from('community_creations').select('*').order('id', { ascending: false });
@@ -1203,6 +1409,7 @@
         const isTheme = c.type === 'theme';
         const cfg = c.config || {};
         const authorName = profilesMap[c.creator_id]?.username || 'Участник';
+        const isAuthor = activeUser && c.creator_id === activeUser.id;
 
         let previewHTML = '';
         if (isTheme) {
@@ -1210,29 +1417,47 @@
             <div style="background:${cfg.cardColor || '#fff'}; border:1px solid #7f9db9; padding:6px; font-family:${cfg.font}; color:${cfg.textColor}; margin:6px 0; border-radius:4px; font-size:10px;">
               <b>Шрифт:</b> ${cfg.font}<br>
               <div style="display:flex; gap:4px; margin-top:4px;">
-                <span style="display:inline-block; width:14px; height:14px; background:${cfg.sidebarColor}; border:1px solid #000;" title="Цвет панелей"></span>
-                <span style="display:inline-block; width:14px; height:14px; background:${cfg.cardColor}; border:1px solid #000;" title="Цвет карточек"></span>
-                <span style="display:inline-block; width:14px; height:14px; background:${cfg.textColor}; border:1px solid #000;" title="Цвет текста"></span>
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.mainBgColor || '#fff'}; border:1px solid #000;" title="Цвет окна"></span>
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.sidebarColor || '#b9e1fa'}; border:1px solid #000;" title="Панель"></span>
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.cardColor || '#fbfbfb'}; border:1px solid #000;" title="Карточка"></span>
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.btnBgColor || '#d8efff'}; border:1px solid #000;" title="Кнопка"></span>
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.textColor || '#003366'}; border:1px solid #000;" title="Текст"></span>
               </div>
             </div>
           `;
         } else {
-          const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
-          const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
-          previewHTML = `
-            <div class="frame-preview-box">
-              <div class="${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; width:50px; height:50px; border:3px solid ${cfg.color}; display:flex; justify-content:center; align-items:center;">
-                <img src="${DEFAULT_AVATAR}" style="width:100%; height:100%; object-fit:cover;" class="${shapeClass}">
+          if (cfg.imgUrl) {
+            previewHTML = `
+              <div style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
+                <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
+                <img src="${cfg.imgUrl}" class="avatar-frame-img" style="top:-6px; left:-6px; width:calc(100% + 12px); height:calc(100% + 12px);" alt="custom frame">
               </div>
-            </div>
-          `;
+            `;
+          } else {
+            const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
+            const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+            previewHTML = `
+              <div style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
+                <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
+                <div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; border:3px solid ${cfg.color};"></div>
+              </div>
+            `;
+          }
         }
 
         return `
           <div class="creation-card" id="creation-${c.id}">
             <div>
-              <div style="font-weight:bold; font-size:12px; color:#0b388f;">${escapeHtml(c.title)}</div>
-              <div style="font-size:10px; color:#666;">Автор: ${escapeHtml(authorName)} | Тип: ${isTheme ? 'Тема сайта' : 'Рамочка'}</div>
+              <div style="display:flex; justify-content:space-between; align-items:flex-start;">
+                <div style="font-weight:bold; font-size:12px; color:#0b388f;">${escapeHtml(c.title)}</div>
+                ${isAuthor ? `
+                  <div style="display:flex; gap:3px;">
+                    <button onclick="editCreation(${c.id}, '${c.type}', '${escapeHtml(c.title)}', ${JSON.stringify(cfg).replace(/"/g, '&quot;')})" style="font-size:9px;">Ред.</button>
+                    <button onclick="deleteCreation(${c.id})" style="font-size:9px; color:#a00;">✕</button>
+                  </div>
+                ` : ''}
+              </div>
+              <div style="font-size:10px; color:#666;">Автор: ${escapeHtml(authorName)} | ${isTheme ? 'Тема оформления' : 'Рамочка аватара'}</div>
               ${previewHTML}
             </div>
             <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dotted #ccc; padding-top:4px;">
@@ -1246,20 +1471,60 @@
       }).join('');
     }
 
+    // Редактирование работы автором
+    window.editCreation = function(id, type, title, cfg) {
+      if (type === 'theme') {
+        btnSwitchToThemeCreator.click();
+        editingThemeId.value = id;
+        themeTitleInput.value = title;
+        themeFontSelect.value = cfg.font || 'Tahoma, sans-serif';
+        themeMainBgColor.value = cfg.mainBgColor || '#ffffff';
+        themeSidebarColor.value = cfg.sidebarColor || '#b9e1fa';
+        themeCardColor.value = cfg.cardColor || '#fbfbfb';
+        themeBtnBgColor.value = cfg.btnBgColor || '#d8efff';
+        themeBtnTextColor.value = cfg.btnTextColor || '#0b388f';
+        themeTextColor.value = cfg.textColor || '#003366';
+        themeBgUrl.value = cfg.bgUrl || '';
+        btnPublishTheme.innerText = 'Сохранить изменения';
+        btnCancelEditTheme.style.display = 'inline-block';
+        updateLiveThemePreview();
+      } else {
+        btnSwitchToFrameCreator.click();
+        editingFrameId.value = id;
+        frameTitleInput.value = title;
+        frameShapeSelect.value = cfg.shape || 'circle';
+        frameColorInput.value = cfg.color || '#00e5ff';
+        frameAnimSelect.value = cfg.animation || 'none';
+        frameUploadedImgUrl = cfg.imgUrl || null;
+        btnPublishFrame.innerText = 'Сохранить изменения';
+        btnCancelEditFrame.style.display = 'inline-block';
+        updateLiveFramePreview();
+      }
+      boxThemeCreator.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    // Удаление работы автором
+    window.deleteCreation = async function(id) {
+      if (!confirm('Удалить эту работу из каталога?')) return;
+      await window.sbClient.from('community_creations').delete().eq('id', id);
+      loadCreationsList();
+    };
+
     window.applyCreation = async function(creationId, type, cfg) {
       if (!activeUser) return;
       if (type === 'theme') {
         applyThemeStyles(cfg);
         await window.sbClient.from('profiles').update({ custom_theme: cfg }).eq('id', activeUser.id);
-        alert('Тема оформления применена и сохранена в вашем профиле!');
+        alert('Тема оформления применена!');
       } else if (type === 'frame') {
         applyFrameStyles(cfg);
         await window.sbClient.from('profiles').update({ custom_frame: cfg }).eq('id', activeUser.id);
         if (profilesMap[activeUser.id]) profilesMap[activeUser.id].custom_frame = cfg;
-        alert('Рамочка надета и сохранена!');
+        alert('Рамочка надета!');
       }
     };
 
+    // Применение стилей темы ко всем контейнерам (включая фон и кнопки)
     function applyThemeStyles(cfg) {
       if (!cfg) return;
       let css = '';
@@ -1270,50 +1535,61 @@
       if (cfg.font) {
         document.body.style.fontFamily = cfg.font;
       }
+      if (cfg.mainBgColor) {
+        css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; }\n`;
+      }
       if (cfg.sidebarColor) {
         css += `.sidebar { background: ${cfg.sidebarColor} !important; }\n`;
       }
       if (cfg.cardColor) {
-        css += `.post-box, .profile-card, .community-card, .creation-card { background: ${cfg.cardColor} !important; }\n`;
+        css += `.post-box, .profile-card, .community-card, .creation-card, .messenger-container, .messenger-chats, .messenger-body { background-color: ${cfg.cardColor} !important; }\n`;
+      }
+      if (cfg.btnBgColor || cfg.btnTextColor) {
+        css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d8efff'} !important; color: ${cfg.btnTextColor || '#0b388f'} !important; }\n`;
       }
       if (cfg.textColor) {
-        css += `body, .post-box, .profile-card, .post-author, .sidebar-btn { color: ${cfg.textColor} !important; }\n`;
+        css += `body, .post-box, .profile-card, .post-author, legend, .aero-title-text { color: ${cfg.textColor} !important; }\n`;
       }
       dynamicCustomThemeStyle.innerHTML = css;
     }
 
+    // Применение рамочки поверх аватара
     function applyFrameStyles(cfg) {
       if (!cfg) return;
-      const avatarEl = document.getElementById('profileAvatar');
-      if (!avatarEl) return;
-      avatarEl.className = 'profile-avatar-big';
+      const overlay = document.getElementById('userProfileFrameOverlay');
+      const imgFrame = document.getElementById('userProfileFrameImg');
+      if (!overlay || !imgFrame) return;
 
-      const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
-      const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
-
-      avatarEl.classList.add(shapeClass);
-      if (animClass) avatarEl.classList.add(animClass);
-      avatarEl.style.borderColor = cfg.color || '#00e5ff';
-      avatarEl.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+      if (cfg.imgUrl) {
+        imgFrame.src = cfg.imgUrl;
+        imgFrame.style.display = 'block';
+        overlay.style.display = 'none';
+      } else {
+        imgFrame.style.display = 'none';
+        overlay.style.display = 'block';
+        overlay.className = `avatar-frame-overlay frame-shape-${cfg.shape || 'circle'}`;
+        if (cfg.animation === 'glow') overlay.classList.add('anim-glow');
+        if (cfg.animation === 'rainbow') overlay.classList.add('anim-rainbow');
+        overlay.style.border = `3px solid ${cfg.color || '#00e5ff'}`;
+        overlay.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+      }
     }
 
     btnResetAllStyles.onclick = async () => {
       dynamicCustomThemeStyle.innerHTML = '';
       document.body.style.backgroundImage = "url('bg.jpg')";
       document.body.style.fontFamily = "Tahoma, sans-serif";
-      const avatarEl = document.getElementById('profileAvatar');
-      if (avatarEl) {
-        avatarEl.className = 'profile-avatar-big';
-        avatarEl.style.borderColor = '#0055ea';
-        avatarEl.style.removeProperty('--frame-color');
-      }
+      
+      const overlay = document.getElementById('userProfileFrameOverlay');
+      const imgFrame = document.getElementById('userProfileFrameImg');
+      if (overlay) overlay.style.display = 'none';
+      if (imgFrame) imgFrame.style.display = 'none';
+
       if (activeUser) {
         await window.sbClient.from('profiles').update({ custom_theme: null, custom_frame: null }).eq('id', activeUser.id);
-        if (profilesMap[activeUser.id]) {
-          profilesMap[activeUser.id].custom_frame = null;
-        }
+        if (profilesMap[activeUser.id]) profilesMap[activeUser.id].custom_frame = null;
       }
-      alert('Оформление сброшено к стандартному Frutiger Aero!');
+      alert('Оформление сброшено!');
     };
 
     async function loadUserThemeAndFrame() {
@@ -1348,7 +1624,7 @@
       }
     };
 
-    // ==================== ЛЕНТА И ПУБЛИКАЦИИ ====================
+    // ==================== ЛЕНТА И ПОСТЫ ====================
     async function loadUserLikes() {
       if (!activeUser) return;
       const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
@@ -1922,13 +2198,12 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
-      // Надеваем рамочку на открытый профиль (если сохранена)
+      // Надеваем рамочку на открытый профиль
       if (prof.custom_frame) {
         applyFrameStyles(prof.custom_frame);
       } else {
-        profileAvatar.className = 'profile-avatar-big';
-        profileAvatar.style.borderColor = '#0055ea';
-        profileAvatar.style.removeProperty('--frame-color');
+        userProfileFrameOverlay.style.display = 'none';
+        userProfileFrameImg.style.display = 'none';
       }
 
       if (activeUser && userId !== activeUser.id) {
@@ -1967,7 +2242,7 @@
       profileFriendsList.innerHTML = confirmedIds.length === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         confirmedIds.map(fId => `
           <div class="friend-card" onclick="goToProfile('${fId}')">
-            <img src="${profilesMap[fId]?.avatar_url || DEFAULT_AVATAR}" alt="friend">
+            <img src="${profilesMap[fId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="friend">
             <div class="friend-name">${escapeHtml(profilesMap[fId]?.username || 'Пользователь')}</div>
           </div>
         `).join('');
