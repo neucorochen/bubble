@@ -97,11 +97,45 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
+    }
+    .author-info {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .author-info:hover .post-author {
+      text-decoration: underline;
     }
     .post-author {
       font-weight: bold;
       color: #0b388f;
+    }
+    .avatar-mini {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 1px solid #7f9db9;
+      background: #eee;
+    }
+    .profile-card {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      background: #f4f4f4;
+      padding: 10px;
+      border: 1px solid #aca899;
+      margin-bottom: 12px;
+    }
+    .profile-avatar-big {
+      width: 68px;
+      height: 68px;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #0055ea;
+      background: #fff;
     }
     .btn-delete-post {
       background: none;
@@ -134,7 +168,7 @@
       background: #f0f0f0;
       padding: 6px 10px;
       border-left: 2px solid #0055ea;
-      display: none; /* изначально свёрнута */
+      display: none;
     }
     .comment-item {
       font-size: 11px;
@@ -147,13 +181,16 @@
     }
     .comment-content b {
       color: #2b579a;
+      cursor: pointer;
+    }
+    .comment-content b:hover {
+      text-decoration: underline;
     }
     .comment-controls {
       display: flex;
       gap: 4px;
       align-items: center;
     }
-    /* Компактный крестик удаления комментария */
     .btn-comment-del {
       border: none;
       background: transparent;
@@ -163,10 +200,6 @@
       cursor: pointer;
       padding: 0 2px;
       font-weight: bold;
-    }
-    .btn-comment-del:hover {
-      color: #ff0000;
-      background: #eee;
     }
     .btn-comment-reply {
       border: none;
@@ -271,11 +304,14 @@
       </div>
 
       <div class="window-body window-body-layout">
-        <!-- Меню навигации слева -->
+        <!-- Боковое меню -->
         <div class="sidebar">
           <fieldset style="padding: 4px; margin-bottom: 6px;">
             <legend>Сессия</legend>
-            <div id="sideUserEmail" style="font-size: 10px; color:#555; word-break: break-all; margin-bottom: 4px;">...</div>
+            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+              <img id="sideAvatar" src="https://via.placeholder.com/26?text=?" class="avatar-mini" alt="avatar">
+              <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0055ea; word-break: break-all;">...</div>
+            </div>
             <button id="btnLogout" type="button">Выйти</button>
           </fieldset>
 
@@ -284,33 +320,31 @@
           <button id="btnTabProfile" type="button">👤 Мой профиль</button>
         </div>
 
-        <!-- Основная область контента -->
+        <!-- Центральный экран -->
         <div class="main-view">
           
-          <!-- Раздел: Ленты (общая и профиля) -->
+          <!-- Лента -->
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
-              <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble? (упоминания через @никнейм)"></textarea>
+              <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble?"></textarea>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-                <div>
-                  <label style="font-size: 11px; cursor: pointer;">
-                    📷 Прикрепить фото:
-                    <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
-                  </label>
-                </div>
+                <label style="font-size: 11px; cursor: pointer;">
+                  📷 Прикрепить фото:
+                  <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
+                </label>
                 <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
               </div>
               <div id="uploadStatus" style="font-size: 10px; color: #444; margin-top: 2px;"></div>
             </fieldset>
 
             <fieldset>
-              <legend id="feedLegend">Общая лента записей Bubble</legend>
+              <legend>Общая лента записей Bubble</legend>
               <div id="feedList">Загрузка постов...</div>
             </fieldset>
           </div>
 
-          <!-- Раздел: Уведомления -->
+          <!-- Уведомления -->
           <div id="sectionNotifications" style="display:none;">
             <fieldset>
               <legend>Уведомления</legend>
@@ -318,17 +352,27 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Мой профиль -->
+          <!-- Страница профиля (своего или чужого) -->
           <div id="sectionProfile" style="display:none;">
-            <fieldset style="margin-bottom: 12px; background:#f4f4f4;">
-              <legend>Карточка профиля</legend>
-              <div style="font-size:14px; font-weight:bold; color:#0b388f; margin-bottom:4px;" id="profileNick">...</div>
-              <div style="font-size:11px; color:#555;" id="profileEmail">...</div>
-            </fieldset>
+            <div class="profile-card">
+              <img id="profileAvatar" src="https://via.placeholder.com/68?text=Avatar" class="profile-avatar-big" alt="avatar">
+              <div style="flex:1;">
+                <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="profileNick">...</div>
+                
+                <!-- Блок загрузки аватарки (виден только хозяину страницы) -->
+                <div id="avatarUploadBox" style="margin-top:6px; display:none;">
+                  <label style="font-size:11px; cursor:pointer;">
+                    Сменить аватар:
+                    <input type="file" id="avatarFileInput" accept="image/*" style="font-size:10px;">
+                  </label>
+                  <span id="avatarStatus" style="font-size:10px; color:#555;"></span>
+                </div>
+              </div>
+            </div>
 
             <fieldset>
-              <legend>Мои публикации</legend>
-              <div id="myPostsList">Загрузка моих записей...</div>
+              <legend id="profilePostsLegend">Публикации пользователя</legend>
+              <div id="profilePostsList">Загрузка записей...</div>
             </fieldset>
           </div>
 
@@ -348,9 +392,13 @@
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let activeUser = null;
-    let currentTab = 'feed'; // 'feed', 'notifications', 'profile'
+    let currentTab = 'feed';
+    let viewingUserId = null; // чей профиль сейчас открыт
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
+    let profilesMap = {}; // кэш: userId -> { username, avatar_url }
+
+    const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
     // DOM
     const authModal = document.getElementById('authModal');
@@ -359,7 +407,8 @@
     const inputEmail = document.getElementById('inputEmail');
     const inputPass = document.getElementById('inputPass');
 
-    const sideUserEmail = document.getElementById('sideUserEmail');
+    const sideUserName = document.getElementById('sideUserName');
+    const sideAvatar = document.getElementById('sideAvatar');
     const urlInput = document.getElementById('urlInput');
 
     const btnTabFeed = document.getElementById('btnTabFeed');
@@ -371,10 +420,16 @@
     const sectionNotifications = document.getElementById('sectionNotifications');
     const sectionProfile = document.getElementById('sectionProfile');
 
-    const feedLegend = document.getElementById('feedLegend');
     const feedList = document.getElementById('feedList');
-    const myPostsList = document.getElementById('myPostsList');
+    const profilePostsList = document.getElementById('profilePostsList');
     const notificationsList = document.getElementById('notificationsList');
+
+    const profileNick = document.getElementById('profileNick');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const avatarUploadBox = document.getElementById('avatarUploadBox');
+    const avatarFileInput = document.getElementById('avatarFileInput');
+    const avatarStatus = document.getElementById('avatarStatus');
+    const profilePostsLegend = document.getElementById('profilePostsLegend');
 
     const postContent = document.getElementById('postContent');
     const postImageFile = document.getElementById('postImageFile');
@@ -392,11 +447,40 @@
       return user.user_metadata?.username || user.email.split('@')[0];
     }
 
+    async function ensureProfile(user) {
+      if (!user) return;
+      const { data } = await sbClient.from('profiles').select('*').eq('id', user.id).single();
+      if (!data) {
+        await sbClient.from('profiles').insert([{
+          id: user.id,
+          username: getUserName(user),
+          avatar_url: DEFAULT_AVATAR
+        }]);
+      }
+    }
+
+    async function loadAllProfiles() {
+      const { data } = await sbClient.from('profiles').select('*');
+      profilesMap = {};
+      (data || []).forEach(p => {
+        profilesMap[p.id] = {
+          username: p.username || 'Аноним',
+          avatar_url: p.avatar_url || DEFAULT_AVATAR
+        };
+      });
+    }
+
     async function updateSessionState(session) {
       activeUser = session ? session.user : null;
       if (activeUser) {
         authModal.style.display = 'none';
-        sideUserEmail.innerText = getUserName(activeUser);
+        await ensureProfile(activeUser);
+        await loadAllProfiles();
+
+        const myProf = profilesMap[activeUser.id];
+        sideUserName.innerText = myProf ? myProf.username : getUserName(activeUser);
+        sideAvatar.src = (myProf && myProf.avatar_url) ? myProf.avatar_url : DEFAULT_AVATAR;
+
         await loadUserLikes();
         checkUnreadNotifications();
         switchTab('feed');
@@ -451,12 +535,12 @@
 
     document.getElementById('btnLogout').addEventListener('click', () => sbClient.auth.signOut());
 
-    // Переключение вкладок
-    function switchTab(tab) {
+    // Переключение разделов
+    function switchTab(tab, targetUserId = null) {
       currentTab = tab;
       btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
       btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
-      btnTabProfile.style.fontWeight = tab === 'profile' ? 'bold' : 'normal';
+      btnTabProfile.style.fontWeight = (tab === 'profile' && targetUserId === activeUser.id) ? 'bold' : 'normal';
 
       sectionFeed.style.display = tab === 'feed' ? 'block' : 'none';
       sectionNotifications.style.display = tab === 'notifications' ? 'block' : 'none';
@@ -469,17 +553,87 @@
         urlInput.value = 'https://bubble.net/notifications';
         loadNotifications();
       } else if (tab === 'profile') {
-        urlInput.value = `https://bubble.net/user/${getUserName(activeUser)}`;
-        loadProfile();
+        viewingUserId = targetUserId || activeUser.id;
+        openUserProfile(viewingUserId);
       }
     }
 
     btnTabFeed.addEventListener('click', () => switchTab('feed'));
     btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
-    btnTabProfile.addEventListener('click', () => switchTab('profile'));
-    document.getElementById('btnGoReload').addEventListener('click', () => switchTab(currentTab));
+    btnTabProfile.addEventListener('click', () => switchTab('profile', activeUser.id));
+    document.getElementById('btnGoReload').addEventListener('click', () => switchTab(currentTab, viewingUserId));
 
-    // Лайки пользователя
+    // Клик по пользователю из ленты
+    window.goToProfile = function(userId) {
+      switchTab('profile', userId);
+    };
+
+    // Загрузка страницы профиля (без почты)
+    async function openUserProfile(userId) {
+      await loadAllProfiles();
+      const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+
+      profileNick.innerText = prof.username;
+      profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
+      urlInput.value = `https://bubble.net/user/${prof.username}`;
+
+      // Если это профиль текущего пользователя — показываем загрузку аватарки
+      if (userId === activeUser.id) {
+        avatarUploadBox.style.display = 'block';
+        profilePostsLegend.innerText = 'Мои публикации';
+      } else {
+        avatarUploadBox.style.display = 'none';
+        profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
+      }
+
+      profilePostsList.innerHTML = 'Загрузка записей...';
+      const { data: posts, error } = await sbClient
+        .from('posts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('id', { ascending: false });
+
+      if (error) return profilePostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return profilePostsList.innerHTML = '<p>Публикаций пока нет.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
+    }
+
+    // Загрузка аватара
+    avatarFileInput.addEventListener('change', async () => {
+      const file = avatarFileInput.files[0];
+      if (!file || !activeUser) return;
+
+      avatarStatus.innerText = 'Загрузка...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await sbClient.storage.from('avatars').upload(fileName, file);
+      if (uploadError) {
+        avatarStatus.innerText = '';
+        return alert('Ошибка загрузки аватара: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = sbClient.storage.from('avatars').getPublicUrl(fileName);
+
+      await sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
+
+      avatarStatus.innerText = 'Готово!';
+      profileAvatar.src = publicUrl;
+      sideAvatar.src = publicUrl;
+      avatarFileInput.value = '';
+      await loadAllProfiles();
+    });
+
     async function loadUserLikes() {
       if (!activeUser) return;
       const { data: pLikes } = await sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
@@ -489,15 +643,9 @@
       userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
     }
 
-    // Проверка непрочитанных уведомлений
     async function checkUnreadNotifications() {
       if (!activeUser) return;
-      const { data } = await sbClient
-        .from('notifications')
-        .select('id')
-        .eq('user_id', activeUser.id)
-        .eq('is_read', false);
-
+      const { data } = await sbClient.from('notifications').select('id').eq('user_id', activeUser.id).eq('is_read', false);
       const count = (data || []).length;
       if (count > 0) {
         notifBadge.style.display = 'inline';
@@ -507,7 +655,6 @@
       }
     }
 
-    // Отправка уведомления
     async function createNotification(targetUserId, type, message, postId) {
       if (!targetUserId || targetUserId === activeUser.id) return;
       await sbClient.from('notifications').insert([{
@@ -521,7 +668,6 @@
       }]);
     }
 
-    // Разбор упоминаний (@username)
     async function parseMentions(text, postId) {
       const matches = text.match(/@([a-zA-Z0-9_\-]+)/g);
       if (!matches) return;
@@ -535,23 +681,26 @@
       }
     }
 
-    // Генерация HTML поста
+    // HTML одного поста
     function renderPostItem(p, commentsByPost) {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
       const isMyPost = p.user_id === activeUser.id;
 
+      const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
+
       return `
         <div class="post-box" id="post-${p.id}">
           <div class="post-header">
-            <div>
-              <span class="post-author">🫧 ${escapeHtml(p.author)}</span>
-              <span style="font-size:10px; color:#777; margin-left:6px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            <div class="author-info" onclick="goToProfile('${p.user_id}')">
+              <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+              <span class="post-author">🫧 ${escapeHtml(prof.username)}</span>
+              <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>
             ${isMyPost ? `<button class="btn-delete-post" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
           </div>
 
-          <div style="margin: 4px 0;">${escapeHtml(p.content)}</div>
+          <div style="margin: 6px 0;">${escapeHtml(p.content)}</div>
           ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
 
           <div class="post-actions">
@@ -563,22 +712,23 @@
             </button>
           </div>
 
-          <!-- Свёрнутая секция комментариев -->
           <div class="comments-section" id="comments-box-${p.id}">
             <div id="comments-list-${p.id}">
               ${postComments.map(c => {
                 const isCommentLiked = userLikedComments.has(c.id);
                 const isMyComment = c.user_id === activeUser.id;
+                const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
+
                 return `
                   <div class="comment-item">
                     <div class="comment-content">
-                      <b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.content)}
+                      <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
                     </div>
                     <div class="comment-controls">
                       <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0}, '${c.user_id}', ${p.id})" style="font-size:10px; padding:1px 4px;">
                         ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
                       </button>
-                      <button class="btn-comment-reply" onclick="replyToComment(${p.id}, '${escapeHtml(c.author)}')">ответить</button>
+                      <button class="btn-comment-reply" onclick="replyToComment(${p.id}, '${escapeHtml(cProf.username)}')">ответить</button>
                       ${isMyComment ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
                     </div>
                   </div>
@@ -594,10 +744,10 @@
       `;
     }
 
-    // Загрузка общей ленты
     async function loadFeed() {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
+      await loadAllProfiles();
 
       const { data: posts, error } = await sbClient
         .from('posts')
@@ -609,11 +759,7 @@
       if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Пока нет записей. Оставьте первое сообщение!</p>';
 
       const postIds = posts.map(p => p.id);
-      const { data: comments } = await sbClient
-        .from('comments')
-        .select('*')
-        .in('post_id', postIds)
-        .order('id', { ascending: true });
+      const { data: comments } = await sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
 
       const commentsByPost = {};
       (comments || []).forEach(c => {
@@ -624,38 +770,6 @@
       feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
     }
 
-    // Загрузка страницы профиля
-    async function loadProfile() {
-      document.getElementById('profileNick').innerText = 'Пользователь: ' + getUserName(activeUser);
-      document.getElementById('profileEmail').innerText = 'Email: ' + activeUser.email;
-      myPostsList.innerHTML = 'Загрузка публикаций...';
-
-      const { data: posts, error } = await sbClient
-        .from('posts')
-        .select('*')
-        .eq('user_id', activeUser.id)
-        .order('id', { ascending: false });
-
-      if (error) return myPostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return myPostsList.innerHTML = '<p>У вас пока нет публикаций.</p>';
-
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await sbClient
-        .from('comments')
-        .select('*')
-        .in('post_id', postIds)
-        .order('id', { ascending: true });
-
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      myPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
-    }
-
-    // Загрузка уведомлений
     async function loadNotifications() {
       notificationsList.innerHTML = 'Загрузка...';
 
@@ -676,19 +790,16 @@
         </div>
       `).join('');
 
-      // Помечаем прочитанными
       await sbClient.from('notifications').update({ is_read: true }).eq('user_id', activeUser.id);
       notifBadge.style.display = 'none';
     }
 
-    // Сворачивание/разворачивание комментариев
     window.toggleCommentsVisibility = function(postId) {
       const box = document.getElementById(`comments-box-${postId}`);
       if (!box) return;
       box.style.display = box.style.display === 'block' ? 'none' : 'block';
     };
 
-    // Подготовка ответа на комментарий
     window.replyToComment = function(postId, author) {
       const box = document.getElementById(`comments-box-${postId}`);
       if (box) box.style.display = 'block';
@@ -699,7 +810,6 @@
       }
     };
 
-    // Создание поста
     btnCreatePost.addEventListener('click', async () => {
       const text = postContent.value.trim();
       const file = postImageFile.files[0];
@@ -723,8 +833,9 @@
       }
 
       uploadStatus.innerText = 'Публикация...';
+      const myProf = profilesMap[activeUser.id] || {};
       const { data: insertedPost, error } = await sbClient.from('posts').insert([{
-        author: getUserName(activeUser),
+        author: myProf.username || getUserName(activeUser),
         content: text,
         user_id: activeUser.id,
         image_url: imageUrl,
@@ -740,27 +851,24 @@
         postContent.value = '';
         postImageFile.value = '';
         if (insertedPost) parseMentions(text, insertedPost.id);
-        switchTab(currentTab);
+        switchTab(currentTab, viewingUserId);
       }
     });
 
-    // Удаление поста
     window.deletePost = async function(postId) {
       if (!confirm('Удалить этот пост?')) return;
       const { error } = await sbClient.from('posts').delete().match({ id: postId, user_id: activeUser.id });
       if (error) alert('Ошибка удаления: ' + error.message);
-      else switchTab(currentTab);
+      else switchTab(currentTab, viewingUserId);
     };
 
-    // Удаление комментария
     window.deleteComment = async function(commentId) {
       if (!confirm('Удалить комментарий?')) return;
       const { error } = await sbClient.from('comments').delete().match({ id: commentId, user_id: activeUser.id });
       if (error) alert('Ошибка удаления: ' + error.message);
-      else switchTab(currentTab);
+      else switchTab(currentTab, viewingUserId);
     };
 
-    // Лайк поста
     window.togglePostLike = async function(postId, currentLikes, postAuthorId) {
       if (!activeUser) return;
       if (userLikedPosts.has(postId)) {
@@ -773,10 +881,9 @@
         userLikedPosts.add(postId);
         createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
       }
-      switchTab(currentTab);
+      switchTab(currentTab, viewingUserId);
     };
 
-    // Лайк комментария
     window.toggleCommentLike = async function(commentId, currentLikes, commentAuthorId, postId) {
       if (!activeUser) return;
       if (userLikedComments.has(commentId)) {
@@ -789,19 +896,19 @@
         userLikedComments.add(commentId);
         createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
       }
-      switchTab(currentTab);
+      switchTab(currentTab, viewingUserId);
     };
 
-    // Отправка комментария
     window.sendComment = async function(postId, postAuthorId) {
       const input = document.getElementById(`comment-input-${postId}`);
       const text = input.value.trim();
       if (!text || !activeUser) return;
 
+      const myProf = profilesMap[activeUser.id] || {};
       const { error } = await sbClient.from('comments').insert([{
         post_id: postId,
         user_id: activeUser.id,
-        author: getUserName(activeUser),
+        author: myProf.username || getUserName(activeUser),
         content: text,
         likes_count: 0
       }]);
@@ -812,7 +919,7 @@
         input.value = '';
         createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
         parseMentions(text, postId);
-        switchTab(currentTab);
+        switchTab(currentTab, viewingUserId);
       }
     };
 
