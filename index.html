@@ -41,7 +41,7 @@
       box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
     }
     .ie-window {
-      width: 900px;
+      width: 920px;
       max-width: 98vw;
       height: 670px;
       max-height: 88vh;
@@ -67,7 +67,7 @@
       padding: 0 !important;
     }
     .sidebar {
-      width: 170px;
+      width: 175px;
       background: #ece9d8;
       border-right: 2px groove #fff;
       padding: 8px;
@@ -79,6 +79,7 @@
       width: 100%;
       text-align: left;
       font-size: 11px;
+      cursor: pointer;
     }
     .main-view {
       flex: 1;
@@ -102,7 +103,7 @@
       font-weight: bold;
       color: #0b388f;
     }
-    .btn-delete {
+    .btn-delete-post {
       background: none;
       border: 1px solid #c0c0c0;
       color: #a00;
@@ -110,7 +111,7 @@
       font-size: 10px;
       padding: 1px 4px;
     }
-    .btn-delete:hover {
+    .btn-delete-post:hover {
       background: #ffe6e6;
     }
     .post-image {
@@ -133,6 +134,7 @@
       background: #f0f0f0;
       padding: 6px 10px;
       border-left: 2px solid #0055ea;
+      display: none; /* изначально свёрнута */
     }
     .comment-item {
       font-size: 11px;
@@ -150,6 +152,45 @@
       display: flex;
       gap: 4px;
       align-items: center;
+    }
+    /* Компактный крестик удаления комментария */
+    .btn-comment-del {
+      border: none;
+      background: transparent;
+      color: #b00;
+      font-size: 12px;
+      line-height: 12px;
+      cursor: pointer;
+      padding: 0 2px;
+      font-weight: bold;
+    }
+    .btn-comment-del:hover {
+      color: #ff0000;
+      background: #eee;
+    }
+    .btn-comment-reply {
+      border: none;
+      background: transparent;
+      color: #0055ea;
+      font-size: 10px;
+      cursor: pointer;
+      padding: 0 2px;
+      text-decoration: underline;
+    }
+    .notification-item {
+      font-size: 11px;
+      padding: 6px 8px;
+      background: #fbfbfb;
+      border: 1px solid #ccc;
+      margin-bottom: 6px;
+    }
+    .badge {
+      background: red;
+      color: white;
+      font-size: 9px;
+      padding: 1px 4px;
+      border-radius: 3px;
+      margin-left: 4px;
     }
     .taskbar {
       height: 30px;
@@ -184,6 +225,7 @@
 </head>
 <body>
 
+  <!-- Окно логина/регистрации -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
@@ -224,40 +266,72 @@
 
       <div class="address-bar">
         <span>Address:</span>
-        <input type="text" value="https://bubble.net/feed/all" readonly>
+        <input type="text" id="urlInput" value="https://bubble.net/feed/all" readonly>
         <button style="min-width: 40px;" id="btnGoReload">Go</button>
       </div>
 
       <div class="window-body window-body-layout">
+        <!-- Меню навигации слева -->
         <div class="sidebar">
           <fieldset style="padding: 4px; margin-bottom: 6px;">
-            <legend>Мой профиль</legend>
-            <div id="userDisplay" style="font-weight: bold; font-size: 11px; margin-bottom: 4px; color: #000080;">...</div>
+            <legend>Сессия</legend>
+            <div id="sideUserEmail" style="font-size: 10px; color:#555; word-break: break-all; margin-bottom: 4px;">...</div>
             <button id="btnLogout" type="button">Выйти</button>
           </fieldset>
-          <button id="btnReloadFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
+
+          <button id="btnTabFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
+          <button id="btnTabNotifications" type="button">🔔 Уведомления <span id="notifBadge" class="badge" style="display:none;">0</span></button>
+          <button id="btnTabProfile" type="button">👤 Мой профиль</button>
         </div>
 
+        <!-- Основная область контента -->
         <div class="main-view">
-          <fieldset style="margin-bottom: 12px;">
-            <legend>Новая запись на стену</legend>
-            <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble?"></textarea>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
-              <div>
-                <label style="font-size: 11px; cursor: pointer;">
-                  📷 Прикрепить фото:
-                  <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
-                </label>
+          
+          <!-- Раздел: Ленты (общая и профиля) -->
+          <div id="sectionFeed">
+            <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
+              <legend>Новая запись на стену</legend>
+              <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble? (упоминания через @никнейм)"></textarea>
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px;">
+                <div>
+                  <label style="font-size: 11px; cursor: pointer;">
+                    📷 Прикрепить фото:
+                    <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
+                  </label>
+                </div>
+                <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
               </div>
-              <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
-            </div>
-            <div id="uploadStatus" style="font-size: 10px; color: #444; margin-top: 2px;"></div>
-          </fieldset>
+              <div id="uploadStatus" style="font-size: 10px; color: #444; margin-top: 2px;"></div>
+            </fieldset>
 
-          <fieldset>
-            <legend>Общая лента записей Bubble</legend>
-            <div id="feedList">Загрузка постов...</div>
-          </fieldset>
+            <fieldset>
+              <legend id="feedLegend">Общая лента записей Bubble</legend>
+              <div id="feedList">Загрузка постов...</div>
+            </fieldset>
+          </div>
+
+          <!-- Раздел: Уведомления -->
+          <div id="sectionNotifications" style="display:none;">
+            <fieldset>
+              <legend>Уведомления</legend>
+              <div id="notificationsList">Загрузка уведомлений...</div>
+            </fieldset>
+          </div>
+
+          <!-- Раздел: Мой профиль -->
+          <div id="sectionProfile" style="display:none;">
+            <fieldset style="margin-bottom: 12px; background:#f4f4f4;">
+              <legend>Карточка профиля</legend>
+              <div style="font-size:14px; font-weight:bold; color:#0b388f; margin-bottom:4px;" id="profileNick">...</div>
+              <div style="font-size:11px; color:#555;" id="profileEmail">...</div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Мои публикации</legend>
+              <div id="myPostsList">Загрузка моих записей...</div>
+            </fieldset>
+          </div>
+
         </div>
       </div>
     </div>
@@ -274,16 +348,34 @@
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let activeUser = null;
+    let currentTab = 'feed'; // 'feed', 'notifications', 'profile'
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
 
+    // DOM
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
     const inputEmail = document.getElementById('inputEmail');
     const inputPass = document.getElementById('inputPass');
-    const userDisplay = document.getElementById('userDisplay');
+
+    const sideUserEmail = document.getElementById('sideUserEmail');
+    const urlInput = document.getElementById('urlInput');
+
+    const btnTabFeed = document.getElementById('btnTabFeed');
+    const btnTabNotifications = document.getElementById('btnTabNotifications');
+    const btnTabProfile = document.getElementById('btnTabProfile');
+    const notifBadge = document.getElementById('notifBadge');
+
+    const sectionFeed = document.getElementById('sectionFeed');
+    const sectionNotifications = document.getElementById('sectionNotifications');
+    const sectionProfile = document.getElementById('sectionProfile');
+
+    const feedLegend = document.getElementById('feedLegend');
     const feedList = document.getElementById('feedList');
+    const myPostsList = document.getElementById('myPostsList');
+    const notificationsList = document.getElementById('notificationsList');
+
     const postContent = document.getElementById('postContent');
     const postImageFile = document.getElementById('postImageFile');
     const btnCreatePost = document.getElementById('btnCreatePost');
@@ -304,9 +396,10 @@
       activeUser = session ? session.user : null;
       if (activeUser) {
         authModal.style.display = 'none';
-        userDisplay.innerText = getUserName(activeUser);
+        sideUserEmail.innerText = getUserName(activeUser);
         await loadUserLikes();
-        loadFeed();
+        checkUnreadNotifications();
+        switchTab('feed');
       } else {
         authModal.style.display = 'flex';
       }
@@ -315,31 +408,20 @@
     sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
+    // Авторизация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
-      authStatus.innerText = 'Создание аккаунта...';
-
+      authStatus.innerText = 'Создание...';
       const username = inputUsername.value.trim();
       const email = inputEmail.value.trim();
       const password = inputPass.value.trim();
 
-      if (!username || !email || !password) {
-        authStatus.style.color = 'red';
-        authStatus.innerText = 'Заполните все поля!';
-        return;
-      }
-      if (password.length < 6) {
-        authStatus.style.color = 'red';
-        authStatus.innerText = 'Пароль от 6 символов!';
-        return;
-      }
+      if (!username || !email || !password) return authStatus.innerText = 'Заполните все поля!';
+      if (password.length < 6) return authStatus.innerText = 'Пароль от 6 символов!';
 
       const { data, error } = await sbClient.auth.signUp({
-        email,
-        password,
-        options: { data: { username } }
+        email, password, options: { data: { username } }
       });
-
       if (error) {
         authStatus.style.color = 'red';
         authStatus.innerText = error.message;
@@ -356,7 +438,6 @@
       authStatus.innerText = 'Проверка...';
       const email = inputEmail.value.trim();
       const password = inputPass.value.trim();
-
       if (!email || !password) return authStatus.innerText = 'Введите почту и пароль!';
 
       const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
@@ -370,33 +451,153 @@
 
     document.getElementById('btnLogout').addEventListener('click', () => sbClient.auth.signOut());
 
-    async function triggerFeedRefresh() {
-      if (!activeUser) return;
-      await loadUserLikes();
-      await loadFeed();
+    // Переключение вкладок
+    function switchTab(tab) {
+      currentTab = tab;
+      btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
+      btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
+      btnTabProfile.style.fontWeight = tab === 'profile' ? 'bold' : 'normal';
+
+      sectionFeed.style.display = tab === 'feed' ? 'block' : 'none';
+      sectionNotifications.style.display = tab === 'notifications' ? 'block' : 'none';
+      sectionProfile.style.display = tab === 'profile' ? 'block' : 'none';
+
+      if (tab === 'feed') {
+        urlInput.value = 'https://bubble.net/feed/all';
+        loadFeed();
+      } else if (tab === 'notifications') {
+        urlInput.value = 'https://bubble.net/notifications';
+        loadNotifications();
+      } else if (tab === 'profile') {
+        urlInput.value = `https://bubble.net/user/${getUserName(activeUser)}`;
+        loadProfile();
+      }
     }
 
-    document.getElementById('btnReloadFeed').addEventListener('click', triggerFeedRefresh);
-    document.getElementById('btnGoReload').addEventListener('click', triggerFeedRefresh);
+    btnTabFeed.addEventListener('click', () => switchTab('feed'));
+    btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
+    btnTabProfile.addEventListener('click', () => switchTab('profile'));
+    document.getElementById('btnGoReload').addEventListener('click', () => switchTab(currentTab));
 
+    // Лайки пользователя
     async function loadUserLikes() {
       if (!activeUser) return;
-      const { data: pLikes } = await sbClient
-        .from('post_likes')
-        .select('post_id')
-        .eq('user_id', activeUser.id);
+      const { data: pLikes } = await sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
       userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
 
-      const { data: cLikes } = await sbClient
-        .from('comment_likes')
-        .select('comment_id')
-        .eq('user_id', activeUser.id);
+      const { data: cLikes } = await sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
       userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
     }
 
+    // Проверка непрочитанных уведомлений
+    async function checkUnreadNotifications() {
+      if (!activeUser) return;
+      const { data } = await sbClient
+        .from('notifications')
+        .select('id')
+        .eq('user_id', activeUser.id)
+        .eq('is_read', false);
+
+      const count = (data || []).length;
+      if (count > 0) {
+        notifBadge.style.display = 'inline';
+        notifBadge.innerText = count;
+      } else {
+        notifBadge.style.display = 'none';
+      }
+    }
+
+    // Отправка уведомления
+    async function createNotification(targetUserId, type, message, postId) {
+      if (!targetUserId || targetUserId === activeUser.id) return;
+      await sbClient.from('notifications').insert([{
+        user_id: targetUserId,
+        from_user_id: activeUser.id,
+        from_username: getUserName(activeUser),
+        type,
+        message,
+        post_id: postId,
+        is_read: false
+      }]);
+    }
+
+    // Разбор упоминаний (@username)
+    async function parseMentions(text, postId) {
+      const matches = text.match(/@([a-zA-Z0-9_\-]+)/g);
+      if (!matches) return;
+      const usernames = matches.map(m => m.replace('@', ''));
+
+      const { data: profiles } = await sbClient.from('profiles').select('id, username').in('username', usernames);
+      if (profiles) {
+        for (const p of profiles) {
+          await createNotification(p.id, 'mention', `упомянул(а) вас: "${text.substring(0, 40)}..."`, postId);
+        }
+      }
+    }
+
+    // Генерация HTML поста
+    function renderPostItem(p, commentsByPost) {
+      const isPostLiked = userLikedPosts.has(p.id);
+      const postComments = commentsByPost[p.id] || [];
+      const isMyPost = p.user_id === activeUser.id;
+
+      return `
+        <div class="post-box" id="post-${p.id}">
+          <div class="post-header">
+            <div>
+              <span class="post-author">🫧 ${escapeHtml(p.author)}</span>
+              <span style="font-size:10px; color:#777; margin-left:6px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+            ${isMyPost ? `<button class="btn-delete-post" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
+          </div>
+
+          <div style="margin: 4px 0;">${escapeHtml(p.content)}</div>
+          ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
+
+          <div class="post-actions">
+            <button onclick="togglePostLike(${p.id}, ${p.likes_count || 0}, '${p.user_id}')">
+              ${isPostLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
+            </button>
+            <button onclick="toggleCommentsVisibility(${p.id})" style="font-size:11px;">
+              💬 Комментарии (${postComments.length})
+            </button>
+          </div>
+
+          <!-- Свёрнутая секция комментариев -->
+          <div class="comments-section" id="comments-box-${p.id}">
+            <div id="comments-list-${p.id}">
+              ${postComments.map(c => {
+                const isCommentLiked = userLikedComments.has(c.id);
+                const isMyComment = c.user_id === activeUser.id;
+                return `
+                  <div class="comment-item">
+                    <div class="comment-content">
+                      <b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.content)}
+                    </div>
+                    <div class="comment-controls">
+                      <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0}, '${c.user_id}', ${p.id})" style="font-size:10px; padding:1px 4px;">
+                        ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
+                      </button>
+                      <button class="btn-comment-reply" onclick="replyToComment(${p.id}, '${escapeHtml(c.author)}')">ответить</button>
+                      ${isMyComment ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <input type="text" id="comment-input-${p.id}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
+              <button onclick="sendComment(${p.id}, '${p.user_id}')" style="font-size:11px;">Ответить</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    // Загрузка общей ленты
     async function loadFeed() {
       if (!activeUser) return;
-      feedList.innerHTML = 'Загрузка записей Bubble...';
+      feedList.innerHTML = 'Загрузка записей...';
 
       const { data: posts, error } = await sbClient
         .from('posts')
@@ -404,15 +605,8 @@
         .order('id', { ascending: false })
         .limit(30);
 
-      if (error) {
-        feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-        return;
-      }
-
-      if (!posts || posts.length === 0) {
-        feedList.innerHTML = '<p>Пока нет записей. Оставьте первое сообщение!</p>';
-        return;
-      }
+      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Пока нет записей. Оставьте первое сообщение!</p>';
 
       const postIds = posts.map(p => p.id);
       const { data: comments } = await sbClient
@@ -427,122 +621,135 @@
         commentsByPost[c.post_id].push(c);
       });
 
-      feedList.innerHTML = posts.map(p => {
-        const isPostLiked = userLikedPosts.has(p.id);
-        const postComments = commentsByPost[p.id] || [];
-        const isMyPost = p.user_id === activeUser.id;
-
-        return `
-          <div class="post-box" id="post-${p.id}">
-            <div class="post-header">
-              <div>
-                <span class="post-author">🫧 ${escapeHtml(p.author)}</span>
-                <span style="font-size:10px; color:#777; margin-left:6px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-              </div>
-              ${isMyPost ? `<button class="btn-delete" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
-            </div>
-
-            <div style="margin: 4px 0;">${escapeHtml(p.content)}</div>
-            ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
-
-            <div class="post-actions">
-              <button onclick="togglePostLike(${p.id}, ${p.likes_count || 0})">
-                ${isPostLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
-              </button>
-              <span style="font-size:11px; color:#555;">💬 Комментариев: ${postComments.length}</span>
-            </div>
-
-            <div class="comments-section">
-              <div id="comments-list-${p.id}">
-                ${postComments.map(c => {
-                  const isCommentLiked = userLikedComments.has(c.id);
-                  const isMyComment = c.user_id === activeUser.id;
-                  return `
-                    <div class="comment-item">
-                      <div class="comment-content">
-                        <b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.content)}
-                      </div>
-                      <div class="comment-controls">
-                        <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0})" style="font-size:10px; padding:1px 4px;">
-                          ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
-                        </button>
-                        ${isMyComment ? `<button class="btn-delete" onclick="deleteComment(${c.id})">✖</button>` : ''}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
-              </div>
-              <div style="display:flex; gap:4px; margin-top:6px;">
-                <input type="text" id="comment-input-${p.id}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
-                <button onclick="sendComment(${p.id})" style="font-size:11px;">Ответить</button>
-              </div>
-            </div>
-          </div>
-        `;
-      }).join('');
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
     }
 
+    // Загрузка страницы профиля
+    async function loadProfile() {
+      document.getElementById('profileNick').innerText = 'Пользователь: ' + getUserName(activeUser);
+      document.getElementById('profileEmail').innerText = 'Email: ' + activeUser.email;
+      myPostsList.innerHTML = 'Загрузка публикаций...';
+
+      const { data: posts, error } = await sbClient
+        .from('posts')
+        .select('*')
+        .eq('user_id', activeUser.id)
+        .order('id', { ascending: false });
+
+      if (error) return myPostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return myPostsList.innerHTML = '<p>У вас пока нет публикаций.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await sbClient
+        .from('comments')
+        .select('*')
+        .in('post_id', postIds)
+        .order('id', { ascending: true });
+
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      myPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
+    }
+
+    // Загрузка уведомлений
+    async function loadNotifications() {
+      notificationsList.innerHTML = 'Загрузка...';
+
+      const { data: notifs, error } = await sbClient
+        .from('notifications')
+        .select('*')
+        .eq('user_id', activeUser.id)
+        .order('id', { ascending: false })
+        .limit(40);
+
+      if (error) return notificationsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!notifs || notifs.length === 0) return notificationsList.innerHTML = '<p>Уведомлений пока нет.</p>';
+
+      notificationsList.innerHTML = notifs.map(n => `
+        <div class="notification-item" style="${n.is_read ? 'opacity:0.7;' : 'background:#fff8db; font-weight:bold;'}">
+          <div><b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}</div>
+          <span style="font-size:9px; color:#888;">${new Date(n.created_at).toLocaleString()}</span>
+        </div>
+      `).join('');
+
+      // Помечаем прочитанными
+      await sbClient.from('notifications').update({ is_read: true }).eq('user_id', activeUser.id);
+      notifBadge.style.display = 'none';
+    }
+
+    // Сворачивание/разворачивание комментариев
+    window.toggleCommentsVisibility = function(postId) {
+      const box = document.getElementById(`comments-box-${postId}`);
+      if (!box) return;
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    };
+
+    // Подготовка ответа на комментарий
+    window.replyToComment = function(postId, author) {
+      const box = document.getElementById(`comments-box-${postId}`);
+      if (box) box.style.display = 'block';
+      const input = document.getElementById(`comment-input-${postId}`);
+      if (input) {
+        input.value = `@${author} ` + input.value;
+        input.focus();
+      }
+    };
+
+    // Создание поста
     btnCreatePost.addEventListener('click', async () => {
       const text = postContent.value.trim();
       const file = postImageFile.files[0];
-
-      if (!text && !file) return alert('Введите текст или прикрепите изображение!');
-      if (!activeUser) return;
+      if (!text && !file) return alert('Введите текст или прикрепите фото!');
 
       btnCreatePost.disabled = true;
       let imageUrl = null;
 
       if (file) {
-        uploadStatus.innerText = 'Загрузка изображения...';
+        uploadStatus.innerText = 'Загрузка фото...';
         const fileExt = file.name.split('.').pop();
         const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-
-        const { error: uploadError } = await sbClient.storage
-          .from('post_images')
-          .upload(fileName, file);
-
+        const { error: uploadError } = await sbClient.storage.from('post_images').upload(fileName, file);
         if (uploadError) {
           uploadStatus.innerText = '';
           btnCreatePost.disabled = false;
-          return alert('Ошибка при загрузке картинки: ' + uploadError.message);
+          return alert('Ошибка фото: ' + uploadError.message);
         }
-
-        const { data: { publicUrl } } = sbClient.storage
-          .from('post_images')
-          .getPublicUrl(fileName);
-
+        const { data: { publicUrl } } = sbClient.storage.from('post_images').getPublicUrl(fileName);
         imageUrl = publicUrl;
       }
 
-      uploadStatus.innerText = 'Публикация записи...';
-      const myNick = getUserName(activeUser);
-
-      const { error } = await sbClient.from('posts').insert([{
-        author: myNick,
+      uploadStatus.innerText = 'Публикация...';
+      const { data: insertedPost, error } = await sbClient.from('posts').insert([{
+        author: getUserName(activeUser),
         content: text,
         user_id: activeUser.id,
         image_url: imageUrl,
         likes_count: 0
-      }]);
+      }]).select().single();
 
       btnCreatePost.disabled = false;
       uploadStatus.innerText = '';
 
       if (error) {
-        alert('Ошибка публикации: ' + error.message);
+        alert('Ошибка: ' + error.message);
       } else {
         postContent.value = '';
         postImageFile.value = '';
-        await triggerFeedRefresh();
+        if (insertedPost) parseMentions(text, insertedPost.id);
+        switchTab(currentTab);
       }
     });
 
     // Удаление поста
     window.deletePost = async function(postId) {
-      if (!confirm('Вы уверены, что хотите удалить этот пост?')) return;
+      if (!confirm('Удалить этот пост?')) return;
       const { error } = await sbClient.from('posts').delete().match({ id: postId, user_id: activeUser.id });
       if (error) alert('Ошибка удаления: ' + error.message);
-      else await triggerFeedRefresh();
+      else switchTab(currentTab);
     };
 
     // Удаление комментария
@@ -550,13 +757,12 @@
       if (!confirm('Удалить комментарий?')) return;
       const { error } = await sbClient.from('comments').delete().match({ id: commentId, user_id: activeUser.id });
       if (error) alert('Ошибка удаления: ' + error.message);
-      else await triggerFeedRefresh();
+      else switchTab(currentTab);
     };
 
-    // Лайк на пост
-    window.togglePostLike = async function(postId, currentLikes) {
+    // Лайк поста
+    window.togglePostLike = async function(postId, currentLikes, postAuthorId) {
       if (!activeUser) return;
-
       if (userLikedPosts.has(postId)) {
         await sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
         await sbClient.from('posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
@@ -565,15 +771,14 @@
         await sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
         await sbClient.from('posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
         userLikedPosts.add(postId);
+        createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
       }
-
-      await triggerFeedRefresh();
+      switchTab(currentTab);
     };
 
-    // Лайк на комментарий
-    window.toggleCommentLike = async function(commentId, currentLikes) {
+    // Лайк комментария
+    window.toggleCommentLike = async function(commentId, currentLikes, commentAuthorId, postId) {
       if (!activeUser) return;
-
       if (userLikedComments.has(commentId)) {
         await sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
         await sbClient.from('comments').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', commentId);
@@ -582,23 +787,21 @@
         await sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
         await sbClient.from('comments').update({ likes_count: currentLikes + 1 }).eq('id', commentId);
         userLikedComments.add(commentId);
+        createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
       }
-
-      await triggerFeedRefresh();
+      switchTab(currentTab);
     };
 
     // Отправка комментария
-    window.sendComment = async function(postId) {
+    window.sendComment = async function(postId, postAuthorId) {
       const input = document.getElementById(`comment-input-${postId}`);
       const text = input.value.trim();
       if (!text || !activeUser) return;
 
-      const myNick = getUserName(activeUser);
-
       const { error } = await sbClient.from('comments').insert([{
         post_id: postId,
         user_id: activeUser.id,
-        author: myNick,
+        author: getUserName(activeUser),
         content: text,
         likes_count: 0
       }]);
@@ -607,7 +810,9 @@
         alert('Ошибка комментария: ' + error.message);
       } else {
         input.value = '';
-        await triggerFeedRefresh();
+        createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
+        parseMentions(text, postId);
+        switchTab(currentTab);
       }
     };
 
