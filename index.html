@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Стрекоза — Социальная сеть в стиле Windows XP</title>
+  <link rel="stylesheet" href="https://unpkg.com/xp.css/dist/XP.css">
+  <!-- Подключение Supabase JS через CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      background: #004e98 url('https://upload.wikimedia.org/wikipedia/en/2/27/Bliss_%28Windows_XP%29.png') no-repeat center center fixed;
+      background-size: cover;
+      font-family: "Tahoma", sans-serif;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      overflow: hidden;
+    }
+    .desktop {
+      flex: 1;
+      padding: 16px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+    .ie-window {
+      width: 850px;
+      max-width: 96vw;
+      height: 620px;
+      max-height: 86vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .ie-toolbar, .address-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 8px;
+      background: #ece9d8;
+      border-bottom: 1px solid #aca899;
+      font-size: 11px;
+    }
+    .address-bar input {
+      flex: 1;
+      font-size: 11px;
+    }
+    .window-body-scroll {
+      flex: 1;
+      overflow-y: auto;
+      background: #fff;
+      padding: 14px;
+      margin: 0 !important;
+    }
+    .post-box {
+      background: #fbfbfb;
+      border: 1px solid #7f9db9;
+      padding: 8px 12px;
+      margin-bottom: 10px;
+    }
+    .post-author {
+      font-weight: bold;
+      color: #0b388f;
+      margin-bottom: 4px;
+    }
+    .post-time {
+      font-size: 10px;
+      color: #777;
+    }
+    .taskbar {
+      height: 30px;
+      background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.4);
+    }
+    .start-button {
+      height: 100%;
+      background: linear-gradient(to bottom, #388e3c 0%, #4caf50 10%, #2e7d32 100%);
+      border: none;
+      color: white;
+      font-weight: bold;
+      font-style: italic;
+      font-size: 14px;
+      padding: 0 14px;
+      border-top-right-radius: 8px;
+      border-bottom-right-radius: 8px;
+      cursor: pointer;
+    }
+    .tray {
+      background: #0f8fee;
+      height: 100%;
+      padding: 0 12px;
+      display: flex;
+      align-items: center;
+      color: white;
+      font-size: 11px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="desktop">
+    <div class="window ie-window">
+      <div class="title-bar">
+        <div class="title-bar-text">Стрекоза — Убежище от интернета — Microsoft Internet Explorer</div>
+        <div class="title-bar-controls">
+          <button aria-label="Minimize"></button>
+          <button aria-label="Maximize"></button>
+          <button aria-label="Close"></button>
+        </div>
+      </div>
+
+      <div class="ie-toolbar">
+        <span><u>F</u>ile</span>
+        <span><u>E</u>dit</span>
+        <span><u>V</u>iew</span>
+        <span><u>F</u>avorites</span>
+        <span><u>T</u>ools</span>
+        <span><u>H</u>elp</span>
+      </div>
+
+      <div class="address-bar">
+        <span>Address:</span>
+        <input type="text" value="https://dragonfly-flash.com/wall" readonly>
+        <button style="min-width: 40px;">Go</button>
+      </div>
+
+      <div class="window-body window-body-scroll">
+        <!-- Форма добавления поста -->
+        <fieldset style="margin-bottom: 16px;">
+          <legend>Оставить запись на стене</legend>
+          <div style="display: flex; gap: 8px; margin-bottom: 6px;">
+            <input type="text" id="authorInput" placeholder="Ваш ник" style="width: 160px;" value="Стрекозоид">
+          </div>
+          <textarea id="contentInput" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового?"></textarea>
+          <div style="text-align: right; margin-top: 6px;">
+            <button id="sendBtn" style="font-weight: bold;">Опубликовать</button>
+          </div>
+        </fieldset>
+
+        <!-- Лента записей -->
+        <fieldset>
+          <legend>Стена сообщества</legend>
+          <div id="postsFeed">Загрузка записей из базы данных...</div>
+        </fieldset>
+      </div>
+    </div>
+  </div>
+
+  <div class="taskbar">
+    <button class="start-button">start</button>
+    <div class="tray" id="clock">12:00</div>
+  </div>
+
+  <script>
+    // 1. Вставьте ваши ключи из настроек Supabase:
+    const SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co/rest/v1/';
+    const SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const postsFeed = document.getElementById('postsFeed');
+    const authorInput = document.getElementById('authorInput');
+    const contentInput = document.getElementById('contentInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    // Отрисовка постов
+    function renderPosts(posts) {
+      if (!posts || posts.length === 0) {
+        postsFeed.innerHTML = '<p>Пока нет ни одной записи. Будьте первым!</p>';
+        return;
+      }
+      postsFeed.innerHTML = posts.map(post => `
+        <div class="post-box">
+          <div class="post-author">${escapeHtml(post.author)} <span class="post-time">${new Date(post.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span></div>
+          <div>${escapeHtml(post.content)}</div>
+        </div>
+      `).join('');
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
+    // Загрузка постов из PostgreSQL
+    async function loadPosts() {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(30);
+
+      if (error) {
+        postsFeed.innerHTML = '<p style="color:red">Ошибка подключения к БД: ' + error.message + '</p>';
+      } else {
+        renderPosts(data);
+      }
+    }
+
+    // Отправка новой записи
+    sendBtn.addEventListener('click', async () => {
+      const content = contentInput.value.trim();
+      const author = authorInput.value.trim() || 'Аноним';
+
+      if (!content) return;
+
+      sendBtn.disabled = true;
+      const { error } = await supabase.from('posts').insert([{ author, content }]);
+      sendBtn.disabled = false;
+
+      if (error) {
+        alert('Ошибка при отправке: ' + error.message);
+      } else {
+        contentInput.value = '';
+        loadPosts();
+      }
+    });
+
+    // Realtime-подписка: новые посты появляются без обновления страницы
+    supabase
+      .channel('schema-db-changes')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
+        loadPosts();
+      })
+      .subscribe();
+
+    // Часы в трее
+    function updateClock() {
+      const now = new Date();
+      document.getElementById('clock').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // Первичная загрузка
+    loadPosts();
+  </script>
+</body>
+</html>
