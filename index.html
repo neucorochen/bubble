@@ -90,13 +90,28 @@
       border: 1px solid #7f9db9;
       padding: 8px 12px;
       margin-bottom: 12px;
+      position: relative;
+    }
+    .post-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
     }
     .post-author {
       font-weight: bold;
       color: #0b388f;
-      margin-bottom: 4px;
-      display: flex;
-      justify-content: space-between;
+    }
+    .btn-delete {
+      background: none;
+      border: 1px solid #c0c0c0;
+      color: #a00;
+      cursor: pointer;
+      font-size: 10px;
+      padding: 1px 4px;
+    }
+    .btn-delete:hover {
+      background: #ffe6e6;
     }
     .post-image {
       max-width: 100%;
@@ -121,12 +136,20 @@
     }
     .comment-item {
       font-size: 11px;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
       border-bottom: 1px dotted #ccc;
-      padding-bottom: 2px;
+      padding-bottom: 4px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
-    .comment-item b {
+    .comment-content b {
       color: #2b579a;
+    }
+    .comment-controls {
+      display: flex;
+      gap: 4px;
+      align-items: center;
     }
     .taskbar {
       height: 30px;
@@ -161,7 +184,6 @@
 </head>
 <body>
 
-  <!-- Окно входа / регистрации -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
@@ -189,7 +211,6 @@
     </div>
   </div>
 
-  <!-- Главное окно сайта -->
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -214,7 +235,6 @@
             <div id="userDisplay" style="font-weight: bold; font-size: 11px; margin-bottom: 4px; color: #000080;">...</div>
             <button id="btnLogout" type="button">Выйти</button>
           </fieldset>
-          <!-- Кнопка обновления ленты -->
           <button id="btnReloadFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
         </div>
 
@@ -255,6 +275,7 @@
 
     let activeUser = null;
     let userLikedPosts = new Set();
+    let userLikedComments = new Set();
 
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
@@ -294,7 +315,6 @@
     sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    // Авторизация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Создание аккаунта...';
@@ -350,7 +370,6 @@
 
     document.getElementById('btnLogout').addEventListener('click', () => sbClient.auth.signOut());
 
-    // Обновление ленты по клику на кнопку в меню или кнопку Go
     async function triggerFeedRefresh() {
       if (!activeUser) return;
       await loadUserLikes();
@@ -360,18 +379,21 @@
     document.getElementById('btnReloadFeed').addEventListener('click', triggerFeedRefresh);
     document.getElementById('btnGoReload').addEventListener('click', triggerFeedRefresh);
 
-    // Загрузка лайков текущего пользователя
     async function loadUserLikes() {
       if (!activeUser) return;
-      const { data } = await sbClient
+      const { data: pLikes } = await sbClient
         .from('post_likes')
         .select('post_id')
         .eq('user_id', activeUser.id);
+      userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
 
-      userLikedPosts = new Set((data || []).map(l => l.post_id));
+      const { data: cLikes } = await sbClient
+        .from('comment_likes')
+        .select('comment_id')
+        .eq('user_id', activeUser.id);
+      userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
     }
 
-    // Загрузка постов, лайков и комментариев
     async function loadFeed() {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей Bubble...';
@@ -406,32 +428,49 @@
       });
 
       feedList.innerHTML = posts.map(p => {
-        const isLiked = userLikedPosts.has(p.id);
+        const isPostLiked = userLikedPosts.has(p.id);
         const postComments = commentsByPost[p.id] || [];
+        const isMyPost = p.user_id === activeUser.id;
 
         return `
           <div class="post-box" id="post-${p.id}">
-            <div class="post-author">
-              <span>🫧 ${escapeHtml(p.author)}</span>
-              <span style="font-size:10px; color:#777;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            <div class="post-header">
+              <div>
+                <span class="post-author">🫧 ${escapeHtml(p.author)}</span>
+                <span style="font-size:10px; color:#777; margin-left:6px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+              </div>
+              ${isMyPost ? `<button class="btn-delete" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
             </div>
-            <div>${escapeHtml(p.content)}</div>
+
+            <div style="margin: 4px 0;">${escapeHtml(p.content)}</div>
             ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
 
             <div class="post-actions">
-              <button onclick="toggleLike(${p.id}, ${p.likes_count || 0})">
-                ${isLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
+              <button onclick="togglePostLike(${p.id}, ${p.likes_count || 0})">
+                ${isPostLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
               </button>
               <span style="font-size:11px; color:#555;">💬 Комментариев: ${postComments.length}</span>
             </div>
 
             <div class="comments-section">
               <div id="comments-list-${p.id}">
-                ${postComments.map(c => `
-                  <div class="comment-item">
-                    <b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.content)}
-                  </div>
-                `).join('')}
+                ${postComments.map(c => {
+                  const isCommentLiked = userLikedComments.has(c.id);
+                  const isMyComment = c.user_id === activeUser.id;
+                  return `
+                    <div class="comment-item">
+                      <div class="comment-content">
+                        <b>${escapeHtml(c.author)}:</b> ${escapeHtml(c.content)}
+                      </div>
+                      <div class="comment-controls">
+                        <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0})" style="font-size:10px; padding:1px 4px;">
+                          ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
+                        </button>
+                        ${isMyComment ? `<button class="btn-delete" onclick="deleteComment(${c.id})">✖</button>` : ''}
+                      </div>
+                    </div>
+                  `;
+                }).join('')}
               </div>
               <div style="display:flex; gap:4px; margin-top:6px;">
                 <input type="text" id="comment-input-${p.id}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
@@ -443,7 +482,6 @@
       }).join('');
     }
 
-    // Создание поста с картинкой
     btnCreatePost.addEventListener('click', async () => {
       const text = postContent.value.trim();
       const file = postImageFile.files[0];
@@ -499,8 +537,24 @@
       }
     });
 
-    // Переключение лайка
-    window.toggleLike = async function(postId, currentLikes) {
+    // Удаление поста
+    window.deletePost = async function(postId) {
+      if (!confirm('Вы уверены, что хотите удалить этот пост?')) return;
+      const { error } = await sbClient.from('posts').delete().match({ id: postId, user_id: activeUser.id });
+      if (error) alert('Ошибка удаления: ' + error.message);
+      else await triggerFeedRefresh();
+    };
+
+    // Удаление комментария
+    window.deleteComment = async function(commentId) {
+      if (!confirm('Удалить комментарий?')) return;
+      const { error } = await sbClient.from('comments').delete().match({ id: commentId, user_id: activeUser.id });
+      if (error) alert('Ошибка удаления: ' + error.message);
+      else await triggerFeedRefresh();
+    };
+
+    // Лайк на пост
+    window.togglePostLike = async function(postId, currentLikes) {
       if (!activeUser) return;
 
       if (userLikedPosts.has(postId)) {
@@ -516,7 +570,24 @@
       await triggerFeedRefresh();
     };
 
-    // Добавление комментария
+    // Лайк на комментарий
+    window.toggleCommentLike = async function(commentId, currentLikes) {
+      if (!activeUser) return;
+
+      if (userLikedComments.has(commentId)) {
+        await sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
+        await sbClient.from('comments').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', commentId);
+        userLikedComments.delete(commentId);
+      } else {
+        await sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
+        await sbClient.from('comments').update({ likes_count: currentLikes + 1 }).eq('id', commentId);
+        userLikedComments.add(commentId);
+      }
+
+      await triggerFeedRefresh();
+    };
+
+    // Отправка комментария
     window.sendComment = async function(postId) {
       const input = document.getElementById(`comment-input-${postId}`);
       const text = input.value.trim();
@@ -528,7 +599,8 @@
         post_id: postId,
         user_id: activeUser.id,
         author: myNick,
-        content: text
+        content: text,
+        likes_count: 0
       }]);
 
       if (error) {
