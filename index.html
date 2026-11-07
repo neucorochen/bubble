@@ -204,7 +204,7 @@
       <div class="address-bar">
         <span>Address:</span>
         <input type="text" value="https://bubble.net/feed/all" readonly>
-        <button style="min-width: 40px;">Go</button>
+        <button style="min-width: 40px;" id="btnGoReload">Go</button>
       </div>
 
       <div class="window-body window-body-layout">
@@ -214,11 +214,11 @@
             <div id="userDisplay" style="font-weight: bold; font-size: 11px; margin-bottom: 4px; color: #000080;">...</div>
             <button id="btnLogout" type="button">Выйти</button>
           </fieldset>
-          <button style="font-weight: bold;">📰 Общая лента</button>
+          <!-- Кнопка обновления ленты -->
+          <button id="btnReloadFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
         </div>
 
         <div class="main-view">
-          <!-- Форма создания нового поста с картинкой -->
           <fieldset style="margin-bottom: 12px;">
             <legend>Новая запись на стену</legend>
             <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble?"></textarea>
@@ -350,6 +350,16 @@
 
     document.getElementById('btnLogout').addEventListener('click', () => sbClient.auth.signOut());
 
+    // Обновление ленты по клику на кнопку в меню или кнопку Go
+    async function triggerFeedRefresh() {
+      if (!activeUser) return;
+      await loadUserLikes();
+      await loadFeed();
+    }
+
+    document.getElementById('btnReloadFeed').addEventListener('click', triggerFeedRefresh);
+    document.getElementById('btnGoReload').addEventListener('click', triggerFeedRefresh);
+
     // Загрузка лайков текущего пользователя
     async function loadUserLikes() {
       if (!activeUser) return;
@@ -361,12 +371,11 @@
       userLikedPosts = new Set((data || []).map(l => l.post_id));
     }
 
-    // Загрузка ленты, лайков и комментариев
+    // Загрузка постов, лайков и комментариев
     async function loadFeed() {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей Bubble...';
 
-      // Получаем посты
       const { data: posts, error } = await sbClient
         .from('posts')
         .select('*')
@@ -383,7 +392,6 @@
         return;
       }
 
-      // Получаем комментарии ко всем загруженным постам
       const postIds = posts.map(p => p.id);
       const { data: comments } = await sbClient
         .from('comments')
@@ -410,7 +418,6 @@
             <div>${escapeHtml(p.content)}</div>
             ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
 
-            <!-- Лайки и кнопка комментариев -->
             <div class="post-actions">
               <button onclick="toggleLike(${p.id}, ${p.likes_count || 0})">
                 ${isLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
@@ -418,7 +425,6 @@
               <span style="font-size:11px; color:#555;">💬 Комментариев: ${postComments.length}</span>
             </div>
 
-            <!-- Блок комментариев -->
             <div class="comments-section">
               <div id="comments-list-${p.id}">
                 ${postComments.map(c => `
@@ -448,7 +454,6 @@
       btnCreatePost.disabled = true;
       let imageUrl = null;
 
-      // Если прикреплен файл — загружаем в Storage
       if (file) {
         uploadStatus.innerText = 'Загрузка изображения...';
         const fileExt = file.name.split('.').pop();
@@ -490,30 +495,28 @@
       } else {
         postContent.value = '';
         postImageFile.value = '';
-        loadFeed();
+        await triggerFeedRefresh();
       }
     });
 
-    // Функция переключения лайка
+    // Переключение лайка
     window.toggleLike = async function(postId, currentLikes) {
       if (!activeUser) return;
 
       if (userLikedPosts.has(postId)) {
-        // Убираем лайк
         await sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
         await sbClient.from('posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
         userLikedPosts.delete(postId);
       } else {
-        // Ставим лайк
         await sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
         await sbClient.from('posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
         userLikedPosts.add(postId);
       }
 
-      loadFeed();
+      await triggerFeedRefresh();
     };
 
-    // Функция добавления комментария
+    // Добавление комментария
     window.sendComment = async function(postId) {
       const input = document.getElementById(`comment-input-${postId}`);
       const text = input.value.trim();
@@ -532,7 +535,7 @@
         alert('Ошибка комментария: ' + error.message);
       } else {
         input.value = '';
-        loadFeed();
+        await triggerFeedRefresh();
       }
     };
 
