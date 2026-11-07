@@ -1579,7 +1579,7 @@
       openConversation(newConv.id);
     };
 
-    // ==================== ИСПРАВЛЕННЫЕ ЗВОНКИ (WebRTC + ICE) ====================
+    // ==================== ИСПРАВЛЕННЫЕ ЗВОНКИ С ПОДАВЛЕНИЕМ ЭХА И ИСКЛЮЧЕНИЕМ САМОПРОСЛУШИВАНИЯ ====================
     async function setupPeerConnection(isCaller, targetUserId) {
       if (peerConnection) {
         peerConnection.close();
@@ -1588,22 +1588,20 @@
 
       peerConnection = new RTCPeerConnection(rtcConfig);
 
-      // Воспроизводим звук ТОЛЬКО если это удаленный поток (не наш собственный микрофон)
+      // Воспроизводим звук ТОЛЬКО если это удаленный входящий поток
       peerConnection.ontrack = (event) => {
         const stream = event.streams[0];
         if (!stream) return;
 
-        // Защита: проверяем, что ID потока не совпадает с нашим локальным микрофоном
+        // Защита: не отправляем свой собственный микрофон себе же в динамики
         if (localStream && stream.id === localStream.id) {
           return;
         }
 
         if (remoteAudioPlayer) {
           remoteAudioPlayer.srcObject = stream;
-          remoteAudioPlayer.muted = false; // Удаленный звук не заглушаем
-          remoteAudioPlayer.play().catch(e => {
-            console.warn('Автовоспроизведение заблокировано браузером:', e);
-          });
+          remoteAudioPlayer.muted = false;
+          remoteAudioPlayer.play().catch(e => console.warn('Воспроизведение звука собеседника:', e));
         }
       };
 
@@ -1625,7 +1623,15 @@
 
     async function startAudioCall(targetUserId) {
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        // Захват чистого звука с аппаратным подавлением эха и шума
+        localStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          },
+          video: false
+        });
       } catch (err) {
         return alert('Не удалось получить доступ к микрофону: ' + err.message);
       }
@@ -1694,7 +1700,14 @@
     btnAcceptCall.onclick = async () => {
       if (!activeCallRecord) return;
       try {
-        localStream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+        localStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true
+          },
+          video: false
+        });
       } catch (err) {
         return alert('Нет доступа к микрофону: ' + err.message);
       }
