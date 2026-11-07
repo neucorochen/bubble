@@ -256,6 +256,34 @@
       font-weight: bold;
     }
 
+    /* Карточки в разделе Друзья */
+    .friends-list-container {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .friend-row-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #fff;
+      border: 1px solid #7f9db9;
+      padding: 6px 8px;
+      font-size: 11px;
+    }
+    .friend-row-card:hover {
+      background: #edf4ff;
+    }
+    .friend-row-info {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    .friend-row-info b:hover {
+      text-decoration: underline;
+    }
+
     /* Сетка друзей в профиле */
     .friends-grid {
       display: grid;
@@ -298,7 +326,7 @@
       position: fixed;
       bottom: 38px;
       right: 14px;
-      width: 260px;
+      width: 270px;
       background: #ffffe1;
       border: 1px solid #000;
       box-shadow: 2px 2px 6px rgba(0,0,0,0.4);
@@ -308,10 +336,10 @@
       font-size: 11px;
       cursor: pointer;
       display: none;
-      animation: balloonPop 0.3s ease-out;
+      animation: balloonPop 0.25s ease-out;
     }
     @keyframes balloonPop {
-      from { transform: translateY(20px); opacity: 0; }
+      from { transform: translateY(15px); opacity: 0; }
       to { transform: translateY(0); opacity: 1; }
     }
     .xp-balloon-header {
@@ -327,6 +355,7 @@
       cursor: pointer;
       color: #888;
       font-weight: bold;
+      padding: 0 2px;
     }
     .xp-balloon-close:hover { color: #000; }
 
@@ -483,7 +512,8 @@
           </fieldset>
 
           <button id="btnTabFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
-          <button id="btnTabFriendsFeed" type="button">👥 Лента друзей</button>
+          <button id="btnTabFriendsFeed" type="button">📰 Лента друзей</button>
+          <button id="btnTabFriendsManager" type="button">👥 Друзья <span id="friendsBadge" class="badge" style="display:none;">0</span></button>
           <button id="btnTabNotifications" type="button">🔔 Уведомления <span id="notifBadge" class="badge" style="display:none;">0</span></button>
           <button id="btnTabProfile" type="button">👤 Мой профиль</button>
         </div>
@@ -507,6 +537,24 @@
             <fieldset>
               <legend id="feedLegend">Общая лента записей Bubble</legend>
               <div id="feedList">Загрузка постов...</div>
+            </fieldset>
+          </div>
+
+          <!-- Раздел: Управление друзьями и заявками -->
+          <div id="sectionFriendsManager" style="display:none;">
+            <fieldset style="margin-bottom: 12px;">
+              <legend>📥 Входящие заявки в друзья (<span id="countIncoming">0</span>)</legend>
+              <div id="listIncomingReqs" class="friends-list-container">Загрузка заявок...</div>
+            </fieldset>
+
+            <fieldset style="margin-bottom: 12px;">
+              <legend>👥 Подтверждённые друзья (<span id="countAccepted">0</span>)</legend>
+              <div id="listAcceptedFriends" class="friends-list-container">Загрузка друзей...</div>
+            </fieldset>
+
+            <fieldset>
+              <legend>📤 Отправленные заявки (<span id="countOutgoing">0</span>)</legend>
+              <div id="listOutgoingReqs" class="friends-list-container">Загрузка заявок...</div>
             </fieldset>
           </div>
 
@@ -536,7 +584,6 @@
               </div>
             </div>
 
-            <!-- Блок друзей пользователя -->
             <fieldset style="margin-bottom: 12px;">
               <legend id="friendsBlockLegend">👥 Друзья (0)</legend>
               <div id="profileFriendsList" class="friends-grid">Загрузка списка друзей...</div>
@@ -598,7 +645,6 @@
     </div>
   </div>
 
-  <!-- Всплывающее уведомление Windows XP (Balloon Tooltip) -->
   <div class="xp-balloon" id="xpBalloon">
     <div class="xp-balloon-header">
       <span>🫧 Новое событие в Bubble</span>
@@ -653,11 +699,14 @@
 
     const btnTabFeed = document.getElementById('btnTabFeed');
     const btnTabFriendsFeed = document.getElementById('btnTabFriendsFeed');
+    const btnTabFriendsManager = document.getElementById('btnTabFriendsManager');
     const btnTabNotifications = document.getElementById('btnTabNotifications');
     const btnTabProfile = document.getElementById('btnTabProfile');
     const notifBadge = document.getElementById('notifBadge');
+    const friendsBadge = document.getElementById('friendsBadge');
 
     const sectionFeed = document.getElementById('sectionFeed');
+    const sectionFriendsManager = document.getElementById('sectionFriendsManager');
     const sectionNotifications = document.getElementById('sectionNotifications');
     const sectionProfile = document.getElementById('sectionProfile');
 
@@ -665,6 +714,13 @@
     const feedList = document.getElementById('feedList');
     const profilePostsList = document.getElementById('profilePostsList');
     const notificationsList = document.getElementById('notificationsList');
+
+    const listIncomingReqs = document.getElementById('listIncomingReqs');
+    const listAcceptedFriends = document.getElementById('listAcceptedFriends');
+    const listOutgoingReqs = document.getElementById('listOutgoingReqs');
+    const countIncoming = document.getElementById('countIncoming');
+    const countAccepted = document.getElementById('countAccepted');
+    const countOutgoing = document.getElementById('countOutgoing');
 
     const profileNick = document.getElementById('profileNick');
     const profileAvatar = document.getElementById('profileAvatar');
@@ -778,6 +834,13 @@
             }
           }
         });
+
+        if (pendingIncomingIds.size > 0) {
+          friendsBadge.style.display = 'inline-block';
+          friendsBadge.innerText = pendingIncomingIds.size;
+        } else {
+          friendsBadge.style.display = 'none';
+        }
       } catch (e) {
         console.warn('loadFriends:', e);
       }
@@ -868,15 +931,16 @@
       }
     }
 
-    // Всплывающее облачко Windows XP в правом нижнем углу
     function showXPBalloon(notif) {
-      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username)}</b> ${escapeHtml(notif.message)}`;
+      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username || 'Пользователь')}</b> ${escapeHtml(notif.message)}`;
       xpBalloon.style.display = 'block';
 
       xpBalloon.onclick = (e) => {
         if (e.target.id === 'xpBalloonClose') return;
         if (notif.post_id) {
           openTargetPost(notif.post_id, notif.id);
+        } else if (notif.type === 'friend_request' || notif.type === 'friend_accept') {
+          switchTab('friends_manager');
         } else {
           switchTab('notifications');
         }
@@ -896,7 +960,7 @@
       hideXPBalloon();
     });
 
-    // Мгновенная Realtime-подписка
+    // Надежная подписка Realtime без строгих фильтров (фильтрация внутри события)
     function initRealtimeNotifications() {
       if (!activeUser) return;
       if (realtimeChannel) {
@@ -905,25 +969,22 @@
       }
 
       realtimeChannel = window.sbClient
-        .channel('realtime:user_notifs_' + activeUser.id)
+        .channel('bubble_public_events')
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
-          table: 'notifications',
-          filter: `user_id=eq.${activeUser.id}`
+          table: 'notifications'
         }, (payload) => {
-          updateUnreadBadge();
-          if (payload?.new) {
+          if (payload?.new && payload.new.user_id === activeUser.id) {
+            updateUnreadBadge();
+            loadFriends();
             showXPBalloon(payload.new);
-          }
-          if (currentTab === 'notifications') {
-            loadNotifications();
+            if (currentTab === 'notifications') loadNotifications();
+            if (currentTab === 'friends_manager') loadFriendsManager();
           }
         })
         .subscribe((status) => {
-          if (status === 'SUBSCRIBED') {
-            console.log('Realtime подключен успешно!');
-          }
+          console.log('Realtime статус:', status);
         });
     }
 
@@ -965,10 +1026,12 @@
 
       btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
       btnTabFriendsFeed.style.fontWeight = tab === 'friends_feed' ? 'bold' : 'normal';
+      btnTabFriendsManager.style.fontWeight = tab === 'friends_manager' ? 'bold' : 'normal';
       btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
       btnTabProfile.style.fontWeight = (tab === 'profile' && activeUser && targetUserId === activeUser.id) ? 'bold' : 'normal';
 
       sectionFeed.style.display = (tab === 'feed' || tab === 'friends_feed') ? 'block' : 'none';
+      sectionFriendsManager.style.display = tab === 'friends_manager' ? 'block' : 'none';
       sectionNotifications.style.display = tab === 'notifications' ? 'block' : 'none';
       sectionProfile.style.display = tab === 'profile' ? 'block' : 'none';
 
@@ -980,6 +1043,9 @@
         urlInput.value = 'https://bubble.net/feed/friends';
         feedLegend.innerText = '👥 Лента записей друзей';
         loadFeed(true);
+      } else if (tab === 'friends_manager') {
+        urlInput.value = 'https://bubble.net/friends';
+        loadFriendsManager();
       } else if (tab === 'notifications') {
         urlInput.value = 'https://bubble.net/notifications';
         loadNotifications();
@@ -991,6 +1057,7 @@
 
     btnTabFeed.addEventListener('click', () => switchTab('feed'));
     btnTabFriendsFeed.addEventListener('click', () => switchTab('friends_feed'));
+    btnTabFriendsManager.addEventListener('click', () => switchTab('friends_manager'));
     btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
     btnTabProfile.addEventListener('click', () => {
       if (activeUser) switchTab('profile', activeUser.id);
@@ -1113,6 +1180,7 @@
       `;
     }
 
+    // Лента записей: если включен фильтр друзей, отображаем посты подтвержденных друзей И тех, кому отправлена неотклоненная заявка
     async function loadFeed(onlyFriends = false) {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
@@ -1122,18 +1190,19 @@
       let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
 
       if (onlyFriends) {
-        const friendIdsArray = Array.from(userFriendIds);
-        if (friendIdsArray.length === 0) {
-          feedList.innerHTML = '<p>У вас пока нет подтвержденных друзей. Перейдите в профиль пользователя и отправьте заявку в друзья!</p>';
+        // Подтверждённые друзья + отправленные заявки
+        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
+        if (feedTargetIds.length === 0) {
+          feedList.innerHTML = '<p>У вас пока нет друзей или отправленных заявок. Отправьте заявку пользователю, и его посты появятся здесь!</p>';
           return;
         }
-        query = query.in('user_id', friendIdsArray);
+        query = query.in('user_id', feedTargetIds);
       }
 
       const { data: posts, error } = await query;
       if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
       if (!posts || posts.length === 0) {
-        feedList.innerHTML = onlyFriends ? '<p>Ваши друзья пока ничего не опубликовали.</p>' : '<p>Пока нет записей. Оставьте первое сообщение!</p>';
+        feedList.innerHTML = onlyFriends ? '<p>В ленте друзей пока нет записей.</p>' : '<p>Пока нет записей. Оставьте первое сообщение!</p>';
         return;
       }
 
@@ -1149,7 +1218,102 @@
       feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, onlyFriends ? 'friends' : 'feed')).join('');
     }
 
-    // Загрузка друзей для отображения в профиле
+    // Раздел "Друзья": отображение списков входящих, подтверждённых и отправленных заявок
+    async function loadFriendsManager() {
+      await loadAllProfiles();
+      await loadFriends();
+
+      countIncoming.innerText = pendingIncomingIds.size;
+      countAccepted.innerText = userFriendIds.size;
+      countOutgoing.innerText = pendingOutgoingIds.size;
+
+      // 1. Входящие
+      if (pendingIncomingIds.size === 0) {
+        listIncomingReqs.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Нет входящих заявок.</div>';
+      } else {
+        listIncomingReqs.innerHTML = Array.from(pendingIncomingIds).map(userId => {
+          const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+          return `
+            <div class="friend-row-card">
+              <div class="friend-row-info" onclick="goToProfile('${userId}')">
+                <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+                <b>${escapeHtml(prof.username)}</b>
+              </div>
+              <div style="display:flex; gap:4px;">
+                <button onclick="handleFriendRequestInManager('${userId}', true)">Принять</button>
+                <button onclick="handleFriendRequestInManager('${userId}', false)" style="color:#a00;">Отклонить</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 2. Подтверждённые
+      if (userFriendIds.size === 0) {
+        listAcceptedFriends.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Список друзей пуст.</div>';
+      } else {
+        listAcceptedFriends.innerHTML = Array.from(userFriendIds).map(userId => {
+          const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+          return `
+            <div class="friend-row-card">
+              <div class="friend-row-info" onclick="goToProfile('${userId}')">
+                <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+                <b>${escapeHtml(prof.username)}</b>
+              </div>
+              <div>
+                <button onclick="removeFriendFromManager('${userId}')" style="color:#a00; font-size:10px;">Удалить</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+
+      // 3. Отправленные
+      if (pendingOutgoingIds.size === 0) {
+        listOutgoingReqs.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Нет отправленных заявок.</div>';
+      } else {
+        listOutgoingReqs.innerHTML = Array.from(pendingOutgoingIds).map(userId => {
+          const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+          return `
+            <div class="friend-row-card">
+              <div class="friend-row-info" onclick="goToProfile('${userId}')">
+                <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+                <span><b>${escapeHtml(prof.username)}</b> (ожидание ответа)</span>
+              </div>
+              <div>
+                <button onclick="cancelOutgoingRequest('${userId}')" style="font-size:10px;">Отменить заявку</button>
+              </div>
+            </div>
+          `;
+        }).join('');
+      }
+    }
+
+    window.handleFriendRequestInManager = async function(senderId, accept) {
+      if (!activeUser) return;
+      if (accept) {
+        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: senderId, friend_id: activeUser.id });
+        await createNotification(senderId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
+      } else {
+        await window.sbClient.from('friends').delete().match({ user_id: senderId, friend_id: activeUser.id, status: 'pending' });
+      }
+      await loadFriendsManager();
+    };
+
+    window.cancelOutgoingRequest = async function(friendId) {
+      if (!activeUser) return;
+      await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: friendId, status: 'pending' });
+      await loadFriendsManager();
+    };
+
+    window.removeFriendFromManager = async function(friendId) {
+      if (!confirm('Удалить пользователя из друзей?')) return;
+      await window.sbClient.from('friends').delete().or(
+        `and(user_id.eq.${activeUser.id},friend_id.eq.${friendId}),and(user_id.eq.${friendId},friend_id.eq.${activeUser.id})`
+      );
+      await loadFriendsManager();
+    };
+
     async function loadProfileFriends(userId) {
       profileFriendsList.innerHTML = 'Загрузка...';
       try {
