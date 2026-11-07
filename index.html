@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>Bubble — Убежище от интернета</title>
+  <title>bubble</title>
   <link rel="stylesheet" href="https://unpkg.com/xp.css/dist/XP.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style id="dynamicCustomThemeStyle"></style>
   <style>
     * { box-sizing: border-box; }
     body {
@@ -30,22 +31,43 @@
     }
     .auth-window { width: 350px; max-width: 100%; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
     .ie-window {
-      width: 1000px; max-width: 98vw; height: 740px; max-height: 92vh;
+      width: 1020px; max-width: 98vw; height: 750px; max-height: 92vh;
       display: flex; flex-direction: column; position: relative;
     }
+
+    /* Frutiger Aero Header / Title-bar */
+    .aero-title-bar {
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%) !important;
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-bottom: 1px solid rgba(255,255,255,0.8);
+      box-shadow: 0 2px 8px rgba(0, 80, 180, 0.25), inset 0 1px 0 #ffffff;
+      padding: 4px 8px; display: flex; justify-content: space-between; align-items: center;
+    }
+    .aero-title-text {
+      font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
+      font-size: 13px; font-weight: bold; color: #003366;
+      text-shadow: 0 1px 2px rgba(255,255,255,0.9);
+      letter-spacing: 0.5px;
+    }
+
+    /* Address Bar */
     .address-bar {
       display: flex; align-items: center; gap: 6px; padding: 3px 6px;
-      background: #ece9d8; border-bottom: 1px solid #aca899; font-size: 11px;
+      background: linear-gradient(180deg, #f0f7ff 0%, #dbeeff 100%);
+      border-bottom: 1px solid #99c2ec; font-size: 11px;
     }
     .address-bar input { flex: 1; font-size: 11px; min-width: 0; }
     .btn-mobile-menu { display: none; font-weight: bold; font-size: 11px; cursor: pointer; white-space: nowrap; }
+
     .window-body-layout {
       flex: 1; display: flex; background: #fff; overflow: hidden;
       margin: 0 !important; padding: 0 !important; position: relative;
     }
+
+    /* Frutiger Aero Sidebar */
     .sidebar {
       width: 220px;
-      background: linear-gradient(135deg, rgba(225, 245, 255, 0.88) 0%, rgba(185, 225, 250, 0.78) 50%, rgba(150, 210, 245, 0.88) 100%);
+      background: linear-gradient(135deg, rgba(230, 248, 255, 0.9) 0%, rgba(185, 225, 250, 0.8) 50%, rgba(150, 210, 245, 0.9) 100%);
       backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
       border-right: 1px solid rgba(255, 255, 255, 0.7);
       box-shadow: inset -1px 0 0 rgba(0, 110, 200, 0.15), 2px 0 8px rgba(0, 60, 120, 0.08);
@@ -78,6 +100,7 @@
       display: none; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
       background: rgba(0, 0, 0, 0.35); z-index: 90;
     }
+
     .main-view { flex: 1; overflow-y: auto; padding: 12px; scroll-behavior: smooth; }
     .post-box {
       background: #fbfbfb; border: 1px solid #7f9db9; padding: 8px 12px;
@@ -133,35 +156,23 @@
     }
 
     /* Messenger UI */
-    .messenger-container {
-      display: flex; height: 560px; border: 1px solid #7f9db9; background: #fff;
-    }
-    .messenger-chats {
-      width: 250px; border-right: 1px solid #7f9db9; overflow-y: auto; background: #f9f9f9;
-    }
+    .messenger-container { display: flex; height: 560px; border: 1px solid #7f9db9; background: #fff; }
+    .messenger-chats { width: 250px; border-right: 1px solid #7f9db9; overflow-y: auto; background: #f9f9f9; }
     .messenger-chat-item {
       display: flex; align-items: center; gap: 8px; padding: 8px; border-bottom: 1px solid #e0e0e0;
       cursor: pointer; font-size: 11px;
     }
     .messenger-chat-item:hover, .messenger-chat-item.active { background: #e3efff; }
-    .messenger-body {
-      flex: 1; display: flex; flex-direction: column; background: #fff;
-    }
+    .messenger-body { flex: 1; display: flex; flex-direction: column; background: #fff; }
     .messenger-header {
       padding: 8px; background: #ece9d8; border-bottom: 1px solid #aca899;
       display: flex; justify-content: space-between; align-items: center; font-size: 11px; font-weight: bold;
     }
-    .messenger-messages {
-      flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px;
-    }
-    .msg-bubble {
-      max-width: 75%; padding: 6px 10px; border-radius: 8px; font-size: 11px; word-break: break-word;
-    }
+    .messenger-messages { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; }
+    .msg-bubble { max-width: 75%; padding: 6px 10px; border-radius: 8px; font-size: 11px; word-break: break-word; }
     .msg-in { align-self: flex-start; background: #ece9d8; border: 1px solid #aca899; }
     .msg-out { align-self: flex-end; background: #d0e7ff; border: 1px solid #7f9db9; }
-    .messenger-inputbox {
-      padding: 6px; border-top: 1px solid #aca899; display: flex; gap: 6px; background: #f4f4f4;
-    }
+    .messenger-inputbox { padding: 6px; border-top: 1px solid #aca899; display: flex; gap: 6px; background: #f4f4f4; }
 
     .community-card {
       display: flex; align-items: center; justify-content: space-between; padding: 8px;
@@ -177,26 +188,65 @@
     .friend-card img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; }
     .friend-name { font-size: 10px; color: #000080; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .xp-balloon {
-      position: fixed; bottom: 38px; right: 14px; width: 270px; background: #ffffe1;
-      border: 1px solid #000; box-shadow: 2px 2px 6px rgba(0,0,0,0.4); border-radius: 4px;
-      padding: 8px 10px; z-index: 9999; font-size: 11px; cursor: pointer; display: none;
-    }
-    .xp-balloon-header {
-      display: flex; justify-content: space-between; font-weight: bold; color: #000080;
-      border-bottom: 1px solid #d4d0c8; margin-bottom: 4px;
-    }
+    /* Frutiger Aero Player Dock */
     .player-dock {
-      background: #ece9d8; border-top: 2px groove #fff; padding: 5px 8px; display: flex;
-      align-items: center; justify-content: space-between; gap: 8px; font-size: 11px; flex-wrap: wrap;
+      background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(215,240,255,0.85) 48%, rgba(175,225,255,0.88) 52%, rgba(220,245,255,0.95) 100%);
+      backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(255, 255, 255, 0.85);
+      box-shadow: 0 -2px 10px rgba(0, 80, 180, 0.15), inset 0 1px 0 #ffffff;
+      padding: 6px 10px; display: flex; align-items: center; justify-content: space-between;
+      gap: 8px; font-size: 11px; flex-wrap: wrap;
     }
     .player-controls { display: flex; align-items: center; gap: 4px; }
+    .player-controls button {
+      background: linear-gradient(180deg, #ffffff 0%, #d8efff 50%, #aedeff 100%);
+      border: 1px solid #6ca8dd; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer;
+      box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .player-controls button:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #eef7ff 50%, #c4e8ff 100%);
+    }
     .player-info { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
-    .player-title { font-weight: bold; color: #000080; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
+    .player-title { font-weight: bold; color: #003366; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
     .track-list-item {
       display: flex; align-items: center; justify-content: space-between; padding: 4px 6px;
       background: #fff; border: 1px solid #7f9db9; margin-bottom: 4px; font-size: 11px;
     }
+    .loop-active { background: #0055ea !important; color: #fff !important; font-weight: bold; }
+
+    /* Frutiger Aero Creation / Workshop Cards */
+    .creation-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 10px;
+    }
+    .creation-card {
+      background: #fff; border: 1px solid #7f9db9; padding: 8px; border-radius: 4px;
+      display: flex; flex-direction: column; justify-content: space-between;
+    }
+    .frame-preview-box {
+      width: 70px; height: 70px; margin: 8px auto; display: flex; justify-content: center; align-items: center;
+    }
+
+    /* Анимированные стили для рамочек */
+    @keyframes glowPulse {
+      0% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)); }
+      50% { filter: drop-shadow(0 0 10px var(--frame-color, #00ffff)); }
+      100% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)); }
+    }
+    @keyframes rainbowRotate {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    .frame-shape-circle { border-radius: 50%; }
+    .frame-shape-square { border-radius: 0; }
+    .frame-shape-hexagon {
+      clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
+    }
+    .frame-shape-star {
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
+    }
+    .anim-glow { animation: glowPulse 2s infinite; }
+    .anim-rainbow { animation: rainbowRotate 3s linear infinite; }
+
     .taskbar {
       height: 30px; background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
       display: flex; justify-content: space-between; align-items: center; flex-shrink: 0;
@@ -228,7 +278,7 @@
   <!-- Авторизация -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
-      <div class="title-bar"><div class="title-bar-text">Bubble — Вход / Регистрация</div></div>
+      <div class="title-bar"><div class="title-bar-text">bubble — Вход / Регистрация</div></div>
       <div class="window-body">
         <div style="margin-bottom: 6px;">
           <label style="display:block; font-size:11px;">Никнейм:</label>
@@ -250,25 +300,6 @@
       </div>
     </div>
   </div>
-
-  <!-- Модальное окно: Звонок -->
-  <div class="modal-overlay" id="callModal" style="display:none;">
-    <div class="window" style="width: 320px; max-width: 95%;">
-      <div class="title-bar"><div class="title-bar-text" id="callModalTitle">Аудиозвонок Bubble</div></div>
-      <div class="window-body" style="text-align: center;">
-        <img id="callUserAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" style="margin: 8px auto;" alt="avatar">
-        <div style="font-size: 14px; font-weight: bold; margin-bottom: 6px;" id="callUserName">Пользователь</div>
-        <div style="font-size: 11px; color: #555; margin-bottom: 12px;" id="callStatusText">Идёт вызов...</div>
-        <div style="display: flex; justify-content: center; gap: 8px;">
-          <button id="btnAcceptCall" style="display:none; background:#d4edda; font-weight:bold;">Принять</button>
-          <button id="btnRejectCall" style="color:#a00;">Завершить</button>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Аудио элемент для удаленного потока -->
-  <audio id="remoteAudioPlayer" autoplay></audio>
 
   <!-- Модальное окно: Создание группового чата -->
   <div class="modal-overlay" id="createGroupModal" style="display:none;">
@@ -292,11 +323,12 @@
     </div>
   </div>
 
-  <!-- Окно IE / Рабочий стол -->
+  <!-- Окно браузера IE / Рабочий стол -->
   <div class="desktop">
     <div class="window ie-window">
-      <div class="title-bar">
-        <div class="title-bar-text">Bubble — Убежище от интернета — Microsoft Internet Explorer</div>
+      <!-- Frutiger Aero Заголовок окна -->
+      <div class="aero-title-bar">
+        <div class="aero-title-text">bubble</div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -326,6 +358,7 @@
           <button class="sidebar-btn" id="btnTabFeed" type="button"><span>Общая лента</span></button>
           <button class="sidebar-btn" id="btnTabFriendsFeed" type="button"><span>Лента друзей</span></button>
           <button class="sidebar-btn" id="btnTabCommunitiesFeed" type="button"><span>Лента сообществ</span></button>
+          <button class="sidebar-btn" id="btnTabWorkshop" type="button"><span>Работы сообщества</span></button>
           <button class="sidebar-btn" id="btnTabMessenger" type="button"><span>Мессенджер</span><span id="msgBadge" class="badge" style="display:none;">0</span></button>
           <button class="sidebar-btn" id="btnTabFriendsManager" type="button"><span>Друзья</span><span id="friendsBadge" class="badge" style="display:none;">0</span></button>
           <button class="sidebar-btn" id="btnTabMusic" type="button"><span>Вся музыка</span></button>
@@ -357,6 +390,92 @@
             </fieldset>
           </div>
 
+          <!-- Раздел: Работы сообщества (Конструктор тем и рамочек) -->
+          <div id="sectionWorkshop" style="display:none;">
+            <fieldset style="margin-bottom: 12px;">
+              <legend>Мастерская создания оформления</legend>
+              <div style="display:flex; gap:8px; margin-bottom:8px;">
+                <button id="btnSwitchToThemeCreator" style="font-weight:bold;">Создать тему</button>
+                <button id="btnSwitchToFrameCreator">Создать рамочку</button>
+                <button id="btnResetAllStyles" style="margin-left:auto; color:#a00;">Сбросить оформление</button>
+              </div>
+
+              <!-- Конструктор темы оформления -->
+              <div id="boxThemeCreator">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:6px;">
+                  <div>
+                    <label>Название темы:</label>
+                    <input type="text" id="themeTitleInput" placeholder="Aero Glass Glow" style="width:100%; font-size:11px;">
+                  </div>
+                  <div>
+                    <label>Шрифт:</label>
+                    <select id="themeFontSelect" style="width:100%; font-size:11px;">
+                      <option value="Tahoma, sans-serif">Tahoma (XP Классика)</option>
+                      <option value="'Segoe UI', sans-serif">Segoe UI (Frutiger Aero)</option>
+                      <option value="'Comic Sans MS', cursive">Comic Sans (Ностальгия)</option>
+                      <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
+                      <option value="'Courier New', monospace">Courier New (Ретро)</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Цвет панелей (Sidebar / Dock):</label>
+                    <input type="color" id="themeSidebarColor" value="#b9e1fa" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Цвет карточек / постов:</label>
+                    <input type="color" id="themeCardColor" value="#ffffff" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Цвет текста:</label>
+                    <input type="color" id="themeTextColor" value="#003366" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Фоновая картинка (URL):</label>
+                    <input type="text" id="themeBgUrl" placeholder="https://example.com/bg.jpg" style="width:100%; font-size:11px;">
+                  </div>
+                </div>
+                <button id="btnPublishTheme" style="font-weight:bold; font-size:11px;">Опубликовать тему</button>
+              </div>
+
+              <!-- Конструктор рамочек -->
+              <div id="boxFrameCreator" style="display:none;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:6px;">
+                  <div>
+                    <label>Название рамочки:</label>
+                    <input type="text" id="frameTitleInput" placeholder="Неоновая Звезда" style="width:100%; font-size:11px;">
+                  </div>
+                  <div>
+                    <label>Форма:</label>
+                    <select id="frameShapeSelect" style="width:100%; font-size:11px;">
+                      <option value="circle">Круглая</option>
+                      <option value="square">Квадратная</option>
+                      <option value="hexagon">Шестиугольник</option>
+                      <option value="star">Звезда</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label>Цвет обводки / свечения:</label>
+                    <input type="color" id="frameColorInput" value="#00e5ff" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Анимация:</label>
+                    <select id="frameAnimSelect" style="width:100%; font-size:11px;">
+                      <option value="none">Без анимации</option>
+                      <option value="glow">Пульсирующее свечение</option>
+                      <option value="rainbow">Радужное переливание</option>
+                    </select>
+                  </div>
+                </div>
+                <button id="btnPublishFrame" style="font-weight:bold; font-size:11px;">Опубликовать рамочку</button>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>Работы сообщества (Темы и рамочки с лайками)</legend>
+              <div id="creationsListContainer" class="creation-grid">Загрузка каталога работ...</div>
+            </fieldset>
+          </div>
+
           <!-- Мессенджер -->
           <div id="sectionMessenger" style="display:none;">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
@@ -370,9 +489,6 @@
               <div class="messenger-body">
                 <div class="messenger-header" id="chatHeaderBar" style="display:none;">
                   <span id="activeChatTitle">Выберите диалог</span>
-                  <div style="display:flex; gap:6px;">
-                    <button id="btnCallDirectUser" style="display:none; font-size:10px;">Позвонить</button>
-                  </div>
                 </div>
                 <div class="messenger-messages" id="chatMessagesList">
                   <div style="font-size:11px; color:#777; margin:auto;">Выберите беседу слева для начала общения</div>
@@ -461,7 +577,6 @@
                 </div>
               </div>
 
-              <!-- Стена сообщества: публикация от имени группы -->
               <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
                 <legend>Опубликовать запись от имени сообщества</legend>
                 <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость от лица сообщества..."></textarea>
@@ -495,13 +610,14 @@
           <!-- Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
-              <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
+              <div id="profileAvatarContainer" style="position:relative; width:68px; height:68px; display:flex; justify-content:center; align-items:center;">
+                <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
+              </div>
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="profileNick">...</div>
                   <div style="display:flex; gap:4px;">
                     <button id="btnProfileSendMsg" style="font-size:11px; display:none;">Написать</button>
-                    <button id="btnProfileCallUser" style="font-size:11px; display:none;">Звонок</button>
                     <button id="btnFriendAction" style="font-size:11px; display:none;">+ Добавить в друзья</button>
                   </div>
                 </div>
@@ -528,11 +644,11 @@
         </div>
       </div>
 
-      <!-- Аудиоплеер -->
+      <!-- Frutiger Aero Аудиоплеер -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">Ничего не играет</div>
-          <div style="font-size: 9px; color: #666;" id="currentPlaylistDisplay">Список воспроизведения пуст</div>
+          <div style="font-size: 9px; color: #557799;" id="currentPlaylistDisplay">Список воспроизведения пуст</div>
         </div>
         <div class="player-controls">
           <button id="btnPrevTrack">⏮</button>
@@ -548,7 +664,7 @@
 
   <div class="xp-balloon" id="xpBalloon">
     <div class="xp-balloon-header">
-      <span>Новое событие в Bubble</span>
+      <span>Новое событие в bubble</span>
       <span class="xp-balloon-close" id="xpBalloonClose" style="cursor:pointer;">✕</span>
     </div>
     <div id="xpBalloonText" style="margin-top: 3px;">Текст уведомления...</div>
@@ -573,6 +689,7 @@
 
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
+    let userLikedCreations = new Set();
     let userFriendIds = new Set();
     let pendingOutgoingIds = new Set();
     let pendingIncomingIds = new Set();
@@ -581,17 +698,10 @@
     let communitiesMap = {};
     let allCommunitiesCache = [];
 
-    // WebRTC звонки
-    let peerConnection = null;
-    let localStream = null;
-    let activeCallRecord = null;
-    const rtcConfig = { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }] };
-
     let playlistQueue = [];
     let currentTrackIndex = -1;
     let loopMode = 'none';
     const audioPlayer = document.getElementById('globalAudioPlayer');
-    const remoteAudioPlayer = document.getElementById('remoteAudioPlayer');
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
     // UI элементы
@@ -612,6 +722,7 @@
     const btnTabFeed = document.getElementById('btnTabFeed');
     const btnTabFriendsFeed = document.getElementById('btnTabFriendsFeed');
     const btnTabCommunitiesFeed = document.getElementById('btnTabCommunitiesFeed');
+    const btnTabWorkshop = document.getElementById('btnTabWorkshop');
     const btnTabMessenger = document.getElementById('btnTabMessenger');
     const btnTabFriendsManager = document.getElementById('btnTabFriendsManager');
     const btnTabMusic = document.getElementById('btnTabMusic');
@@ -624,6 +735,7 @@
     const msgBadge = document.getElementById('msgBadge');
 
     const sectionFeed = document.getElementById('sectionFeed');
+    const sectionWorkshop = document.getElementById('sectionWorkshop');
     const sectionMessenger = document.getElementById('sectionMessenger');
     const sectionFriendsManager = document.getElementById('sectionFriendsManager');
     const sectionMusic = document.getElementById('sectionMusic');
@@ -637,11 +749,32 @@
     const notificationsList = document.getElementById('notificationsList');
     const btnMarkAllRead = document.getElementById('btnMarkAllRead');
 
+    // Мастерская DOM
+    const btnSwitchToThemeCreator = document.getElementById('btnSwitchToThemeCreator');
+    const btnSwitchToFrameCreator = document.getElementById('btnSwitchToFrameCreator');
+    const boxThemeCreator = document.getElementById('boxThemeCreator');
+    const boxFrameCreator = document.getElementById('boxFrameCreator');
+    const themeTitleInput = document.getElementById('themeTitleInput');
+    const themeFontSelect = document.getElementById('themeFontSelect');
+    const themeSidebarColor = document.getElementById('themeSidebarColor');
+    const themeCardColor = document.getElementById('themeCardColor');
+    const themeTextColor = document.getElementById('themeTextColor');
+    const themeBgUrl = document.getElementById('themeBgUrl');
+    const btnPublishTheme = document.getElementById('btnPublishTheme');
+
+    const frameTitleInput = document.getElementById('frameTitleInput');
+    const frameShapeSelect = document.getElementById('frameShapeSelect');
+    const frameColorInput = document.getElementById('frameColorInput');
+    const frameAnimSelect = document.getElementById('frameAnimSelect');
+    const btnPublishFrame = document.getElementById('btnPublishFrame');
+    const creationsListContainer = document.getElementById('creationsListContainer');
+    const btnResetAllStyles = document.getElementById('btnResetAllStyles');
+    const dynamicCustomThemeStyle = document.getElementById('dynamicCustomThemeStyle');
+
     // Messenger DOM
     const chatsListContainer = document.getElementById('chatsListContainer');
     const chatHeaderBar = document.getElementById('chatHeaderBar');
     const activeChatTitle = document.getElementById('activeChatTitle');
-    const btnCallDirectUser = document.getElementById('btnCallDirectUser');
     const chatMessagesList = document.getElementById('chatMessagesList');
     const chatInputBar = document.getElementById('chatInputBar');
     const chatMsgInput = document.getElementById('chatMsgInput');
@@ -651,15 +784,6 @@
     const groupChatTitle = document.getElementById('groupChatTitle');
     const groupFriendsChecklist = document.getElementById('groupFriendsChecklist');
     const btnSubmitCreateGroup = document.getElementById('btnSubmitCreateGroup');
-
-    // Call Modal DOM
-    const callModal = document.getElementById('callModal');
-    const callModalTitle = document.getElementById('callModalTitle');
-    const callUserAvatar = document.getElementById('callUserAvatar');
-    const callUserName = document.getElementById('callUserName');
-    const callStatusText = document.getElementById('callStatusText');
-    const btnAcceptCall = document.getElementById('btnAcceptCall');
-    const btnRejectCall = document.getElementById('btnRejectCall');
 
     // Сообщества DOM
     const communityViewList = document.getElementById('communityViewList');
@@ -687,7 +811,6 @@
     const profileAvatar = document.getElementById('profileAvatar');
     const btnFriendAction = document.getElementById('btnFriendAction');
     const btnProfileSendMsg = document.getElementById('btnProfileSendMsg');
-    const btnProfileCallUser = document.getElementById('btnProfileCallUser');
     const profileFriendsList = document.getElementById('profileFriendsList');
     const friendsBlockLegend = document.getElementById('friendsBlockLegend');
     const profilePostsLegend = document.getElementById('profilePostsLegend');
@@ -763,7 +886,7 @@
         const { data } = await window.sbClient.from('profiles').select('*');
         profilesMap = {};
         (data || []).forEach(p => {
-          profilesMap[p.id] = { username: p.username || 'Аноним', avatar_url: p.avatar_url || DEFAULT_AVATAR };
+          profilesMap[p.id] = { username: p.username || 'Аноним', avatar_url: p.avatar_url || DEFAULT_AVATAR, custom_frame: p.custom_frame };
         });
       } catch (e) {
         console.warn('loadAllProfiles:', e);
@@ -775,9 +898,7 @@
         const { data } = await window.sbClient.from('communities').select('*');
         communitiesMap = {};
         allCommunitiesCache = data || [];
-        (data || []).forEach(c => {
-          communitiesMap[c.id] = c;
-        });
+        (data || []).forEach(c => { communitiesMap[c.id] = c; });
       } catch (e) {
         console.warn('loadAllCommunitiesCache:', e);
       }
@@ -787,9 +908,7 @@
       if (!activeUser) return;
       try {
         const { data } = await window.sbClient
-          .from('friends')
-          .select('*')
-          .or(`user_id.eq.${activeUser.id},friend_id.eq.${activeUser.id}`);
+          .from('friends').select('*').or(`user_id.eq.${activeUser.id},friend_id.eq.${activeUser.id}`);
 
         userFriendIds.clear();
         pendingOutgoingIds.clear();
@@ -805,12 +924,8 @@
           }
         });
 
-        if (pendingIncomingIds.size > 0) {
-          friendsBadge.style.display = 'inline-block';
-          friendsBadge.innerText = pendingIncomingIds.size;
-        } else {
-          friendsBadge.style.display = 'none';
-        }
+        friendsBadge.style.display = pendingIncomingIds.size > 0 ? 'inline-block' : 'none';
+        friendsBadge.innerText = pendingIncomingIds.size;
       } catch (e) {
         console.warn('loadFriends:', e);
       }
@@ -830,6 +945,7 @@
         sideAvatar.src = (myProf && myProf.avatar_url) ? myProf.avatar_url : DEFAULT_AVATAR;
 
         await loadUserLikes();
+        await loadUserThemeAndFrame();
         await updateUnreadBadge();
         initRealtimeEvents();
 
@@ -879,7 +995,7 @@
     });
 
     function showXPBalloon(notif) {
-      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username || 'Bubble')}</b> ${escapeHtml(notif.message)}`;
+      xpBalloonText.innerHTML = `<b>${escapeHtml(notif.from_username || 'bubble')}</b> ${escapeHtml(notif.message)}`;
       xpBalloon.style.display = 'block';
       xpBalloon.onclick = () => {
         if (notif.post_id) openTargetPost(notif.post_id, notif.id);
@@ -891,7 +1007,7 @@
     }
     xpBalloonClose.onclick = (e) => { e.stopPropagation(); xpBalloon.style.display = 'none'; };
 
-    // ==================== REALTIME: СООБЩЕНИЯ, ЗВОНКИ, УВЕДОМЛЕНИЯ ====================
+    // ==================== REALTIME ====================
     function initRealtimeEvents() {
       if (!activeUser) return;
       window.sbClient
@@ -912,9 +1028,6 @@
               loadConversationsList();
             }
           }
-        })
-        .on('postgres_changes', { event: '*', schema: 'public', table: 'calls' }, (payload) => {
-          handleCallRealtimeEvent(payload);
         })
         .subscribe();
     }
@@ -943,12 +1056,13 @@
       localStorage.setItem('bubble_active_tab', tab);
       toggleMobileMenu(true);
 
-      const navButtons = [btnTabFeed, btnTabFriendsFeed, btnTabCommunitiesFeed, btnTabMessenger, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile];
+      const navButtons = [btnTabFeed, btnTabFriendsFeed, btnTabCommunitiesFeed, btnTabWorkshop, btnTabMessenger, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile];
       navButtons.forEach(btn => btn.classList.remove('active'));
 
       if (tab === 'feed') btnTabFeed.classList.add('active');
       if (tab === 'friends_feed') btnTabFriendsFeed.classList.add('active');
       if (tab === 'communities_feed') btnTabCommunitiesFeed.classList.add('active');
+      if (tab === 'workshop') btnTabWorkshop.classList.add('active');
       if (tab === 'messenger') btnTabMessenger.classList.add('active');
       if (tab === 'friends_manager') btnTabFriendsManager.classList.add('active');
       if (tab === 'music') btnTabMusic.classList.add('active');
@@ -957,6 +1071,7 @@
       if (tab === 'profile' && activeUser && targetUserId === activeUser.id) btnTabProfile.classList.add('active');
 
       sectionFeed.style.display = (tab === 'feed' || tab === 'friends_feed' || tab === 'communities_feed') ? 'block' : 'none';
+      sectionWorkshop.style.display = tab === 'workshop' ? 'block' : 'none';
       sectionMessenger.style.display = tab === 'messenger' ? 'block' : 'none';
       sectionFriendsManager.style.display = tab === 'friends_manager' ? 'block' : 'none';
       sectionMusic.style.display = tab === 'music' ? 'block' : 'none';
@@ -976,6 +1091,9 @@
         urlInput.value = 'https://bubble.net/feed/communities';
         feedLegend.innerText = 'Лента публикаций всех сообществ';
         loadFeed('communities');
+      } else if (tab === 'workshop') {
+        urlInput.value = 'https://bubble.net/workshop';
+        loadCreationsList();
       } else if (tab === 'messenger') {
         urlInput.value = 'https://bubble.net/messenger';
         loadConversationsList();
@@ -1003,6 +1121,7 @@
     btnTabFeed.onclick = () => switchTab('feed');
     btnTabFriendsFeed.onclick = () => switchTab('friends_feed');
     btnTabCommunitiesFeed.onclick = () => switchTab('communities_feed');
+    btnTabWorkshop.onclick = () => switchTab('workshop');
     btnTabMessenger.onclick = () => switchTab('messenger');
     btnTabFriendsManager.onclick = () => switchTab('friends_manager');
     btnTabMusic.onclick = () => switchTab('music');
@@ -1011,6 +1130,223 @@
     btnTabProfile.onclick = () => { if (activeUser) switchTab('profile', activeUser.id); };
     document.getElementById('btnGoReload').onclick = () => switchTab(currentTab, viewingUserId);
     window.goToProfile = (uId) => switchTab('profile', uId);
+
+    // ==================== РАБОТЫ СООБЩЕСТВА (ТЕМЫ И РАМОЧКИ) ====================
+    btnSwitchToThemeCreator.onclick = () => {
+      btnSwitchToThemeCreator.style.fontWeight = 'bold';
+      btnSwitchToFrameCreator.style.fontWeight = 'normal';
+      boxThemeCreator.style.display = 'block';
+      boxFrameCreator.style.display = 'none';
+    };
+
+    btnSwitchToFrameCreator.onclick = () => {
+      btnSwitchToFrameCreator.style.fontWeight = 'bold';
+      btnSwitchToThemeCreator.style.fontWeight = 'normal';
+      boxThemeCreator.style.display = 'none';
+      boxFrameCreator.style.display = 'block';
+    };
+
+    btnPublishTheme.onclick = async () => {
+      if (!activeUser) return;
+      const title = themeTitleInput.value.trim() || 'Моя тема Frutiger';
+      const config = {
+        font: themeFontSelect.value,
+        sidebarColor: themeSidebarColor.value,
+        cardColor: themeCardColor.value,
+        textColor: themeTextColor.value,
+        bgUrl: themeBgUrl.value.trim()
+      };
+
+      const { error } = await window.sbClient.from('community_creations').insert([{
+        creator_id: activeUser.id, title, type: 'theme', config, likes_count: 0
+      }]);
+
+      if (error) alert('Ошибка публикации темы: ' + error.message);
+      else {
+        alert('Тема оформления успешно опубликована!');
+        themeTitleInput.value = ''; themeBgUrl.value = '';
+        loadCreationsList();
+      }
+    };
+
+    btnPublishFrame.onclick = async () => {
+      if (!activeUser) return;
+      const title = frameTitleInput.value.trim() || 'Моя рамочка';
+      const config = {
+        shape: frameShapeSelect.value,
+        color: frameColorInput.value,
+        animation: frameAnimSelect.value
+      };
+
+      const { error } = await window.sbClient.from('community_creations').insert([{
+        creator_id: activeUser.id, title, type: 'frame', config, likes_count: 0
+      }]);
+
+      if (error) alert('Ошибка публикации рамочки: ' + error.message);
+      else {
+        alert('Рамочка успешно опубликована!');
+        frameTitleInput.value = '';
+        loadCreationsList();
+      }
+    };
+
+    async function loadCreationsList() {
+      creationsListContainer.innerHTML = 'Загрузка каталога работ...';
+      const { data: creations, error } = await window.sbClient.from('community_creations').select('*').order('id', { ascending: false });
+      if (error || !creations || creations.length === 0) {
+        creationsListContainer.innerHTML = '<p>Пока нет работ. Создайте первую тему или рамочку!</p>';
+        return;
+      }
+
+      creationsListContainer.innerHTML = creations.map(c => {
+        const isLiked = userLikedCreations.has(c.id);
+        const isTheme = c.type === 'theme';
+        const cfg = c.config || {};
+        const authorName = profilesMap[c.creator_id]?.username || 'Участник';
+
+        let previewHTML = '';
+        if (isTheme) {
+          previewHTML = `
+            <div style="background:${cfg.cardColor || '#fff'}; border:1px solid #7f9db9; padding:6px; font-family:${cfg.font}; color:${cfg.textColor}; margin:6px 0; border-radius:4px; font-size:10px;">
+              <b>Шрифт:</b> ${cfg.font}<br>
+              <div style="display:flex; gap:4px; margin-top:4px;">
+                <span style="display:inline-block; width:14px; height:14px; background:${cfg.sidebarColor}; border:1px solid #000;" title="Цвет панелей"></span>
+                <span style="display:inline-block; width:14px; height:14px; background:${cfg.cardColor}; border:1px solid #000;" title="Цвет карточек"></span>
+                <span style="display:inline-block; width:14px; height:14px; background:${cfg.textColor}; border:1px solid #000;" title="Цвет текста"></span>
+              </div>
+            </div>
+          `;
+        } else {
+          const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
+          const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+          previewHTML = `
+            <div class="frame-preview-box">
+              <div class="${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; width:50px; height:50px; border:3px solid ${cfg.color}; display:flex; justify-content:center; align-items:center;">
+                <img src="${DEFAULT_AVATAR}" style="width:100%; height:100%; object-fit:cover;" class="${shapeClass}">
+              </div>
+            </div>
+          `;
+        }
+
+        return `
+          <div class="creation-card" id="creation-${c.id}">
+            <div>
+              <div style="font-weight:bold; font-size:12px; color:#0b388f;">${escapeHtml(c.title)}</div>
+              <div style="font-size:10px; color:#666;">Автор: ${escapeHtml(authorName)} | Тип: ${isTheme ? 'Тема сайта' : 'Рамочка'}</div>
+              ${previewHTML}
+            </div>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:8px; border-top:1px dotted #ccc; padding-top:4px;">
+              <button onclick="applyCreation(${c.id}, '${c.type}', ${JSON.stringify(cfg).replace(/"/g, '&quot;')})" style="font-size:10px; font-weight:bold;">Применить</button>
+              <button id="creation-like-${c.id}" onclick="toggleCreationLike(${c.id}, '${c.creator_id}')" style="font-size:10px;">
+                ${isLiked ? '❤️' : '🤍'} <span id="creation-likes-count-${c.id}">${c.likes_count || 0}</span>
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.applyCreation = async function(creationId, type, cfg) {
+      if (!activeUser) return;
+      if (type === 'theme') {
+        applyThemeStyles(cfg);
+        await window.sbClient.from('profiles').update({ custom_theme: cfg }).eq('id', activeUser.id);
+        alert('Тема оформления применена и сохранена в вашем профиле!');
+      } else if (type === 'frame') {
+        applyFrameStyles(cfg);
+        await window.sbClient.from('profiles').update({ custom_frame: cfg }).eq('id', activeUser.id);
+        if (profilesMap[activeUser.id]) profilesMap[activeUser.id].custom_frame = cfg;
+        alert('Рамочка надета и сохранена!');
+      }
+    };
+
+    function applyThemeStyles(cfg) {
+      if (!cfg) return;
+      let css = '';
+      if (cfg.bgUrl) {
+        document.body.style.backgroundImage = `url('${cfg.bgUrl}')`;
+        document.body.style.backgroundSize = 'cover';
+      }
+      if (cfg.font) {
+        document.body.style.fontFamily = cfg.font;
+      }
+      if (cfg.sidebarColor) {
+        css += `.sidebar { background: ${cfg.sidebarColor} !important; }\n`;
+      }
+      if (cfg.cardColor) {
+        css += `.post-box, .profile-card, .community-card, .creation-card { background: ${cfg.cardColor} !important; }\n`;
+      }
+      if (cfg.textColor) {
+        css += `body, .post-box, .profile-card, .post-author, .sidebar-btn { color: ${cfg.textColor} !important; }\n`;
+      }
+      dynamicCustomThemeStyle.innerHTML = css;
+    }
+
+    function applyFrameStyles(cfg) {
+      if (!cfg) return;
+      const avatarEl = document.getElementById('profileAvatar');
+      if (!avatarEl) return;
+      avatarEl.className = 'profile-avatar-big';
+
+      const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+      const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
+
+      avatarEl.classList.add(shapeClass);
+      if (animClass) avatarEl.classList.add(animClass);
+      avatarEl.style.borderColor = cfg.color || '#00e5ff';
+      avatarEl.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+    }
+
+    btnResetAllStyles.onclick = async () => {
+      dynamicCustomThemeStyle.innerHTML = '';
+      document.body.style.backgroundImage = "url('bg.jpg')";
+      document.body.style.fontFamily = "Tahoma, sans-serif";
+      const avatarEl = document.getElementById('profileAvatar');
+      if (avatarEl) {
+        avatarEl.className = 'profile-avatar-big';
+        avatarEl.style.borderColor = '#0055ea';
+        avatarEl.style.removeProperty('--frame-color');
+      }
+      if (activeUser) {
+        await window.sbClient.from('profiles').update({ custom_theme: null, custom_frame: null }).eq('id', activeUser.id);
+        if (profilesMap[activeUser.id]) {
+          profilesMap[activeUser.id].custom_frame = null;
+        }
+      }
+      alert('Оформление сброшено к стандартному Frutiger Aero!');
+    };
+
+    async function loadUserThemeAndFrame() {
+      if (!activeUser) return;
+      const { data } = await window.sbClient.from('profiles').select('custom_theme, custom_frame').eq('id', activeUser.id).single();
+      if (data?.custom_theme) applyThemeStyles(data.custom_theme);
+      if (data?.custom_frame) applyFrameStyles(data.custom_frame);
+
+      const { data: cLikes } = await window.sbClient.from('creation_likes').select('creation_id').eq('user_id', activeUser.id);
+      userLikedCreations = new Set((cLikes || []).map(l => l.creation_id));
+    }
+
+    window.toggleCreationLike = async function(creationId, creatorId) {
+      if (!activeUser) return;
+      const countEl = document.getElementById(`creation-likes-count-${creationId}`);
+      const btnEl = document.getElementById(`creation-like-${creationId}`);
+      let count = parseInt(countEl?.innerText || '0') || 0;
+
+      if (userLikedCreations.has(creationId)) {
+        userLikedCreations.delete(creationId);
+        count = Math.max(0, count - 1);
+        if (btnEl) btnEl.innerHTML = `🤍 <span id="creation-likes-count-${creationId}">${count}</span>`;
+        await window.sbClient.from('creation_likes').delete().match({ creation_id: creationId, user_id: activeUser.id });
+        await window.sbClient.from('community_creations').update({ likes_count: count }).eq('id', creationId);
+      } else {
+        userLikedCreations.add(creationId);
+        count += 1;
+        if (btnEl) btnEl.innerHTML = `❤️ <span id="creation-likes-count-${creationId}">${count}</span>`;
+        await window.sbClient.from('creation_likes').insert([{ creation_id: creationId, user_id: activeUser.id }]);
+        await window.sbClient.from('community_creations').update({ likes_count: count }).eq('id', creationId);
+        await createNotification(creatorId, 'like_creation', 'оценил(а) вашу работу в мастерской!', null);
+      }
+    };
 
     // ==================== ЛЕНТА И ПУБЛИКАЦИИ ====================
     async function loadUserLikes() {
@@ -1156,7 +1492,7 @@
         await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
       } else {
         userLikedPosts.add(postId);
-        count = count + 1;
+        count += 1;
         if (btnEl) btnEl.innerHTML = `❤️ <span id="like-count-${uniquePostKey}">${count}</span>`;
         await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
         await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
@@ -1178,7 +1514,7 @@
         await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
       } else {
         userLikedComments.add(commentId);
-        count = count + 1;
+        count += 1;
         if (btnEl) btnEl.innerHTML = `❤️ <span id="clike-count-${commentId}">${count}</span>`;
         await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
         await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
@@ -1255,7 +1591,7 @@
       loadFeed(currentTab === 'friends_feed' ? 'friends' : (currentTab === 'communities_feed' ? 'communities' : 'all'));
     };
 
-    // ==================== СООБЩЕСТВА (БЕЗ ЭМОДЗИ) ====================
+    // ==================== СООБЩЕСТВА ====================
     async function showCommunitiesList() {
       communityViewList.style.display = 'block';
       communityViewSingle.style.display = 'none';
@@ -1399,7 +1735,7 @@
       commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
     }
 
-    // ==================== МЕССЕНДЖЕР (ИСПРАВЛЕН НИК ВМЕСТО "ДИАЛОГ") ====================
+    // ==================== МЕССЕНДЖЕР ====================
     async function loadConversationsList() {
       if (!activeUser) return;
       chatsListContainer.innerHTML = 'Загрузка...';
@@ -1453,15 +1789,12 @@
 
       const { data: conv } = await window.sbClient.from('conversations').select('*').eq('id', convId).single();
       let title = conv.title || 'Беседа';
-      btnCallDirectUser.style.display = 'none';
 
       if (conv.type === 'direct') {
         const { data: parts } = await window.sbClient.from('conversation_participants').select('user_id').eq('conversation_id', convId);
         const partnerId = (parts || []).map(p => p.user_id).find(id => id !== activeUser.id);
         if (partnerId) {
           title = profilesMap[partnerId]?.username || 'Собеседник';
-          btnCallDirectUser.style.display = 'inline-block';
-          btnCallDirectUser.onclick = () => startAudioCall(partnerId);
         }
       } else if (conv.type === 'community' && conv.community_id) {
         title = `Чат группы: ${communitiesMap[conv.community_id]?.title || ''}`;
@@ -1579,189 +1912,6 @@
       openConversation(newConv.id);
     };
 
-    // ==================== ИСПРАВЛЕННЫЕ ЗВОНКИ С ПОДАВЛЕНИЕМ ЭХА И ИСКЛЮЧЕНИЕМ САМОПРОСЛУШИВАНИЯ ====================
-    async function setupPeerConnection(isCaller, targetUserId) {
-      if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
-      }
-
-      peerConnection = new RTCPeerConnection(rtcConfig);
-
-      // Воспроизводим звук ТОЛЬКО если это удаленный входящий поток
-      peerConnection.ontrack = (event) => {
-        const stream = event.streams[0];
-        if (!stream) return;
-
-        // Защита: не отправляем свой собственный микрофон себе же в динамики
-        if (localStream && stream.id === localStream.id) {
-          return;
-        }
-
-        if (remoteAudioPlayer) {
-          remoteAudioPlayer.srcObject = stream;
-          remoteAudioPlayer.muted = false;
-          remoteAudioPlayer.play().catch(e => console.warn('Воспроизведение звука собеседника:', e));
-        }
-      };
-
-      peerConnection.onicecandidate = async (event) => {
-        if (event.candidate && activeCallRecord) {
-          const colName = isCaller ? 'offer' : 'answer';
-          const { data: latest } = await window.sbClient.from('calls').select('*').eq('id', activeCallRecord.id).single();
-          if (latest) {
-            try {
-              const parsed = JSON.parse(latest[colName] || '{}');
-              parsed.ice = parsed.ice || [];
-              parsed.ice.push(event.candidate);
-              await window.sbClient.from('calls').update({ [colName]: JSON.stringify(parsed) }).eq('id', activeCallRecord.id);
-            } catch (err) {}
-          }
-        }
-      };
-    }
-
-    async function startAudioCall(targetUserId) {
-      try {
-        // Захват чистого звука с аппаратным подавлением эха и шума
-        localStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          },
-          video: false
-        });
-      } catch (err) {
-        return alert('Не удалось получить доступ к микрофону: ' + err.message);
-      }
-
-      await setupPeerConnection(true, targetUserId);
-      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-      const offer = await peerConnection.createOffer();
-      await peerConnection.setLocalDescription(offer);
-
-      const payload = { sdp: offer, ice: [] };
-      const { data: callRow, error } = await window.sbClient.from('calls').insert([{
-        caller_id: activeUser.id, callee_id: targetUserId, status: 'ringing',
-        offer: JSON.stringify(payload)
-      }]).select().single();
-
-      if (error) {
-        endCurrentCall(false);
-        return alert('Ошибка вызова: ' + error.message);
-      }
-
-      activeCallRecord = callRow;
-      showCallWindow('Исходящий звонок', targetUserId, 'Вызов...', false);
-    }
-
-    async function handleCallRealtimeEvent(payload) {
-      if (!activeUser) return;
-      const call = payload.new;
-
-      if (payload.eventType === 'INSERT' && call.callee_id === activeUser.id && call.status === 'ringing') {
-        activeCallRecord = call;
-        showCallWindow('Входящий звонок', call.caller_id, 'Вам звонят...', true);
-      }
-
-      if (payload.eventType === 'UPDATE' && activeCallRecord && call.id === activeCallRecord.id) {
-        if (call.status === 'accepted' && call.answer && peerConnection) {
-          try {
-            const answerPayload = JSON.parse(call.answer);
-            if (!peerConnection.currentRemoteDescription && answerPayload.sdp) {
-              await peerConnection.setRemoteDescription(new RTCSessionDescription(answerPayload.sdp));
-            }
-            if (answerPayload.ice && answerPayload.ice.length > 0) {
-              for (const cand of answerPayload.ice) {
-                await peerConnection.addIceCandidate(new RTCIceCandidate(cand)).catch(() => {});
-              }
-            }
-            callStatusText.innerText = 'Соединение установлено (разговор)';
-          } catch (e) {
-            console.error('Ошибка установки ответа:', e);
-          }
-        } else if (call.status === 'rejected' || call.status === 'ended') {
-          endCurrentCall(false);
-        }
-      }
-    }
-
-    function showCallWindow(title, targetUserId, status, showAccept) {
-      callModalTitle.innerText = title;
-      callUserAvatar.src = profilesMap[targetUserId]?.avatar_url || DEFAULT_AVATAR;
-      callUserName.innerText = profilesMap[targetUserId]?.username || 'Пользователь';
-      callStatusText.innerText = status;
-      btnAcceptCall.style.display = showAccept ? 'inline-block' : 'none';
-      callModal.style.display = 'flex';
-    }
-
-    btnAcceptCall.onclick = async () => {
-      if (!activeCallRecord) return;
-      try {
-        localStream = await navigator.mediaDevices.getUserMedia({
-          audio: {
-            echoCancellation: true,
-            noiseSuppression: true,
-            autoGainControl: true
-          },
-          video: false
-        });
-      } catch (err) {
-        return alert('Нет доступа к микрофону: ' + err.message);
-      }
-
-      await setupPeerConnection(false, activeCallRecord.caller_id);
-      localStream.getTracks().forEach(track => peerConnection.addTrack(track, localStream));
-
-      try {
-        const offerPayload = JSON.parse(activeCallRecord.offer);
-        await peerConnection.setRemoteDescription(new RTCSessionDescription(offerPayload.sdp));
-
-        const answer = await peerConnection.createAnswer();
-        await peerConnection.setLocalDescription(answer);
-
-        const payload = { sdp: answer, ice: [] };
-        await window.sbClient.from('calls').update({
-          status: 'accepted', answer: JSON.stringify(payload)
-        }).eq('id', activeCallRecord.id);
-
-        if (offerPayload.ice && offerPayload.ice.length > 0) {
-          for (const cand of offerPayload.ice) {
-            await peerConnection.addIceCandidate(new RTCIceCandidate(cand)).catch(() => {});
-          }
-        }
-
-        btnAcceptCall.style.display = 'none';
-        callStatusText.innerText = 'Соединение установлено (разговор)';
-      } catch (e) {
-        alert('Сбой установки вызова: ' + e.message);
-        endCurrentCall(true);
-      }
-    };
-
-    btnRejectCall.onclick = () => endCurrentCall(true);
-
-    async function endCurrentCall(notifyServer = true) {
-      if (notifyServer && activeCallRecord) {
-        await window.sbClient.from('calls').update({ status: 'ended' }).eq('id', activeCallRecord.id);
-      }
-      if (localStream) {
-        localStream.getTracks().forEach(t => t.stop());
-        localStream = null;
-      }
-      if (peerConnection) {
-        peerConnection.close();
-        peerConnection = null;
-      }
-      if (remoteAudioPlayer) {
-        remoteAudioPlayer.srcObject = null;
-      }
-      activeCallRecord = null;
-      callModal.style.display = 'none';
-    }
-
     // ==================== ПРОФИЛЬ ====================
     async function openUserProfile(userId) {
       await loadAllProfiles();
@@ -1772,20 +1922,24 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
+      // Надеваем рамочку на открытый профиль (если сохранена)
+      if (prof.custom_frame) {
+        applyFrameStyles(prof.custom_frame);
+      } else {
+        profileAvatar.className = 'profile-avatar-big';
+        profileAvatar.style.borderColor = '#0055ea';
+        profileAvatar.style.removeProperty('--frame-color');
+      }
+
       if (activeUser && userId !== activeUser.id) {
         btnFriendAction.style.display = 'inline-block';
         btnProfileSendMsg.style.display = 'inline-block';
-        btnProfileCallUser.style.display = 'inline-block';
-
         btnProfileSendMsg.onclick = () => getOrCreateDirectChat(userId);
-        btnProfileCallUser.onclick = () => startAudioCall(userId);
-
         btnFriendAction.innerText = userFriendIds.has(userId) ? 'В друзьях (Удалить)' : (pendingOutgoingIds.has(userId) ? 'Заявка отправлена' : '+ Добавить в друзья');
         profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
       } else {
         btnFriendAction.style.display = 'none';
         btnProfileSendMsg.style.display = 'none';
-        btnProfileCallUser.style.display = 'none';
         profilePostsLegend.innerText = 'Мои публикации';
       }
 
