@@ -244,7 +244,6 @@
       background: #fbfbfb;
       border: 1px solid #7f9db9;
       margin-bottom: 6px;
-      cursor: pointer;
     }
     .notification-item:hover { background: #edf4ff; }
     .badge {
@@ -256,8 +255,6 @@
       margin-left: 4px;
       font-weight: bold;
     }
-
-    /* Ретро плеер Windows Media Player / XP Style */
     .player-dock {
       background: #ece9d8;
       border-top: 2px groove #fff;
@@ -304,7 +301,6 @@
       color: #fff !important;
       font-weight: bold;
     }
-
     .taskbar {
       height: 30px;
       background: linear-gradient(to bottom, #245edb 0%, #3f8cf3 9%, #245edb 18%, #1941a5 92%, #1941a5 100%);
@@ -335,7 +331,6 @@
       color: white;
       font-size: 11px;
     }
-
     @media (max-width: 768px) {
       .desktop { padding: 0; }
       .ie-window { width: 100vw; max-width: 100vw; height: 100%; max-height: 100%; border: none; }
@@ -353,7 +348,6 @@
 </head>
 <body>
 
-  <!-- Окно авторизации -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
@@ -402,7 +396,6 @@
       <div class="window-body window-body-layout">
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
-        <!-- Боковое меню -->
         <div class="sidebar" id="sidebarPanel">
           <fieldset style="padding: 4px; margin-bottom: 4px;">
             <legend>Сессия</legend>
@@ -421,7 +414,6 @@
 
         <div class="main-view" id="mainContainer">
           
-          <!-- Общая лента / Лента друзей -->
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
@@ -442,7 +434,6 @@
             </fieldset>
           </div>
 
-          <!-- Уведомления -->
           <div id="sectionNotifications" style="display:none;">
             <fieldset>
               <legend>Уведомления</legend>
@@ -450,14 +441,13 @@
             </fieldset>
           </div>
 
-          <!-- Профиль пользователя -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
                   <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="profileNick">...</div>
-                  <button id="btnFriendAction" style="font-size:11px; display:none;">+ В друзья</button>
+                  <button id="btnFriendAction" style="font-size:11px; display:none;">+ Добавить в друзья</button>
                 </div>
                 
                 <div id="avatarUploadBox" style="margin-top:6px; display:none;">
@@ -470,11 +460,9 @@
               </div>
             </div>
 
-            <!-- Музыкальный блок в профиле -->
             <fieldset style="margin-bottom: 12px;">
               <legend>🎵 Музыка пользователя</legend>
               
-              <!-- Загрузка музыки (только в своём профиле) -->
               <div id="musicUploadBlock" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #ccc; display:none;">
                 <div style="display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap;">
                   <input type="text" id="trackTitle" placeholder="Название песни" style="flex: 1; font-size: 11px;">
@@ -490,7 +478,6 @@
                 <div id="audioUploadStatus" style="font-size: 10px; color: #555; margin-top: 2px;"></div>
               </div>
 
-              <!-- Создание плейлиста -->
               <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
                 <div style="display:flex; gap:4px;">
                   <input type="text" id="newPlaylistTitle" placeholder="Новый плейлист..." style="flex:1; font-size:11px;">
@@ -498,10 +485,8 @@
                 </div>
               </div>
 
-              <!-- Вкладка выбора плейлистов -->
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
 
-              <!-- Список аудиозаписей -->
               <div id="profileTracksList" style="max-height: 220px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
 
@@ -514,7 +499,6 @@
         </div>
       </div>
 
-      <!-- Встроенный аудиоплеер Bubble Media Player -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">⏹ Ничего не играет</div>
@@ -543,23 +527,27 @@
     window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
     let activeUser = null;
-    let currentTab = 'feed'; // 'feed', 'friends_feed', 'notifications', 'profile'
+    let currentTab = 'feed';
     let viewingUserId = null;
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
+    
+    // Структуры для заявок и друзей
     let userFriendIds = new Set();
+    let pendingOutgoingIds = new Set();
+    let pendingIncomingIds = new Set();
+
     let profilesMap = {};
     let realtimeChannel = null;
 
-    // Состояние плеера
+    // Плеер
     let playlistQueue = [];
     let currentTrackIndex = -1;
-    let loopMode = 'none'; // 'none', 'track', 'all'
+    let loopMode = 'none';
     const audioPlayer = document.getElementById('globalAudioPlayer');
 
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
-    // DOM элементы
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
@@ -602,7 +590,6 @@
     const btnCreatePost = document.getElementById('btnCreatePost');
     const uploadStatus = document.getElementById('uploadStatus');
 
-    // Музыка DOM
     const musicUploadBlock = document.getElementById('musicUploadBlock');
     const playlistCreateBlock = document.getElementById('playlistCreateBlock');
     const audioFileInput = document.getElementById('audioFileInput');
@@ -615,7 +602,6 @@
     const playlistSelectContainer = document.getElementById('playlistSelectContainer');
     const profileTracksList = document.getElementById('profileTracksList');
 
-    // Плеер DOM
     const currentTrackDisplay = document.getElementById('currentTrackDisplay');
     const currentPlaylistDisplay = document.getElementById('currentPlaylistDisplay');
     const btnPlayPause = document.getElementById('btnPlayPause');
@@ -672,11 +658,31 @@
       }
     }
 
+    // Загрузка списков друзей и статусов заявок
     async function loadFriends() {
       if (!activeUser) return;
       try {
-        const { data } = await window.sbClient.from('friends').select('friend_id').eq('user_id', activeUser.id);
-        userFriendIds = new Set((data || []).map(f => f.friend_id));
+        const { data } = await window.sbClient
+          .from('friends')
+          .select('*')
+          .or(`user_id.eq.${activeUser.id},friend_id.eq.${activeUser.id}`);
+
+        userFriendIds.clear();
+        pendingOutgoingIds.clear();
+        pendingIncomingIds.clear();
+
+        (data || []).forEach(row => {
+          if (row.status === 'accepted') {
+            const friendId = row.user_id === activeUser.id ? row.friend_id : row.user_id;
+            userFriendIds.add(friendId);
+          } else {
+            if (row.user_id === activeUser.id) {
+              pendingOutgoingIds.add(row.friend_id);
+            } else {
+              pendingIncomingIds.add(row.user_id);
+            }
+          }
+        });
       } catch (e) {
         console.warn('loadFriends:', e);
       }
@@ -710,7 +716,6 @@
     window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     window.sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    // Авторизация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Создание...';
@@ -871,24 +876,42 @@
       }
     }
 
-    // Управление дружбой
+    // Логика нажатия на кнопку дружбы в профиле
     btnFriendAction.addEventListener('click', async () => {
       if (!activeUser || !viewingUserId) return;
+      btnFriendAction.disabled = true;
+
       const isFriend = userFriendIds.has(viewingUserId);
+      const isOutgoing = pendingOutgoingIds.has(viewingUserId);
+      const isIncoming = pendingIncomingIds.has(viewingUserId);
 
       if (isFriend) {
-        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId });
-        userFriendIds.delete(viewingUserId);
-        btnFriendAction.innerText = '+ В друзья';
+        if (!confirm('Удалить пользователя из друзей?')) {
+          btnFriendAction.disabled = false;
+          return;
+        }
+        await window.sbClient.from('friends').delete().or(
+          `and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`
+        );
+      } else if (isOutgoing) {
+        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
+      } else if (isIncoming) {
+        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: viewingUserId, friend_id: activeUser.id });
+        await createNotification(viewingUserId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
       } else {
-        await window.sbClient.from('friends').insert([{ user_id: activeUser.id, friend_id: viewingUserId }]);
-        userFriendIds.add(viewingUserId);
-        btnFriendAction.innerText = '✓ В друзьях (Удалить)';
-        createNotification(viewingUserId, 'friend_add', 'добавил(а) вас в друзья', null);
+        await window.sbClient.from('friends').insert([{
+          user_id: activeUser.id,
+          friend_id: viewingUserId,
+          status: 'pending'
+        }]);
+        await createNotification(viewingUserId, 'friend_request', 'хочет добавить вас в друзья', null);
       }
+
+      await loadFriends();
+      openUserProfile(viewingUserId);
+      btnFriendAction.disabled = false;
     });
 
-    // Отрисовка постов
     function renderPostItem(p, commentsByPost, context = 'feed') {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
@@ -965,7 +988,7 @@
       if (onlyFriends) {
         const friendIdsArray = Array.from(userFriendIds);
         if (friendIdsArray.length === 0) {
-          feedList.innerHTML = '<p>У вас пока нет друзей. Перейдите в профиль любого пользователя и нажмите «+ В друзья»!</p>';
+          feedList.innerHTML = '<p>У вас пока нет подтвержденных друзей. Перейдите в профиль пользователя и отправьте заявку в друзья!</p>';
           return;
         }
         query = query.in('user_id', friendIdsArray);
@@ -999,10 +1022,18 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
-      // Кнопка дружбы
       if (activeUser && userId !== activeUser.id) {
         btnFriendAction.style.display = 'inline-block';
-        btnFriendAction.innerText = userFriendIds.has(userId) ? '✓ В друзьях (Удалить)' : '+ В друзья';
+        if (userFriendIds.has(userId)) {
+          btnFriendAction.innerText = '✓ В друзьях (Удалить)';
+        } else if (pendingOutgoingIds.has(userId)) {
+          btnFriendAction.innerText = '⏳ Заявка отправлена (Отменить)';
+        } else if (pendingIncomingIds.has(userId)) {
+          btnFriendAction.innerText = '📩 Принять заявку';
+        } else {
+          btnFriendAction.innerText = '+ Добавить в друзья';
+        }
+
         avatarUploadBox.style.display = 'none';
         musicUploadBlock.style.display = 'none';
         playlistCreateBlock.style.display = 'none';
@@ -1015,10 +1046,8 @@
         profilePostsLegend.innerText = 'Мои публикации';
       }
 
-      // Загрузка треков и плейлистов пользователя
       loadUserMusic(userId);
 
-      // Загрузка постов пользователя
       profilePostsList.innerHTML = 'Загрузка записей...';
       const { data: posts, error } = await window.sbClient.from('posts').select('*').eq('user_id', userId).order('id', { ascending: false });
 
@@ -1037,9 +1066,7 @@
       profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
     }
 
-    // ==================== МУЗЫКА И ПЛЕЙЛИСТЫ ====================
-
-    // Загрузка MP3 в Storage
+    // Музыка
     btnUploadTrack.addEventListener('click', async () => {
       const file = audioFileInput.files[0];
       const title = trackTitle.value.trim();
@@ -1063,7 +1090,6 @@
 
       const { data: { publicUrl } } = window.sbClient.storage.from('audio_tracks').getPublicUrl(fileName);
 
-      // Добавляем трек в базу
       const { data: trackData, error: trackError } = await window.sbClient.from('tracks').insert([{
         title, artist, audio_url: publicUrl, uploader_id: activeUser.id
       }]).select().single();
@@ -1071,7 +1097,6 @@
       if (trackError) {
         alert('Ошибка сохранения: ' + trackError.message);
       } else {
-        // Привязываем к своей библиотеке
         await window.sbClient.from('user_tracks').insert([{
           user_id: activeUser.id, track_id: trackData.id
         }]);
@@ -1085,7 +1110,6 @@
       btnUploadTrack.disabled = false;
     });
 
-    // Создание плейлиста
     btnCreatePlaylist.addEventListener('click', async () => {
       const title = newPlaylistTitle.value.trim();
       if (!title || !activeUser) return;
@@ -1094,11 +1118,9 @@
       loadUserMusic(activeUser.id);
     });
 
-    // Загрузка музыки и плейлистов в профиль
     async function loadUserMusic(userId, activePlaylistId = null) {
       profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
 
-      // 1. Плейлисты пользователя
       const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
       playlistSelectContainer.innerHTML = `
         <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
@@ -1107,7 +1129,6 @@
         `).join('')}
       `;
 
-      // 2. Треки
       let tracks = [];
       if (activePlaylistId) {
         const { data } = await window.sbClient
@@ -1130,7 +1151,6 @@
 
       const isMyProfile = activeUser && userId === activeUser.id;
 
-      // Получаем мои плейлисты для контекстного добавления
       let myPlaylists = [];
       if (activeUser) {
         const { data: myPl } = await window.sbClient.from('playlists').select('id, title').eq('user_id', activeUser.id);
@@ -1158,7 +1178,6 @@
       }).join('');
     }
 
-    // Добавить трек другого пользователя к себе
     window.addTrackToMyLibrary = async function(trackId) {
       if (!activeUser) return;
       const { error } = await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackId }]);
@@ -1166,7 +1185,6 @@
       else alert('Трек успешно добавлен в ваш профиль!');
     };
 
-    // Добавить трек в свой плейлист
     window.addTrackToPlaylist = async function(trackId, playlistId) {
       if (!playlistId || !activeUser) return;
       const { error } = await window.sbClient.from('playlist_tracks').insert([{ playlist_id: playlistId, track_id: trackId }]);
@@ -1174,7 +1192,6 @@
       else alert('Трек добавлен в плейлист!');
     };
 
-    // Удалить трек из своей библиотеки или плейлиста
     window.removeTrackFromLibrary = async function(trackId, playlistId) {
       if (!confirm('Удалить трек?')) return;
       if (playlistId) {
@@ -1184,8 +1201,6 @@
       }
       loadUserMusic(activeUser.id, playlistId);
     };
-
-    // ==================== РЕТРО ПЛЕЕР И ЗАЦИКЛИВАНИЕ ====================
 
     window.playQueue = function(tracks, startIndex, playlistName = 'Список') {
       playlistQueue = tracks;
@@ -1226,7 +1241,6 @@
       playCurrentTrack();
     });
 
-    // Режимы зацикливания: 'none' -> 'track' -> 'all'
     btnLoopTrack.addEventListener('click', () => {
       if (loopMode === 'track') {
         loopMode = 'none';
@@ -1249,18 +1263,14 @@
       }
     });
 
-    // Окончание воспроизведения трека
     audioPlayer.addEventListener('ended', () => {
       if (loopMode === 'track') {
-        // Повтор текущей песни
         audioPlayer.currentTime = 0;
         audioPlayer.play();
       } else if (loopMode === 'all') {
-        // Зацикливание всего плейлиста
         currentTrackIndex = (currentTrackIndex + 1) % playlistQueue.length;
         playCurrentTrack();
       } else {
-        // Обычный режим: переход к следующему, если не конец
         if (currentTrackIndex + 1 < playlistQueue.length) {
           currentTrackIndex++;
           playCurrentTrack();
@@ -1271,8 +1281,7 @@
       }
     });
 
-    // ==================== УВЕДОМЛЕНИЯ И КОММЕНТАРИИ ====================
-
+    // Уведомления и обработка входящих заявок
     async function loadNotifications() {
       if (!activeUser) return;
       notificationsList.innerHTML = 'Загрузка...';
@@ -1287,13 +1296,43 @@
       if (error) return notificationsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
       if (!notifs || notifs.length === 0) return notificationsList.innerHTML = '<p>Уведомлений пока нет.</p>';
 
-      notificationsList.innerHTML = notifs.map(n => `
-        <div class="notification-item" onclick="openTargetPost(${n.post_id}, ${n.id})" style="${n.is_read ? 'opacity:0.75;' : 'background:#fff8db; font-weight:bold; border-color:#d49b00;'}">
-          <div><b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}</div>
-          <span style="font-size:9px; color:#888;">${new Date(n.created_at).toLocaleString()}</span>
-        </div>
-      `).join('');
+      notificationsList.innerHTML = notifs.map(n => {
+        const isFriendReq = n.type === 'friend_request';
+        return `
+          <div class="notification-item" style="${n.is_read ? 'opacity:0.8;' : 'background:#fff8db; font-weight:bold; border-color:#d49b00;'}">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+              <div onclick="${n.post_id ? `openTargetPost(${n.post_id}, ${n.id})` : `goToProfile('${n.from_user_id}')`}" style="cursor:pointer; flex:1;">
+                <b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}
+                <div style="font-size:9px; color:#888; font-weight:normal;">${new Date(n.created_at).toLocaleString()}</div>
+              </div>
+              ${isFriendReq ? `
+                <div style="display:flex; gap:4px;">
+                  <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, true)" style="font-size:10px;">Принять</button>
+                  <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, false)" style="font-size:10px; color:#a00;">Отклонить</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
     }
+
+    // Ответ на заявку в друзья прямо из уведомления
+    window.respondFriendRequest = async function(senderId, notifId, accept) {
+      if (!activeUser) return;
+
+      if (accept) {
+        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: senderId, friend_id: activeUser.id });
+        await createNotification(senderId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
+      } else {
+        await window.sbClient.from('friends').delete().match({ user_id: senderId, friend_id: activeUser.id, status: 'pending' });
+      }
+
+      await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
+      await loadFriends();
+      await updateUnreadBadge();
+      loadNotifications();
+    };
 
     window.openTargetPost = async function(postId, notifId) {
       if (notifId && activeUser) {
