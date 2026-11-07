@@ -522,7 +522,7 @@
 
         <div class="main-view" id="mainContainer">
           
-          <!-- Раздел: Лента -->
+          <!-- Лента -->
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
@@ -543,7 +543,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Друзья -->
+          <!-- Друзья -->
           <div id="sectionFriendsManager" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>📥 Входящие заявки в друзья (<span id="countIncoming">0</span>)</legend>
@@ -561,7 +561,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Вся музыка на сайте -->
+          <!-- Вся музыка -->
           <div id="sectionMusic" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>Загрузить песню в общую медиатеку</legend>
@@ -588,7 +588,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Сообщества -->
+          <!-- Сообщества -->
           <div id="sectionCommunities" style="display:none;">
             <div id="communityViewList">
               <fieldset style="margin-bottom: 12px;">
@@ -606,7 +606,6 @@
               </fieldset>
             </div>
 
-            <!-- Внутренняя страница выбранного сообщества -->
             <div id="communityViewSingle" style="display:none;">
               <button id="btnBackToCommunities" style="margin-bottom: 8px;">← Назад к списку сообществ</button>
               
@@ -622,13 +621,11 @@
                 </div>
               </div>
 
-              <!-- Панель управления ролями (только для Creator / Admin) -->
               <fieldset id="commAdminPanel" style="margin-bottom: 12px; display:none;">
                 <legend>⚙️ Управление участниками и ролями</legend>
                 <div id="commMembersList" style="max-height: 140px; overflow-y: auto; font-size: 11px;">Загрузка участников...</div>
               </fieldset>
 
-              <!-- Музыка сообщества -->
               <fieldset style="margin-bottom: 12px;">
                 <legend>🎵 Музыка сообщества</legend>
                 <div id="commMusicControls" style="margin-bottom: 6px; display:none;">
@@ -637,7 +634,6 @@
                 <div id="commTracksList" style="max-height: 160px; overflow-y: auto;">Загрузка треков...</div>
               </fieldset>
 
-              <!-- Публикация поста в сообществе -->
               <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
                 <legend>Новая запись в сообществе</legend>
                 <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость в сообщество..."></textarea>
@@ -657,7 +653,7 @@
             </div>
           </div>
 
-          <!-- Раздел: Уведомления -->
+          <!-- Уведомления -->
           <div id="sectionNotifications" style="display:none;">
             <fieldset>
               <legend>
@@ -668,7 +664,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Профиль -->
+          <!-- Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
@@ -693,10 +689,23 @@
               <div id="profileFriendsList" class="friends-grid">Загрузка списка друзей...</div>
             </fieldset>
 
+            <!-- Музыка и плейлисты пользователя -->
             <fieldset style="margin-bottom: 12px;">
               <legend>🎵 Музыка пользователя</legend>
+              
+              <!-- Блок создания плейлиста (только в своём профиле) -->
+              <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
+                <div style="display: flex; gap: 4px;">
+                  <input type="text" id="newPlaylistTitle" placeholder="Название нового плейлиста..." style="flex: 1; font-size: 11px;">
+                  <button id="btnCreatePlaylist" style="font-size: 11px;">Создать плейлист</button>
+                </div>
+              </div>
+
+              <!-- Вкладки-кнопки плейлистов -->
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
-              <div id="profileTracksList" style="max-height: 220px; overflow-y: auto;">Загрузка аудиозаписей...</div>
+              
+              <!-- Список треков активного плейлиста/библиотеки -->
+              <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
 
             <fieldset>
@@ -708,7 +717,6 @@
         </div>
       </div>
 
-      <!-- Аудиоплеер -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">⏹ Ничего не играет</div>
@@ -748,7 +756,7 @@
     let currentTab = 'feed';
     let viewingUserId = null;
     let currentCommunityId = null;
-    let currentCommunityRole = null; // 'creator', 'admin', 'moderator', 'member', null
+    let currentCommunityRole = null;
 
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
@@ -765,7 +773,6 @@
     const audioPlayer = document.getElementById('globalAudioPlayer');
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
-    // DOM элементы
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
@@ -834,6 +841,9 @@
     const globalAudioFile = document.getElementById('globalAudioFile');
     const btnUploadGlobalTrack = document.getElementById('btnUploadGlobalTrack');
     const globalAudioUploadStatus = document.getElementById('globalAudioUploadStatus');
+    const playlistCreateBlock = document.getElementById('playlistCreateBlock');
+    const newPlaylistTitle = document.getElementById('newPlaylistTitle');
+    const btnCreatePlaylist = document.getElementById('btnCreatePlaylist');
     const playlistSelectContainer = document.getElementById('playlistSelectContainer');
     const profileTracksList = document.getElementById('profileTracksList');
 
@@ -1197,7 +1207,6 @@
       }
     }
 
-    // Рендер постов
     function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false) {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
@@ -1414,7 +1423,6 @@
 
       if (error) return alert('Ошибка создания сообщества: ' + error.message);
 
-      // Добавляем создателя в участники с ролью 'creator'
       await window.sbClient.from('community_members').insert([{
         community_id: comm.id, user_id: activeUser.id, role: 'creator'
       }]);
@@ -1439,7 +1447,6 @@
       commDesc.innerText = comm.description || 'Без описания';
       commAvatar.src = comm.avatar_url || DEFAULT_AVATAR;
 
-      // Проверка роли пользователя в этом сообществе
       currentCommunityRole = null;
       if (activeUser) {
         const { data: member } = await window.sbClient
@@ -1452,7 +1459,6 @@
         if (member) currentCommunityRole = member.role;
       }
 
-      // Текст роли и кнопка вступления
       if (!currentCommunityRole) {
         btnCommJoinLeave.innerText = '+ Вступить';
         commUserRole.innerText = 'Вы не состоите в сообществе';
@@ -1462,7 +1468,6 @@
         btnCommJoinLeave.innerText = currentCommunityRole === 'creator' ? 'Удалить группу' : 'Покинуть';
       }
 
-      // Панель управления (для Создателя и Администраторов)
       if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
         commAdminPanel.style.display = 'block';
         loadCommunityMembers(commId, currentCommunityRole);
@@ -1470,7 +1475,6 @@
         commAdminPanel.style.display = 'none';
       }
 
-      // Возможность добавления музыки в сообщество (для админов и создателя)
       if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
         commMusicControls.style.display = 'block';
       } else {
@@ -1481,7 +1485,6 @@
       loadCommunityPosts(commId);
     }
 
-    // Вступить / Покинуть сообщество
     btnCommJoinLeave.addEventListener('click', async () => {
       if (!activeUser || !currentCommunityId) return;
 
@@ -1502,7 +1505,6 @@
       openCommunity(currentCommunityId);
     });
 
-    // Список участников и назначение ролей
     async function loadCommunityMembers(commId, myRole) {
       commMembersList.innerHTML = 'Загрузка участников...';
       const { data: members } = await window.sbClient.from('community_members').select('*').eq('community_id', commId);
@@ -1539,7 +1541,6 @@
       openCommunity(currentCommunityId);
     };
 
-    // Музыка сообщества
     async function loadCommunityMusic(commId) {
       commTracksList.innerHTML = 'Загрузка...';
       const { data: rows } = await window.sbClient
@@ -1580,7 +1581,6 @@
       }
     });
 
-    // Публикация поста в сообществе
     btnCreateCommPost.addEventListener('click', async () => {
       if (!activeUser || !currentCommunityId) return;
       if (!currentCommunityRole) return alert('Вступите в сообщество, чтобы писать на стене!');
@@ -1619,7 +1619,6 @@
       loadCommunityPosts(currentCommunityId);
     });
 
-    // Посты сообщества
     async function loadCommunityPosts(commId) {
       commPostsList.innerHTML = 'Загрузка...';
       const { data: posts, error } = await window.sbClient
@@ -1772,7 +1771,6 @@
       }).join('');
     }
 
-    // Кнопка "Прочитать все"
     btnMarkAllRead.addEventListener('click', async () => {
       if (!activeUser) return;
       await window.sbClient.from('notifications').update({ is_read: true }).eq('user_id', activeUser.id).eq('is_read', false);
@@ -1817,7 +1815,7 @@
       }, 500);
     };
 
-    // ==================== ПРОФИЛЬ ====================
+    // ==================== ПРОФИЛЬ, МУЗЫКА И ПЛЕЙЛИСТЫ ====================
     async function loadProfileFriends(userId) {
       profileFriendsList.innerHTML = 'Загрузка...';
       try {
@@ -1849,41 +1847,98 @@
       }
     }
 
-    async function loadUserMusic(userId) {
-      profileTracksList.innerHTML = 'Загрузка...';
-      const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', userId);
-      const tracks = (data || []).map(d => d.tracks).filter(Boolean);
+    // Загрузка музыки и плейлистов в профиле
+    async function loadUserMusic(userId, activePlaylistId = null) {
+      profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
+
+      // 1. Плейлисты пользователя
+      const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
+      playlistSelectContainer.innerHTML = `
+        <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
+        ${(playlists || []).map(pl => `
+          <button style="${activePlaylistId === pl.id ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', ${pl.id})">💿 ${escapeHtml(pl.title)}</button>
+        `).join('')}
+      `;
+
+      // 2. Треки
+      let tracks = [];
+      if (activePlaylistId) {
+        const { data } = await window.sbClient
+          .from('playlist_tracks')
+          .select('track_id, tracks(*)')
+          .eq('playlist_id', activePlaylistId);
+        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+      } else {
+        const { data } = await window.sbClient
+          .from('user_tracks')
+          .select('track_id, tracks(*)')
+          .eq('user_id', userId);
+        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+      }
 
       if (tracks.length === 0) {
-        profileTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Музыка не добавлена.</div>';
+        profileTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В этом списке пока нет аудиозаписей.</div>';
         return;
       }
 
       const isMyProfile = activeUser && userId === activeUser.id;
+
+      let myPlaylists = [];
+      if (activeUser) {
+        const { data: myPl } = await window.sbClient.from('playlists').select('id, title').eq('user_id', activeUser.id);
+        myPlaylists = myPl || [];
+      }
+
       profileTracksList.innerHTML = tracks.map((t, idx) => `
         <div class="track-list-item">
-          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка профиля')">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, '${activePlaylistId ? 'Плейлист' : 'Библиотека'}')">
             <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
             ${!isMyProfile ? `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>` : ''}
-            ${isMyProfile ? `<button onclick="removeTrackFromLibrary(${t.id})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
+            ${(isMyProfile && myPlaylists.length > 0) ? `
+              <select onchange="addTrackToPlaylist(${t.id}, this.value); this.value='';" style="font-size:10px;">
+                <option value="">+ В плейлист...</option>
+                ${myPlaylists.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('')}
+              </select>
+            ` : ''}
+            ${isMyProfile ? `<button onclick="removeTrackFromProfile(${t.id}, ${activePlaylistId})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
           </div>
         </div>
       `).join('');
     }
+
+    // Создание плейлиста в профиле
+    btnCreatePlaylist.addEventListener('click', async () => {
+      const title = newPlaylistTitle.value.trim();
+      if (!title || !activeUser) return alert('Введите название плейлиста!');
+      await window.sbClient.from('playlists').insert([{ user_id: activeUser.id, title }]);
+      newPlaylistTitle.value = '';
+      loadUserMusic(activeUser.id);
+    });
+
+    window.addTrackToPlaylist = async function(trackId, playlistId) {
+      if (!playlistId || !activeUser) return;
+      const { error } = await window.sbClient.from('playlist_tracks').insert([{ playlist_id: playlistId, track_id: trackId }]);
+      if (error && error.code !== '23505') alert('Ошибка добавления: ' + error.message);
+      else alert('Трек успешно добавлен в плейлист!');
+    };
+
+    window.removeTrackFromProfile = async function(trackId, activePlaylistId) {
+      if (!confirm('Удалить трек?')) return;
+      if (activePlaylistId) {
+        await window.sbClient.from('playlist_tracks').delete().match({ playlist_id: activePlaylistId, track_id: trackId });
+      } else {
+        await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: trackId });
+      }
+      loadUserMusic(activeUser.id, activePlaylistId);
+    };
 
     window.addTrackToMyLibrary = async function(trackId) {
       if (!activeUser) return;
       const { error } = await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackId }]);
       if (error && error.code !== '23505') alert('Ошибка: ' + error.message);
       else alert('Трек добавлен в ваш профиль!');
-    };
-
-    window.removeTrackFromLibrary = async function(trackId) {
-      if (!confirm('Удалить трек из профиля?')) return;
-      await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: trackId });
-      loadUserMusic(activeUser.id);
     };
 
     async function openUserProfile(userId) {
@@ -1907,10 +1962,12 @@
           btnFriendAction.innerText = '+ Добавить в друзья';
         }
         avatarUploadBox.style.display = 'none';
+        playlistCreateBlock.style.display = 'none';
         profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
       } else {
         btnFriendAction.style.display = 'none';
         avatarUploadBox.style.display = 'block';
+        playlistCreateBlock.style.display = 'block';
         profilePostsLegend.innerText = 'Мои публикации';
       }
 
