@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Стрекоза — Социальная сеть Windows XP</title>
+  <title>Bubble — Убежище от интернета</title>
   <link rel="stylesheet" href="https://unpkg.com/xp.css/dist/XP.css">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
@@ -135,12 +135,12 @@
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
-        <div class="title-bar-text">Стрекоза — Вход / Регистрация</div>
+        <div class="title-bar-text">Bubble — Вход / Регистрация</div>
       </div>
       <div class="window-body">
         <div style="margin-bottom: 6px;">
-          <label style="display:block; font-size:11px;">Никнейм (для новых участников):</label>
-          <input type="text" id="inputUsername" placeholder="Например, Dragonfly" style="width: 100%; box-sizing: border-box;">
+          <label style="display:block; font-size:11px;">Никнейм:</label>
+          <input type="text" id="inputUsername" placeholder="BubbleUser" style="width: 100%; box-sizing: border-box;">
         </div>
         <div style="margin-bottom: 6px;">
           <label style="display:block; font-size:11px;">Электронная почта:</label>
@@ -152,7 +152,7 @@
         </div>
         <div style="display: flex; justify-content: space-between;">
           <button id="btnActionLogin" type="button" style="font-weight: bold;">Войти</button>
-          <button id="btnActionRegister" type="button">Зарегистрироваться</button>
+          <button id="btnActionRegister" type="button">Регистрация</button>
         </div>
         <div id="authStatus" style="color:red; font-size:11px; margin-top:8px; min-height: 14px;"></div>
       </div>
@@ -163,7 +163,7 @@
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
-        <div class="title-bar-text">Стрекоза — Убежище от интернета — Microsoft Internet Explorer</div>
+        <div class="title-bar-text">Bubble — Убежище от интернета — Microsoft Internet Explorer</div>
         <div class="title-bar-controls">
           <button aria-label="Minimize"></button>
           <button aria-label="Maximize"></button>
@@ -173,7 +173,7 @@
 
       <div class="address-bar">
         <span>Address:</span>
-        <input type="text" value="https://dragonfly-flash.com/feed/all" readonly>
+        <input type="text" value="https://bubble.net/feed/all" readonly>
         <button style="min-width: 40px;">Go</button>
       </div>
 
@@ -190,14 +190,14 @@
         <div class="main-view">
           <fieldset style="margin-bottom: 12px;">
             <legend>Новая запись на стену</legend>
-            <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового?"></textarea>
+            <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble?"></textarea>
             <div style="text-align: right; margin-top: 4px;">
               <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
             </div>
           </fieldset>
 
           <fieldset>
-            <legend>Общая лента записей</legend>
+            <legend>Общая лента записей Bubble</legend>
             <div id="feedList">Загрузка постов...</div>
           </fieldset>
         </div>
@@ -251,7 +251,7 @@
     sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    // Регистрация без кода подтверждения
+    // Регистрация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Создание аккаунта...';
@@ -279,9 +279,7 @@
       const { data, error } = await sbClient.auth.signUp({
         email,
         password,
-        options: {
-          data: { username: username }
-        }
+        options: { data: { username: username } }
       });
 
       if (error) {
@@ -291,9 +289,8 @@
         if (data.session) {
           updateSessionState(data.session);
         } else {
-          // Если флаг Confirm email ещё не выключен в дашборде
-          authStatus.style.color = 'orange';
-          authStatus.innerText = 'Пользователь создан. Отключите Confirm email в Supabase, чтобы входить сразу.';
+          authStatus.style.color = 'green';
+          authStatus.innerText = 'Пользователь создан! Теперь нажмите «Войти».';
         }
       }
     });
@@ -326,10 +323,10 @@
       await sbClient.auth.signOut();
     });
 
-    // Загрузка ленты постов
+    // Загрузка записей стены
     async function loadFeed() {
       if (!activeUser) return;
-      feedList.innerHTML = 'Загрузка записей...';
+      feedList.innerHTML = 'Загрузка записей Bubble...';
 
       const { data: posts, error } = await sbClient
         .from('posts')
@@ -343,14 +340,14 @@
       }
 
       if (!posts || posts.length === 0) {
-        feedList.innerHTML = '<p>Пока нет записей. Напишите что-нибудь первым!</p>';
+        feedList.innerHTML = '<p>Пока нет записей. Оставьте первое сообщение в Bubble!</p>';
         return;
       }
 
       feedList.innerHTML = posts.map(p => `
         <div class="post-box">
           <div class="post-author">
-            <span>👤 ${escapeHtml(p.author)}</span>
+            <span>🫧 ${escapeHtml(p.author)}</span>
             <span style="font-size:10px; color:#777;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
           </div>
           <div>${escapeHtml(p.content)}</div>
