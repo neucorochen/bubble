@@ -79,25 +79,63 @@
       padding: 0 !important;
       position: relative;
     }
+
+    /* Frutiger Aero Sidebar */
     .sidebar {
-      width: 205px;
-      background: #ece9d8;
-      border-right: 2px groove #fff;
-      padding: 8px;
+      width: 215px;
+      background: linear-gradient(135deg, rgba(225, 245, 255, 0.88) 0%, rgba(185, 225, 250, 0.78) 50%, rgba(150, 210, 245, 0.88) 100%);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border-right: 1px solid rgba(255, 255, 255, 0.7);
+      box-shadow: inset -1px 0 0 rgba(0, 110, 200, 0.15), 2px 0 8px rgba(0, 60, 120, 0.08);
+      padding: 10px;
       display: flex;
       flex-direction: column;
-      gap: 5px;
+      gap: 6px;
       flex-shrink: 0;
       transition: transform 0.25s ease-out;
       z-index: 100;
       overflow-y: auto;
     }
-    .sidebar button {
+    .sidebar-usercard {
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, rgba(230, 245, 255, 0.85) 100%);
+      border: 1px solid rgba(255, 255, 255, 0.9);
+      border-radius: 8px;
+      box-shadow: 0 2px 6px rgba(0, 90, 180, 0.15), inset 0 1px 0 rgba(255, 255, 255, 1);
+      padding: 6px 8px;
+      margin-bottom: 4px;
+    }
+    .sidebar-btn {
       width: 100%;
       text-align: left;
       font-size: 11px;
+      font-weight: 500;
+      color: #0b388f;
+      padding: 6px 10px;
       cursor: pointer;
+      border: 1px solid rgba(255, 255, 255, 0.8) !important;
+      border-radius: 6px;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.85) 0%, rgba(225, 240, 255, 0.65) 50%, rgba(195, 225, 250, 0.8) 100%) !important;
+      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 2px 4px rgba(0, 70, 160, 0.1);
+      transition: all 0.2s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
     }
+    .sidebar-btn:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #d8efff 50%, #b5e2ff 100%) !important;
+      border-color: #64b5f6 !important;
+      box-shadow: 0 0 8px rgba(33, 150, 243, 0.4), inset 0 1px 0 #fff;
+      transform: translateY(-1px);
+    }
+    .sidebar-btn.active {
+      background: linear-gradient(180deg, #388bf2 0%, #1a6fe3 50%, #0d59c8 100%) !important;
+      color: #fff !important;
+      border-color: #0d47a1 !important;
+      box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.3), 0 1px 3px rgba(0, 70, 160, 0.3);
+      font-weight: bold;
+    }
+
     .sidebar-backdrop {
       display: none;
       position: absolute;
@@ -480,6 +518,25 @@
     </div>
   </div>
 
+  <!-- Модальное окно выбора музыки для сообщества вместо prompt -->
+  <div class="modal-overlay" id="commMusicModal" style="display:none;">
+    <div class="window" style="width: 380px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">Прикрепить музыку в сообщество</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('commMusicModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="font-size:11px; margin-bottom:8px;">Выберите трек из добавленных в ваш профиль:</div>
+        <div id="commMusicModalList" style="max-height: 240px; overflow-y: auto; margin-bottom: 8px;"></div>
+        <div style="text-align: right;">
+          <button onclick="document.getElementById('commMusicModal').style.display='none'">Закрыть</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -501,23 +558,23 @@
       <div class="window-body window-body-layout">
         <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
 
+        <!-- Frutiger Aero Меню -->
         <div class="sidebar" id="sidebarPanel">
-          <fieldset style="padding: 4px; margin-bottom: 4px;">
-            <legend>Сессия</legend>
-            <div style="display:flex; align-items:center; gap:6px; margin-bottom:6px;">
+          <div class="sidebar-usercard">
+            <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
               <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
-              <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0055ea; word-break: break-all;">...</div>
+              <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0b388f; word-break: break-all;">...</div>
             </div>
-            <button id="btnLogout" type="button">Выйти</button>
-          </fieldset>
+            <button id="btnLogout" type="button" style="width:100%; font-size:10px;">Выйти</button>
+          </div>
 
-          <button id="btnTabFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
-          <button id="btnTabFriendsFeed" type="button">📰 Лента друзей</button>
-          <button id="btnTabFriendsManager" type="button">👥 Друзья <span id="friendsBadge" class="badge" style="display:none;">0</span></button>
-          <button id="btnTabMusic" type="button">🎵 Вся музыка</button>
-          <button id="btnTabCommunities" type="button">🌐 Сообщества</button>
-          <button id="btnTabNotifications" type="button">🔔 Уведомления <span id="notifBadge" class="badge" style="display:none;">0</span></button>
-          <button id="btnTabProfile" type="button">👤 Мой профиль</button>
+          <button class="sidebar-btn" id="btnTabFeed" type="button"><span>📰 Общая лента</span></button>
+          <button class="sidebar-btn" id="btnTabFriendsFeed" type="button"><span>📰 Лента друзей</span></button>
+          <button class="sidebar-btn" id="btnTabFriendsManager" type="button"><span>👥 Друзья</span><span id="friendsBadge" class="badge" style="display:none;">0</span></button>
+          <button class="sidebar-btn" id="btnTabMusic" type="button"><span>🎵 Вся музыка</span></button>
+          <button class="sidebar-btn" id="btnTabCommunities" type="button"><span>🌐 Сообщества</span></button>
+          <button class="sidebar-btn" id="btnTabNotifications" type="button"><span>🔔 Уведомления</span><span id="notifBadge" class="badge" style="display:none;">0</span></button>
+          <button class="sidebar-btn" id="btnTabProfile" type="button"><span>👤 Мой профиль</span></button>
         </div>
 
         <div class="main-view" id="mainContainer">
@@ -618,6 +675,15 @@
                   </div>
                   <div style="font-size:11px; color:#555; margin-top:4px;" id="commDesc">...</div>
                   <div style="font-size:10px; color:#0055ea; margin-top:2px;" id="commUserRole">Ваша роль: Участник</div>
+                  
+                  <!-- Смена аватарки сообщества (только для создателя / админа) -->
+                  <div id="commAvatarUploadBox" style="margin-top:6px; display:none;">
+                    <label style="font-size:11px; cursor:pointer;">
+                      Сменить аватарку группы:
+                      <input type="file" id="commAvatarFile" accept="image/*" style="font-size:10px;">
+                    </label>
+                    <span id="commAvatarStatus" style="font-size:10px; color:#555;"></span>
+                  </div>
                 </div>
               </div>
 
@@ -629,7 +695,7 @@
               <fieldset style="margin-bottom: 12px;">
                 <legend>🎵 Музыка сообщества</legend>
                 <div id="commMusicControls" style="margin-bottom: 6px; display:none;">
-                  <button id="btnAddTrackToCommPrompt" style="font-size:10px;">+ Добавить песню из своей музыки</button>
+                  <button id="btnOpenCommMusicModal" style="font-size:11px;">+ Добавить песню из своей музыки</button>
                 </div>
                 <div id="commTracksList" style="max-height: 160px; overflow-y: auto;">Загрузка треков...</div>
               </fieldset>
@@ -689,11 +755,9 @@
               <div id="profileFriendsList" class="friends-grid">Загрузка списка друзей...</div>
             </fieldset>
 
-            <!-- Музыка и плейлисты пользователя -->
             <fieldset style="margin-bottom: 12px;">
               <legend>🎵 Музыка пользователя</legend>
               
-              <!-- Блок создания плейлиста (только в своём профиле) -->
               <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
                 <div style="display: flex; gap: 4px;">
                   <input type="text" id="newPlaylistTitle" placeholder="Название нового плейлиста..." style="flex: 1; font-size: 11px;">
@@ -701,10 +765,7 @@
                 </div>
               </div>
 
-              <!-- Вкладки-кнопки плейлистов -->
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
-              
-              <!-- Список треков активного плейлиста/библиотеки -->
               <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
 
@@ -860,10 +921,15 @@
     const commAvatar = document.getElementById('commAvatar');
     const btnCommJoinLeave = document.getElementById('btnCommJoinLeave');
     const commUserRole = document.getElementById('commUserRole');
+    const commAvatarUploadBox = document.getElementById('commAvatarUploadBox');
+    const commAvatarFile = document.getElementById('commAvatarFile');
+    const commAvatarStatus = document.getElementById('commAvatarStatus');
     const commAdminPanel = document.getElementById('commAdminPanel');
     const commMembersList = document.getElementById('commMembersList');
     const commMusicControls = document.getElementById('commMusicControls');
-    const btnAddTrackToCommPrompt = document.getElementById('btnAddTrackToCommPrompt');
+    const btnOpenCommMusicModal = document.getElementById('btnOpenCommMusicModal');
+    const commMusicModal = document.getElementById('commMusicModal');
+    const commMusicModalList = document.getElementById('commMusicModalList');
     const commTracksList = document.getElementById('commTracksList');
     const commPostContent = document.getElementById('commPostContent');
     const commPostImage = document.getElementById('commPostImage');
@@ -1139,13 +1205,16 @@
       currentTab = tab;
       toggleMobileMenu(true);
 
-      btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
-      btnTabFriendsFeed.style.fontWeight = tab === 'friends_feed' ? 'bold' : 'normal';
-      btnTabFriendsManager.style.fontWeight = tab === 'friends_manager' ? 'bold' : 'normal';
-      btnTabMusic.style.fontWeight = tab === 'music' ? 'bold' : 'normal';
-      btnTabCommunities.style.fontWeight = tab === 'communities' ? 'bold' : 'normal';
-      btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
-      btnTabProfile.style.fontWeight = (tab === 'profile' && activeUser && targetUserId === activeUser.id) ? 'bold' : 'normal';
+      const navButtons = [btnTabFeed, btnTabFriendsFeed, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile];
+      navButtons.forEach(btn => btn.classList.remove('active'));
+
+      if (tab === 'feed') btnTabFeed.classList.add('active');
+      if (tab === 'friends_feed') btnTabFriendsFeed.classList.add('active');
+      if (tab === 'friends_manager') btnTabFriendsManager.classList.add('active');
+      if (tab === 'music') btnTabMusic.classList.add('active');
+      if (tab === 'communities') btnTabCommunities.classList.add('active');
+      if (tab === 'notifications') btnTabNotifications.classList.add('active');
+      if (tab === 'profile' && activeUser && targetUserId === activeUser.id) btnTabProfile.classList.add('active');
 
       sectionFeed.style.display = (tab === 'feed' || tab === 'friends_feed') ? 'block' : 'none';
       sectionFriendsManager.style.display = tab === 'friends_manager' ? 'block' : 'none';
@@ -1224,50 +1293,52 @@
               <span class="post-author">🫧 ${escapeHtml(prof.username)}</span>
               <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>
-            ${canDelete ? `<button class="btn-delete-post" onclick="deletePost(${p.id}, '${context}')">✖ Удалить</button>` : ''}
+            ${canDelete ? `<button class="btn-delete-post" onclick="deletePost(${p.id}, '${uniquePostKey}')">✖ Удалить</button>` : ''}
           </div>
 
           <div style="margin: 6px 0; word-break: break-word;">${escapeHtml(p.content)}</div>
           ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
 
           <div class="post-actions">
-            <button onclick="togglePostLike(${p.id}, ${p.likes_count || 0}, '${p.user_id}')">
-              ${isPostLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
+            <button id="like-btn-${uniquePostKey}" onclick="togglePostLike(${p.id}, '${p.user_id}', '${uniquePostKey}')">
+              ${isPostLiked ? '❤️' : '🤍'} <span id="like-count-${uniquePostKey}">${p.likes_count || 0}</span>
             </button>
             <button onclick="toggleCommentsVisibility('${uniquePostKey}')" style="font-size:11px;">
-              💬 Комментарии (${postComments.length})
+              💬 Комментарии (<span id="comments-count-${uniquePostKey}">${postComments.length}</span>)
             </button>
           </div>
 
           <div class="comments-section" id="comments-box-${uniquePostKey}">
             <div class="comments-inner">
               <div id="comments-list-${uniquePostKey}">
-                ${postComments.map(c => {
-                  const isCommentLiked = userLikedComments.has(c.id);
-                  const isMyComment = currentUserId && c.user_id === currentUserId;
-                  const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
-
-                  return `
-                    <div class="comment-item" id="comment-${c.id}">
-                      <div class="comment-content">
-                        <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
-                      </div>
-                      <div class="comment-controls">
-                        <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0}, '${c.user_id}', ${p.id})" style="font-size:10px; padding:1px 4px;">
-                          ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
-                        </button>
-                        <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
-                        ${(isMyComment || canModerate) ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
-                      </div>
-                    </div>
-                  `;
-                }).join('')}
+                ${postComments.map(c => renderCommentHTML(c, p.id, uniquePostKey, canModerate)).join('')}
               </div>
               <div style="display:flex; gap:4px; margin-top:6px;">
                 <input type="text" id="comment-input-${uniquePostKey}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
                 <button onclick="sendComment(${p.id}, '${p.user_id}', '${uniquePostKey}')" style="font-size:11px;">Ответить</button>
               </div>
             </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderCommentHTML(c, postId, uniquePostKey, canModerate = false) {
+      const isCommentLiked = userLikedComments.has(c.id);
+      const isMyComment = activeUser && c.user_id === activeUser.id;
+      const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
+
+      return `
+        <div class="comment-item" id="comment-${c.id}">
+          <div class="comment-content">
+            <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
+          </div>
+          <div class="comment-controls">
+            <button id="clike-btn-${c.id}" onclick="toggleCommentLike(${c.id}, '${c.user_id}', ${postId})" style="font-size:10px; padding:1px 4px;">
+              ${isCommentLiked ? '❤️' : '🤍'} <span id="clike-count-${c.id}">${c.likes_count || 0}</span>
+            </button>
+            <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
+            ${(isMyComment || canModerate) ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id}, '${uniquePostKey}')">×</button>` : ''}
           </div>
         </div>
       `;
@@ -1309,6 +1380,103 @@
       feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, onlyFriends ? 'friends' : 'feed')).join('');
     }
 
+    // ==================== ЛОКАЛЬНЫЕ ОПЕРАЦИИ БЕЗ ПЕРЕЗАГРУЗКИ СКРОЛЛА ====================
+    window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
+      if (!activeUser) return;
+      const countEl = document.getElementById(`like-count-${uniquePostKey}`);
+      const btnEl = document.getElementById(`like-btn-${uniquePostKey}`);
+      let count = parseInt(countEl ? countEl.innerText : '0') || 0;
+
+      if (userLikedPosts.has(postId)) {
+        userLikedPosts.delete(postId);
+        count = Math.max(0, count - 1);
+        if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count}</span>`;
+        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
+        await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
+      } else {
+        userLikedPosts.add(postId);
+        count = count + 1;
+        if (btnEl) btnEl.innerHTML = `❤️ <span id="like-count-${uniquePostKey}">${count}</span>`;
+        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
+        await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
+        await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
+      }
+    };
+
+    window.toggleCommentLike = async function(commentId, commentAuthorId, postId) {
+      if (!activeUser) return;
+      const countEl = document.getElementById(`clike-count-${commentId}`);
+      const btnEl = document.getElementById(`clike-btn-${commentId}`);
+      let count = parseInt(countEl ? countEl.innerText : '0') || 0;
+
+      if (userLikedComments.has(commentId)) {
+        userLikedComments.delete(commentId);
+        count = Math.max(0, count - 1);
+        if (btnEl) btnEl.innerHTML = `🤍 <span id="clike-count-${commentId}">${count}</span>`;
+        await window.sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
+        await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
+      } else {
+        userLikedComments.add(commentId);
+        count = count + 1;
+        if (btnEl) btnEl.innerHTML = `❤️ <span id="clike-count-${commentId}">${count}</span>`;
+        await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
+        await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
+        await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
+      }
+    };
+
+    window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
+      if (!activeUser) return;
+      const input = document.getElementById(`comment-input-${uniquePostKey}`);
+      const text = input ? input.value.trim() : '';
+      if (!text) return;
+
+      const myProf = profilesMap[activeUser.id] || {};
+      const { data: newComment, error } = await window.sbClient.from('comments').insert([{
+        post_id: postId,
+        user_id: activeUser.id,
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        likes_count: 0
+      }]).select().single();
+
+      if (error) {
+        alert('Ошибка комментария: ' + error.message);
+        return;
+      }
+
+      input.value = '';
+      const listEl = document.getElementById(`comments-list-${uniquePostKey}`);
+      if (listEl && newComment) {
+        listEl.insertAdjacentHTML('beforeend', renderCommentHTML(newComment, postId, uniquePostKey, false));
+      }
+      const countEl = document.getElementById(`comments-count-${uniquePostKey}`);
+      if (countEl) {
+        countEl.innerText = (parseInt(countEl.innerText) || 0) + 1;
+      }
+
+      await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
+      await parseMentions(text, postId);
+    };
+
+    window.deleteComment = async function(commentId, uniquePostKey) {
+      if (!confirm('Удалить комментарий?')) return;
+      await window.sbClient.from('comments').delete().eq('id', commentId);
+      const cEl = document.getElementById(`comment-${commentId}`);
+      if (cEl) cEl.remove();
+      const countEl = document.getElementById(`comments-count-${uniquePostKey}`);
+      if (countEl) {
+        countEl.innerText = Math.max(0, (parseInt(countEl.innerText) || 1) - 1);
+      }
+    };
+
+    window.deletePost = async function(postId, uniquePostKey) {
+      if (!confirm('Удалить этот пост?')) return;
+      await window.sbClient.from('posts').delete().eq('id', postId);
+      const postEl = document.getElementById(`post-${uniquePostKey}`);
+      if (postEl) postEl.remove();
+    };
+
     // ==================== РАЗДЕЛ: ВСЯ МУЗЫКА ====================
     let allTracksCache = [];
 
@@ -1327,18 +1495,16 @@
         allTracksList.innerHTML = '<p>Ничего не найдено.</p>';
         return;
       }
-      allTracksList.innerHTML = tracks.map((t, idx) => {
-        return `
-          <div class="track-list-item">
-            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека Bubble')">
-              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              <button onclick="addTrackToMyLibrary(${t.id})" title="Добавить к себе в профиль" style="font-size:10px;">➕ к себе</button>
-            </div>
+      allTracksList.innerHTML = tracks.map((t, idx) => `
+        <div class="track-list-item">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека Bubble')">
+            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
           </div>
-        `;
-      }).join('');
+          <div style="display:flex; gap:4px; align-items:center;">
+            <button onclick="addTrackToMyLibrary(${t.id})" title="Добавить к себе в профиль" style="font-size:10px;">➕ к себе</button>
+          </div>
+        </div>
+      `).join('');
     }
 
     searchGlobalMusic.addEventListener('input', () => {
@@ -1468,22 +1634,44 @@
         btnCommJoinLeave.innerText = currentCommunityRole === 'creator' ? 'Удалить группу' : 'Покинуть';
       }
 
+      // Панель смены аватарки и управления ролями
       if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
+        commAvatarUploadBox.style.display = 'block';
         commAdminPanel.style.display = 'block';
+        commMusicControls.style.display = 'block';
         loadCommunityMembers(commId, currentCommunityRole);
       } else {
+        commAvatarUploadBox.style.display = 'none';
         commAdminPanel.style.display = 'none';
-      }
-
-      if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
-        commMusicControls.style.display = 'block';
-      } else {
         commMusicControls.style.display = 'none';
       }
 
       loadCommunityMusic(commId);
       loadCommunityPosts(commId);
     }
+
+    // Смена аватарки сообщества
+    commAvatarFile.addEventListener('change', async () => {
+      const file = commAvatarFile.files[0];
+      if (!file || !currentCommunityId) return;
+
+      commAvatarStatus.innerText = 'Загрузка...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `comm_${currentCommunityId}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
+      if (uploadError) {
+        commAvatarStatus.innerText = '';
+        return alert('Ошибка загрузки: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
+      await window.sbClient.from('communities').update({ avatar_url: publicUrl }).eq('id', currentCommunityId);
+
+      commAvatarStatus.innerText = 'Готово!';
+      commAvatar.src = publicUrl;
+      commAvatarFile.value = '';
+    });
 
     btnCommJoinLeave.addEventListener('click', async () => {
       if (!activeUser || !currentCommunityId) return;
@@ -1564,22 +1752,30 @@
       `).join('');
     }
 
-    btnAddTrackToCommPrompt.addEventListener('click', async () => {
+    // Модальное окно выбора трека вместо prompt
+    btnOpenCommMusicModal.addEventListener('click', async () => {
       const { data: userTracks } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', activeUser.id);
       const myMusic = (userTracks || []).map(u => u.tracks).filter(Boolean);
       if (myMusic.length === 0) return alert('Сначала добавьте музыку в свой профиль!');
 
-      const trackTitles = myMusic.map((t, i) => `${i + 1}. ${t.artist} - ${t.title}`).join('\n');
-      const choice = prompt(`Введите номер трека, чтобы прикрепить в сообщество:\n${trackTitles}`);
-      const index = parseInt(choice) - 1;
+      commMusicModalList.innerHTML = myMusic.map(t => `
+        <div class="track-list-item">
+          <div style="flex:1;"><b>${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}</div>
+          <button onclick="addTrackToCommDirect(${t.id})" style="font-size:10px;">Прикрепить</button>
+        </div>
+      `).join('');
 
-      if (!isNaN(index) && myMusic[index]) {
-        await window.sbClient.from('community_tracks').insert([{
-          community_id: currentCommunityId, track_id: myMusic[index].id
-        }]);
-        loadCommunityMusic(currentCommunityId);
-      }
+      commMusicModal.style.display = 'flex';
     });
+
+    window.addTrackToCommDirect = async function(trackId) {
+      const { error } = await window.sbClient.from('community_tracks').insert([{
+        community_id: currentCommunityId, track_id: trackId
+      }]);
+      commMusicModal.style.display = 'none';
+      if (error && error.code !== '23505') alert('Ошибка добавления: ' + error.message);
+      else loadCommunityMusic(currentCommunityId);
+    };
 
     btnCreateCommPost.addEventListener('click', async () => {
       if (!activeUser || !currentCommunityId) return;
@@ -1847,11 +2043,9 @@
       }
     }
 
-    // Загрузка музыки и плейлистов в профиле
     async function loadUserMusic(userId, activePlaylistId = null) {
       profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
 
-      // 1. Плейлисты пользователя
       const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
       playlistSelectContainer.innerHTML = `
         <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
@@ -1860,7 +2054,6 @@
         `).join('')}
       `;
 
-      // 2. Треки
       let tracks = [];
       if (activePlaylistId) {
         const { data } = await window.sbClient
@@ -1908,7 +2101,6 @@
       `).join('');
     }
 
-    // Создание плейлиста в профиле
     btnCreatePlaylist.addEventListener('click', async () => {
       const title = newPlaylistTitle.value.trim();
       if (!title || !activeUser) return alert('Введите название плейлиста!');
@@ -2047,7 +2239,6 @@
       btnFriendAction.disabled = false;
     });
 
-    // ==================== ЛАЙКИ, КОММЕНТАРИИ И ПОСТЫ ====================
     window.toggleCommentsVisibility = function(uniquePostKey) {
       const box = document.getElementById(`comments-box-${uniquePostKey}`);
       if (!box) return;
@@ -2100,92 +2291,8 @@
       postContent.value = '';
       postImageFile.value = '';
       if (insertedPost) await parseMentions(text, insertedPost.id);
-      switchTab(currentTab, viewingUserId);
+      loadFeed(currentTab === 'friends_feed');
     });
-
-    window.deletePost = async function(postId, context) {
-      if (!confirm('Удалить этот пост?')) return;
-      await window.sbClient.from('posts').delete().eq('id', postId);
-      if (context.startsWith('comm-')) {
-        loadCommunityPosts(currentCommunityId);
-      } else {
-        switchTab(currentTab, viewingUserId);
-      }
-    };
-
-    window.deleteComment = async function(commentId) {
-      if (!confirm('Удалить комментарий?')) return;
-      await window.sbClient.from('comments').delete().eq('id', commentId);
-      if (currentCommunityId && communityViewSingle.style.display === 'block') {
-        loadCommunityPosts(currentCommunityId);
-      } else {
-        switchTab(currentTab, viewingUserId);
-      }
-    };
-
-    window.togglePostLike = async function(postId, currentLikes, postAuthorId) {
-      if (!activeUser) return;
-      if (userLikedPosts.has(postId)) {
-        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
-        await window.sbClient.from('posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
-        userLikedPosts.delete(postId);
-      } else {
-        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
-        await window.sbClient.from('posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
-        userLikedPosts.add(postId);
-        await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
-      }
-      if (currentCommunityId && communityViewSingle.style.display === 'block') {
-        loadCommunityPosts(currentCommunityId);
-      } else {
-        switchTab(currentTab, viewingUserId);
-      }
-    };
-
-    window.toggleCommentLike = async function(commentId, currentLikes, commentAuthorId, postId) {
-      if (!activeUser) return;
-      if (userLikedComments.has(commentId)) {
-        await window.sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
-        await window.sbClient.from('comments').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', commentId);
-        userLikedComments.delete(commentId);
-      } else {
-        await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
-        await window.sbClient.from('comments').update({ likes_count: currentLikes + 1 }).eq('id', commentId);
-        userLikedComments.add(commentId);
-        await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
-      }
-      if (currentCommunityId && communityViewSingle.style.display === 'block') {
-        loadCommunityPosts(currentCommunityId);
-      } else {
-        switchTab(currentTab, viewingUserId);
-      }
-    };
-
-    window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
-      if (!activeUser) return;
-      const input = document.getElementById(`comment-input-${uniquePostKey}`);
-      const text = input ? input.value.trim() : '';
-      if (!text) return;
-
-      const myProf = profilesMap[activeUser.id] || {};
-      await window.sbClient.from('comments').insert([{
-        post_id: postId,
-        user_id: activeUser.id,
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        likes_count: 0
-      }]);
-
-      input.value = '';
-      await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
-      await parseMentions(text, postId);
-
-      if (currentCommunityId && communityViewSingle.style.display === 'block') {
-        loadCommunityPosts(currentCommunityId);
-      } else {
-        switchTab(currentTab, viewingUserId);
-      }
-    };
 
     // ==================== ПЛЕЕР ====================
     window.playQueue = function(tracks, startIndex, playlistName = 'Список') {
