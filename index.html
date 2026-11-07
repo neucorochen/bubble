@@ -27,11 +27,28 @@
       align-items: center;
       position: relative;
     }
+
+    /* Модальное окно авторизации/проверки кода */
+    .modal-overlay {
+      position: fixed;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0, 0, 0, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .auth-window {
+      width: 360px;
+      box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    }
+
+    /* Окно Internet Explorer */
     .ie-window {
-      width: 960px;
+      width: 900px;
       max-width: 98vw;
-      height: 680px;
-      max-height: 90vh;
+      height: 650px;
+      max-height: 88vh;
       display: flex;
       flex-direction: column;
     }
@@ -45,7 +62,7 @@
       font-size: 11px;
     }
     .address-bar input { flex: 1; font-size: 11px; }
-    
+
     .window-body-layout {
       flex: 1;
       display: flex;
@@ -74,20 +91,6 @@
       padding: 12px;
     }
 
-    .modal-overlay {
-      position: absolute;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0, 0, 0, 0.4);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      z-index: 999;
-    }
-    .auth-window {
-      width: 320px;
-      box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
-    }
-
     .post-box {
       background: #fbfbfb;
       border: 1px solid #7f9db9;
@@ -100,41 +103,6 @@
       margin-bottom: 4px;
       display: flex;
       justify-content: space-between;
-    }
-
-    .chat-container {
-      display: flex;
-      height: 100%;
-      border: 1px solid #7f9db9;
-    }
-    .chat-users {
-      width: 140px;
-      border-right: 1px solid #7f9db9;
-      background: #fbfbfb;
-      overflow-y: auto;
-      padding: 4px;
-    }
-    .chat-user-btn {
-      width: 100%;
-      text-align: left;
-      margin-bottom: 4px;
-      font-size: 11px;
-      padding: 2px 4px;
-    }
-    .chat-messages {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      background: #fff;
-    }
-    .chat-history {
-      flex: 1;
-      overflow-y: auto;
-      padding: 8px;
-    }
-    .chat-msg {
-      margin-bottom: 6px;
-      font-size: 12px;
     }
 
     .taskbar {
@@ -170,32 +138,54 @@
 </head>
 <body>
 
-  <!-- Окно авторизации/регистрации -->
+  <!-- 1. ОКНО АВТОРИЗАЦИИ И РЕГИСТРАЦИИ -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
-        <div class="title-bar-text">Вход в сеть «Стрекоза»</div>
+        <div class="title-bar-text" id="modalTitle">Стрекоза — Вход / Регистрация</div>
       </div>
       <div class="window-body">
-        <p style="margin-top:0;">Для входа укажите ваш email и пароль:</p>
-        <div style="margin-bottom: 6px;">
-          <label style="display:block; font-size:11px;">Email:</label>
-          <input type="email" id="authEmail" placeholder="user@mail.com" style="width: 100%; box-sizing: border-box;">
+        
+        <!-- Шаг 1: Форма логина и регистрации -->
+        <div id="stepCredentials">
+          <div style="margin-bottom: 6px;">
+            <label style="display:block; font-size:11px;">Никнейм (для постов):</label>
+            <input type="text" id="inputUsername" placeholder="Например, StrekozaUser" style="width: 100%; box-sizing: border-box;">
+          </div>
+          <div style="margin-bottom: 6px;">
+            <label style="display:block; font-size:11px;">Электронная почта:</label>
+            <input type="email" id="inputEmail" placeholder="user@mail.ru" style="width: 100%; box-sizing: border-box;">
+          </div>
+          <div style="margin-bottom: 10px;">
+            <label style="display:block; font-size:11px;">Пароль (от 6 символов):</label>
+            <input type="password" id="inputPass" placeholder="******" style="width: 100%; box-sizing: border-box;">
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <button id="btnActionLogin" type="button" style="font-weight: bold;">Войти</button>
+            <button id="btnActionRegister" type="button">Зарегистрироваться</button>
+          </div>
         </div>
-        <div style="margin-bottom: 10px;">
-          <label style="display:block; font-size:11px;">Пароль (от 6 символов):</label>
-          <input type="password" id="authPass" placeholder="******" style="width: 100%; box-sizing: border-box;">
+
+        <!-- Шаг 2: Ввод кода подтверждения из письма -->
+        <div id="stepVerification" style="display: none;">
+          <p style="font-size: 11px; margin-top: 0;">Мы отправили код подтверждения на ваш email. Введите его ниже:</p>
+          <div style="margin-bottom: 10px;">
+            <label style="display:block; font-size:11px;">Код из письма:</label>
+            <input type="text" id="inputToken" placeholder="123456" style="width: 100%; box-sizing: border-box; font-size: 16px; letter-spacing: 4px; text-align: center;">
+          </div>
+          <div style="display: flex; justify-content: space-between;">
+            <button id="btnBackToCreds" type="button">Назад</button>
+            <button id="btnVerifyCode" type="button" style="font-weight: bold;">Подтвердить</button>
+          </div>
         </div>
-        <div style="display: flex; justify-content: space-between;">
-          <button id="authLoginBtn" type="button" style="font-weight: bold;">Войти</button>
-          <button id="authRegisterBtn" type="button">Регистрация</button>
-        </div>
-        <div id="authError" style="color:red; font-size:11px; margin-top:8px; min-height: 14px;"></div>
+
+        <!-- Поле статуса и ошибок -->
+        <div id="authStatus" style="color:red; font-size:11px; margin-top:8px; min-height: 14px;"></div>
       </div>
     </div>
   </div>
 
-  <!-- Главное окно -->
+  <!-- 2. ОСНОВНОЕ ОКНО СОЦСЕТИ -->
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -209,64 +199,36 @@
 
       <div class="address-bar">
         <span>Address:</span>
-        <input type="text" id="urlDisplay" value="https://dragonfly-flash.com/feed/all" readonly>
+        <input type="text" value="https://dragonfly-flash.com/feed/all" readonly>
         <button style="min-width: 40px;">Go</button>
       </div>
 
       <div class="window-body window-body-layout">
-        <!-- Меню слева -->
+        <!-- Меню пользователя слева -->
         <div class="sidebar">
           <fieldset style="padding: 4px; margin-bottom: 6px;">
-            <legend>Профиль</legend>
-            <div id="sideUserName" style="font-weight: bold; font-size: 11px; margin-bottom: 4px;">...</div>
-            <button id="logoutBtn" type="button">Выход</button>
+            <legend>Мой профиль</legend>
+            <div id="userDisplay" style="font-weight: bold; font-size: 11px; margin-bottom: 4px; color: #000080;">...</div>
+            <button id="btnLogout" type="button">Выйти</button>
           </fieldset>
 
-          <button id="tabFeedAll" type="button" style="font-weight: bold;">📰 Общая лента</button>
-          <button id="tabFeedFriends" type="button">👥 Лента друзей</button>
-          <button id="tabFeedGroups" type="button">🏛 Сообщества</button>
-          <button id="tabChats" type="button">💬 Личные чаты</button>
+          <button style="font-weight: bold;">📰 Общая лента</button>
         </div>
 
-        <!-- Центральная область -->
-        <div class="main-view" id="mainView">
-          <div id="feedSection">
-            <fieldset style="margin-bottom: 12px;">
-              <legend>Новая запись</legend>
-              <textarea id="postText" rows="2" style="width: 100%; box-sizing: border-box;" placeholder="Написать на стену..."></textarea>
-              <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 4px;">
-                <label style="font-size: 11px;">
-                  <input type="checkbox" id="postIsGroup"> Запись сообщества
-                </label>
-                <button id="sendPostBtn" type="button">Опубликовать</button>
-              </div>
-            </fieldset>
-
-            <fieldset>
-              <legend id="feedTitle">Общая хроника</legend>
-              <div id="feedList">Загрузка постов...</div>
-            </fieldset>
-          </div>
-
-          <div id="chatSection" style="display: none; height: 100%;">
-            <div class="chat-container">
-              <div class="chat-users" id="chatUsersList">
-                <div style="font-weight: bold; font-size: 11px; margin-bottom: 4px;">Собеседники:</div>
-                <div id="usersList">Загрузка...</div>
-              </div>
-              <div class="chat-messages">
-                <div style="background: #ece9d8; padding: 4px 8px; font-size: 11px; border-bottom: 1px solid #aca899;" id="currentChatTitle">
-                  Выберите пользователя для диалога
-                </div>
-                <div class="chat-history" id="chatHistory"></div>
-                <div style="display: flex; gap: 4px; padding: 6px; background: #ece9d8; border-top: 1px solid #aca899;">
-                  <input type="text" id="chatInput" placeholder="Напишите сообщение..." style="flex:1;">
-                  <button id="sendChatBtn" type="button">Отправить</button>
-                </div>
-              </div>
+        <!-- Центральная область с общей лентой -->
+        <div class="main-view">
+          <fieldset style="margin-bottom: 12px;">
+            <legend>Новая запись на стену</legend>
+            <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового?"></textarea>
+            <div style="text-align: right; margin-top: 4px;">
+              <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
             </div>
-          </div>
+          </fieldset>
 
+          <fieldset>
+            <legend>Общая лента записей</legend>
+            <div id="feedList">Загрузка постов...</div>
+          </fieldset>
         </div>
       </div>
     </div>
@@ -280,176 +242,202 @@
   <script>
     const SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
-
-    // Используем уникальное имя клиента sbClient во избежание конфликта
     const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-    let currentUser = null;
-    let currentTab = 'all';
-    let activeChatUserId = null;
+    let activeUser = null;
+    let pendingEmail = '';
 
+    // DOM
     const authModal = document.getElementById('authModal');
-    const authEmail = document.getElementById('authEmail');
-    const authPass = document.getElementById('authPass');
-    const authError = document.getElementById('authError');
-    const sideUserName = document.getElementById('sideUserName');
-    const urlDisplay = document.getElementById('urlDisplay');
+    const stepCredentials = document.getElementById('stepCredentials');
+    const stepVerification = document.getElementById('stepVerification');
+    const modalTitle = document.getElementById('modalTitle');
+    const authStatus = document.getElementById('authStatus');
 
-    const feedSection = document.getElementById('feedSection');
-    const chatSection = document.getElementById('chatSection');
-    const feedTitle = document.getElementById('feedTitle');
+    const inputUsername = document.getElementById('inputUsername');
+    const inputEmail = document.getElementById('inputEmail');
+    const inputPass = document.getElementById('inputPass');
+    const inputToken = document.getElementById('inputToken');
+
+    const userDisplay = document.getElementById('userDisplay');
     const feedList = document.getElementById('feedList');
-    const postText = document.getElementById('postText');
-    const postIsGroup = document.getElementById('postIsGroup');
+    const postContent = document.getElementById('postContent');
 
-    function handleUserSession(session) {
-      currentUser = session ? session.user : null;
-      if (currentUser) {
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text || '';
+      return div.innerHTML;
+    }
+
+    // Получаем отображаемое имя (ник из user_metadata или префикс почты)
+    function getUserName(user) {
+      if (!user) return 'Аноним';
+      return user.user_metadata?.username || user.email.split('@')[0];
+    }
+
+    // Проверка сессии
+    function updateSessionState(session) {
+      activeUser = session ? session.user : null;
+      if (activeUser) {
         authModal.style.display = 'none';
-        sideUserName.innerText = currentUser.email.split('@')[0];
+        userDisplay.innerText = getUserName(activeUser);
         loadFeed();
       } else {
         authModal.style.display = 'flex';
+        showStep(1);
       }
     }
 
-    sbClient.auth.getSession().then(({ data: { session } }) => {
-      handleUserSession(session);
-    });
+    sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
+    sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    sbClient.auth.onAuthStateChange((event, session) => {
-      handleUserSession(session);
-    });
+    function showStep(step) {
+      authStatus.innerText = '';
+      if (step === 1) {
+        stepCredentials.style.display = 'block';
+        stepVerification.style.display = 'none';
+        modalTitle.innerText = 'Стрекоза — Вход / Регистрация';
+      } else {
+        stepCredentials.style.display = 'none';
+        stepVerification.style.display = 'block';
+        modalTitle.innerText = 'Стрекоза — Подтверждение почты';
+      }
+    }
 
-    // Регистрация
-    document.getElementById('authRegisterBtn').addEventListener('click', async () => {
-      authError.style.color = '#333';
-      authError.innerText = 'Отправка данных...';
+    // 1. Регистрация (отправляет код на email)
+    document.getElementById('btnActionRegister').addEventListener('click', async () => {
+      authStatus.style.color = '#333';
+      authStatus.innerText = 'Отправка кода...';
 
-      const email = authEmail.value.trim();
-      const password = authPass.value.trim();
+      const username = inputUsername.value.trim();
+      const email = inputEmail.value.trim();
+      const password = inputPass.value.trim();
 
+      if (!username) {
+        authStatus.style.color = 'red';
+        authStatus.innerText = 'Введите никнейм!';
+        return;
+      }
       if (!email || !password) {
-        authError.style.color = 'red';
-        authError.innerText = 'Введите email и пароль!';
+        authStatus.style.color = 'red';
+        authStatus.innerText = 'Введите почту и пароль!';
         return;
       }
       if (password.length < 6) {
-        authError.style.color = 'red';
-        authError.innerText = 'Пароль должен быть от 6 знаков!';
+        authStatus.style.color = 'red';
+        authStatus.innerText = 'Пароль должен быть от 6 символов!';
         return;
       }
 
-      try {
-        const { data, error } = await sbClient.auth.signUp({ email, password });
-        if (error) {
-          authError.style.color = 'red';
-          authError.innerText = error.message;
-        } else if (data?.user && !data?.session) {
-          authError.style.color = 'green';
-          authError.innerText = 'Письмо отправлено! Подтвердите почту (или отключите Confirm email в Supabase).';
-        } else {
-          authError.style.color = 'green';
-          authError.innerText = 'Успешно! Выполняется вход...';
+      pendingEmail = email;
+
+      const { data, error } = await sbClient.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { username: username } // Сохраняем введенный ник
         }
-      } catch (err) {
-        authError.style.color = 'red';
-        authError.innerText = 'Сбой сети: ' + err.message;
+      });
+
+      if (error) {
+        authStatus.style.color = 'red';
+        authStatus.innerText = error.message;
+      } else {
+        // Если регистрация сразу выдала сессию (confirm email отключен)
+        if (data.session) {
+          updateSessionState(data.session);
+        } else {
+          // Переключаем окно на ввод проверочного кода
+          showStep(2);
+          authStatus.style.color = 'green';
+          authStatus.innerText = 'Код отправлен на ваш email!';
+        }
       }
     });
 
-    // Вход
-    document.getElementById('authLoginBtn').addEventListener('click', async () => {
-      authError.style.color = '#333';
-      authError.innerText = 'Проверка данных...';
+    // 2. Подтверждение кода из письма
+    document.getElementById('btnVerifyCode').addEventListener('click', async () => {
+      authStatus.style.color = '#333';
+      authStatus.innerText = 'Проверка кода...';
 
-      const email = authEmail.value.trim();
-      const password = authPass.value.trim();
+      const token = inputToken.value.trim();
+      if (!token) {
+        authStatus.style.color = 'red';
+        authStatus.innerText = 'Введите код!';
+        return;
+      }
+
+      const { data, error } = await sbClient.auth.verifyOtp({
+        email: pendingEmail,
+        token: token,
+        type: 'signup'
+      });
+
+      if (error) {
+        authStatus.style.color = 'red';
+        authStatus.innerText = 'Неверный код: ' + error.message;
+      } else {
+        authStatus.style.color = 'green';
+        authStatus.innerText = 'Успешно!';
+        updateSessionState(data.session);
+      }
+    });
+
+    document.getElementById('btnBackToCreds').addEventListener('click', () => showStep(1));
+
+    // 3. Обычный вход по логину/паролю
+    document.getElementById('btnActionLogin').addEventListener('click', async () => {
+      authStatus.style.color = '#333';
+      authStatus.innerText = 'Проверка данных...';
+
+      const email = inputEmail.value.trim();
+      const password = inputPass.value.trim();
 
       if (!email || !password) {
-        authError.style.color = 'red';
-        authError.innerText = 'Введите email и пароль!';
+        authStatus.style.color = 'red';
+        authStatus.innerText = 'Введите почту и пароль!';
         return;
       }
 
-      try {
-        const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
-        if (error) {
-          authError.style.color = 'red';
-          authError.innerText = error.message;
-        } else {
-          authError.style.color = 'green';
-          authError.innerText = 'Успешно!';
-        }
-      } catch (err) {
-        authError.style.color = 'red';
-        authError.innerText = 'Сбой сети: ' + err.message;
+      const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+      if (error) {
+        authStatus.style.color = 'red';
+        authStatus.innerText = error.message;
+      } else {
+        updateSessionState(data.session);
       }
     });
 
-    document.getElementById('logoutBtn').addEventListener('click', async () => {
+    // Выход
+    document.getElementById('btnLogout').addEventListener('click', async () => {
       await sbClient.auth.signOut();
     });
 
-    function setTab(tab) {
-      currentTab = tab;
-      document.getElementById('tabFeedAll').style.fontWeight = tab === 'all' ? 'bold' : 'normal';
-      document.getElementById('tabFeedFriends').style.fontWeight = tab === 'friends' ? 'bold' : 'normal';
-      document.getElementById('tabFeedGroups').style.fontWeight = tab === 'groups' ? 'bold' : 'normal';
-      document.getElementById('tabChats').style.fontWeight = tab === 'chats' ? 'bold' : 'normal';
-
-      if (tab === 'chats') {
-        feedSection.style.display = 'none';
-        chatSection.style.display = 'block';
-        urlDisplay.value = 'https://dragonfly-flash.com/im';
-        loadUsersForChat();
-      } else {
-        feedSection.style.display = 'block';
-        chatSection.style.display = 'none';
-        urlDisplay.value = `https://dragonfly-flash.com/feed/${tab}`;
-        loadFeed();
-      }
-    }
-
-    document.getElementById('tabFeedAll').addEventListener('click', () => setTab('all'));
-    document.getElementById('tabFeedFriends').addEventListener('click', () => setTab('friends'));
-    document.getElementById('tabFeedGroups').addEventListener('click', () => setTab('groups'));
-    document.getElementById('tabChats').addEventListener('click', () => setTab('chats'));
-
+    // 4. Загрузка общей ленты
     async function loadFeed() {
-      if (!currentUser) return;
+      if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
 
-      let query = sbClient.from('posts').select('*').order('id', { ascending: false }).limit(25);
+      const { data: posts, error } = await sbClient
+        .from('posts')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(30);
 
-      if (currentTab === 'all') {
-        feedTitle.innerText = 'Общая хроника';
-      } else if (currentTab === 'groups') {
-        feedTitle.innerText = 'Лента сообществ';
-        query = query.not('community_id', 'is', null);
-      } else if (currentTab === 'friends') {
-        feedTitle.innerText = 'Лента друзей';
-        const { data: friends } = await sbClient.from('friendships').select('friend_id').eq('user_id', currentUser.id);
-        const ids = friends ? friends.map(f => f.friend_id) : [];
-        ids.push(currentUser.id);
-        query = query.in('user_id', ids);
-      }
-
-      const { data: posts, error } = await query;
       if (error) {
         feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
         return;
       }
 
       if (!posts || posts.length === 0) {
-        feedList.innerHTML = '<p>Записей в этой ленте пока нет.</p>';
+        feedList.innerHTML = '<p>Пока нет записей. Напишите что-нибудь первым!</p>';
         return;
       }
 
       feedList.innerHTML = posts.map(p => `
         <div class="post-box">
           <div class="post-author">
-            <span>${p.community_id ? '🏛 [Сообщество] ' : ''}${escapeHtml(p.author)}</span>
+            <span>👤 ${escapeHtml(p.author)}</span>
             <span style="font-size:10px; color:#777;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
           </div>
           <div>${escapeHtml(p.content)}</div>
@@ -457,17 +445,31 @@
       `).join('');
     }
 
-    document.getElementById('sendPostBtn').addEventListener('click', async () => {
-      const text = postText.value.trim();
-      if (!text || !currentUser) return;
+    // 5. Создание записи под своим ником
+    document.getElementById('btnCreatePost').addEventListener('click', async () => {
+      const text = postContent.value.trim();
+      if (!text || !activeUser) return;
 
-      const newPost = {
-        author: currentUser.email.split('@')[0],
+      const myNick = getUserName(activeUser);
+
+      const { error } = await sbClient.from('posts').insert([{
+        author: myNick,
         content: text,
-        user_id: currentUser.id,
-        community_id: postIsGroup.checked ? 1 : null
-      };
+        user_id: activeUser.id
+      }]);
 
-      await sbClient.from('posts').insert([newPost]);
-      postText.value = '';
-      postIs
+      if (error) {
+        alert('Ошибка при публикации: ' + error.message);
+      } else {
+        postContent.value = '';
+        loadFeed();
+      }
+    });
+
+    // Часы внизу
+    setInterval(() => {
+      document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }, 1000);
+  </script>
+</body>
+</html>
