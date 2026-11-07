@@ -8,7 +8,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style id="dynamicCustomThemeStyle"></style>
   <script>
-    // Мгновенное применение темы из кэша при старте до монтирования DOM
     try {
       const cachedTheme = localStorage.getItem('bubble_applied_theme');
       if (cachedTheme) {
@@ -131,35 +130,57 @@
     }
     .post-box.highlight { border: 2px solid #0055ea !important; background: #edf4ff !important; }
     .post-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
-    .author-info { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .author-info { display: flex; align-items: center; gap: 8px; cursor: pointer; }
     .author-info:hover .post-author { text-decoration: underline; }
     .post-author { font-weight: bold; color: #0b388f; }
 
-    /* Обертка аватара: круглая форма всегда сохраняется */
+    /* Обертка аватарки с отступами, чтобы выступающая рамка не вылезала за блоки */
     .avatar-wrapper {
       position: relative; display: inline-flex; align-items: center; justify-content: center;
-      flex-shrink: 0;
+      flex-shrink: 0; margin: 5px;
     }
     .avatar-mini {
       width: 28px; height: 28px; border-radius: 50% !important; object-fit: cover;
-      border: 1px solid #7f9db9; background: #eee; position: relative; z-index: 1;
+      border: 1px solid #7f9db9; background: #eee; position: relative; z-index: 2;
     }
     .profile-avatar-big {
       width: 68px; height: 68px; border-radius: 50% !important; object-fit: cover;
-      border: 2px solid #0055ea; background: #fff; position: relative; z-index: 1;
+      border: 2px solid #0055ea; background: #fff; position: relative; z-index: 2;
     }
-    
-    /* ВСЕ РАМКИ ТЕПЕРЬ ШИРЕ АВАТАРА НА 24px (по 12px с каждой стороны) */
+
+    /* Рамка находится СЗАДИ аватарки (z-index: 1), шире аватара и обрезается по форме */
     .avatar-frame-overlay {
-      position: absolute; pointer-events: none; z-index: 10; box-sizing: border-box;
+      position: absolute; pointer-events: none; z-index: 1; box-sizing: border-box;
+      top: -6px; left: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
+      background-size: cover; background-position: center; overflow: hidden;
+    }
+    .profile-card .avatar-frame-overlay,
+    .preview-big-frame .avatar-frame-overlay {
       top: -12px; left: -12px; width: calc(100% + 24px); height: calc(100% + 24px);
     }
 
-    /* Кастомная PNG рамка поверх аватара */
-    .avatar-frame-img {
-      position: absolute; top: -14px; left: -14px; width: calc(100% + 28px); height: calc(100% + 28px);
-      object-fit: contain; pointer-events: none; z-index: 15;
+    /* Формы рамок (картинка внутри тоже обрезается ровно по фигуре) */
+    .frame-shape-circle { border-radius: 50% !important; }
+    .frame-shape-square { border-radius: 8px !important; }
+    .frame-shape-hexagon {
+      clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%) !important;
     }
+    .frame-shape-star {
+      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%) !important;
+    }
+
+    /* Анимации */
+    @keyframes glowPulse {
+      0% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
+      50% { filter: drop-shadow(0 0 8px var(--frame-color, #00ffff)); }
+      100% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
+    }
+    @keyframes rainbowRotate {
+      0% { filter: hue-rotate(0deg); }
+      100% { filter: hue-rotate(360deg); }
+    }
+    .anim-glow { animation: glowPulse 2s infinite; }
+    .anim-rainbow { animation: rainbowRotate 3s linear infinite; }
 
     .profile-card {
       display: flex; align-items: center; gap: 14px; background: #f4f4f4;
@@ -264,27 +285,6 @@
       border: 1px solid #7f9db9; padding: 8px; margin-bottom: 10px; border-radius: 6px;
       display: flex; gap: 10px; align-items: center; transition: all 0.2s ease;
     }
-
-    /* Анимации и формы рамок */
-    @keyframes glowPulse {
-      0% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
-      50% { filter: drop-shadow(0 0 8px var(--frame-color, #00ffff)); }
-      100% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
-    }
-    @keyframes rainbowRotate {
-      0% { filter: hue-rotate(0deg); }
-      100% { filter: hue-rotate(360deg); }
-    }
-    .frame-shape-circle { border-radius: 50%; }
-    .frame-shape-square { border-radius: 8px; }
-    .frame-shape-hexagon {
-      clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%);
-    }
-    .frame-shape-star {
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%);
-    }
-    .anim-glow { animation: glowPulse 2s infinite; }
-    .anim-rainbow { animation: rainbowRotate 3s linear infinite; }
 
     .xp-balloon {
       position: fixed; bottom: 38px; right: 14px; width: 270px; background: #ffffe1;
@@ -399,7 +399,6 @@
               <div class="avatar-wrapper" id="sidebarAvatarContainer">
                 <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
                 <div id="sidebarFrameOverlay" class="avatar-frame-overlay" style="display:none;"></div>
-                <img id="sidebarFrameImg" class="avatar-frame-img" style="display:none;" alt="frame">
               </div>
               <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0b388f; word-break: break-all;">...</div>
             </div>
@@ -529,12 +528,11 @@
               <div id="boxFrameCreator" style="display:none;">
                 <input type="hidden" id="editingFrameId" value="">
 
-                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр рамки поверх круглой аватарки:</div>
-                <div style="display:flex; justify-content:center; align-items:center; padding:18px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
+                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр рамки ЗА круглой аватаркой (выступает наружу):</div>
+                <div class="preview-big-frame" style="display:flex; justify-content:center; align-items:center; padding:18px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
                   <div class="avatar-wrapper" style="width:68px; height:68px;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
-                    <div id="prevFrameOverlay" class="avatar-frame-overlay frame-shape-circle" style="border:3px solid #00e5ff;"></div>
-                    <img id="prevCustomFrameImg" class="avatar-frame-img" style="display:none;" alt="frame">
+                    <div id="prevFrameOverlay" class="avatar-frame-overlay frame-shape-circle" style="border:4px solid #00e5ff;"></div>
                   </div>
                 </div>
 
@@ -544,16 +542,16 @@
                     <input type="text" id="frameTitleInput" placeholder="Неоновое сияние" style="width:100%; font-size:11px;">
                   </div>
                   <div>
-                    <label>Форма рамки (вокруг аватара):</label>
+                    <label>Форма рамки (картинка обрезается по ней):</label>
                     <select id="frameShapeSelect" style="width:100%; font-size:11px;">
-                      <option value="circle">Круглая рамка (больше аватара)</option>
-                      <option value="square">Квадратная рамка (больше аватара)</option>
-                      <option value="hexagon">Шестиугольная рамка (больше аватара)</option>
-                      <option value="star">Звёздная рамка (больше аватара)</option>
+                      <option value="circle">Круглая рамка</option>
+                      <option value="square">Квадратная рамка</option>
+                      <option value="hexagon">Шестиугольная рамка</option>
+                      <option value="star">Звёздная рамка</option>
                     </select>
                   </div>
                   <div>
-                    <label>Цвет рамки:</label>
+                    <label>Цвет фона / обводки рамки:</label>
                     <input type="color" id="frameColorInput" value="#00e5ff" style="width:100%; height:24px;">
                   </div>
                   <div>
@@ -565,9 +563,9 @@
                     </select>
                   </div>
                   <div style="grid-column: 1 / -1;">
-                    <label>Или прикрепить своё PNG-изображение рамки с прозрачностью:</label>
+                    <label>Текстура / картинка рамки (обрежется по выбранной фигуре):</label>
                     <div style="display:flex; gap:4px; align-items:center;">
-                      <input type="file" id="frameCustomFile" accept="image/png,image/*" style="flex:1; font-size:11px;">
+                      <input type="file" id="frameCustomFile" accept="image/*" style="flex:1; font-size:11px;">
                       <button type="button" id="btnClearFrameCustomFile" style="display:none; font-size:10px; color:#a00;">✖ Сбросить файл</button>
                     </div>
                     <div id="frameCustomUploadStatus" style="font-size:10px; color:#555;"></div>
@@ -731,7 +729,6 @@
               <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
                 <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
                 <div id="userProfileFrameOverlay" class="avatar-frame-overlay" style="display:none;"></div>
-                <img id="userProfileFrameImg" class="avatar-frame-img" style="display:none;" alt="frame">
               </div>
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -834,7 +831,6 @@
     const sideUserName = document.getElementById('sideUserName');
     const sideAvatar = document.getElementById('sideAvatar');
     const sidebarFrameOverlay = document.getElementById('sidebarFrameOverlay');
-    const sidebarFrameImg = document.getElementById('sidebarFrameImg');
     const urlInput = document.getElementById('urlInput');
 
     const sidebarPanel = document.getElementById('sidebarPanel');
@@ -943,7 +939,6 @@
     const btnCancelEditFrame = document.getElementById('btnCancelEditFrame');
 
     const prevFrameOverlay = document.getElementById('prevFrameOverlay');
-    const prevCustomFrameImg = document.getElementById('prevCustomFrameImg');
 
     const creationsListContainer = document.getElementById('creationsListContainer');
     const btnResetAllStyles = document.getElementById('btnResetAllStyles');
@@ -987,7 +982,6 @@
     const profileNick = document.getElementById('profileNick');
     const profileAvatar = document.getElementById('profileAvatar');
     const userProfileFrameOverlay = document.getElementById('userProfileFrameOverlay');
-    const userProfileFrameImg = document.getElementById('userProfileFrameImg');
     const btnFriendAction = document.getElementById('btnFriendAction');
     const btnProfileSendMsg = document.getElementById('btnProfileSendMsg');
     const profileFriendsList = document.getElementById('profileFriendsList');
@@ -1348,15 +1342,15 @@
       prevFrameOverlay.className = `avatar-frame-overlay frame-shape-${shape}`;
       if (anim === 'glow') prevFrameOverlay.classList.add('anim-glow');
       if (anim === 'rainbow') prevFrameOverlay.classList.add('anim-rainbow');
-      prevFrameOverlay.style.border = `3px solid ${color}`;
       prevFrameOverlay.style.setProperty('--frame-color', color);
 
       if (frameUploadedImgUrl) {
-        prevCustomFrameImg.src = frameUploadedImgUrl;
-        prevCustomFrameImg.style.display = 'block';
+        prevFrameOverlay.style.backgroundImage = `url('${frameUploadedImgUrl}')`;
         prevFrameOverlay.style.border = 'none';
       } else {
-        prevCustomFrameImg.style.display = 'none';
+        prevFrameOverlay.style.backgroundImage = 'none';
+        prevFrameOverlay.style.backgroundColor = color;
+        prevFrameOverlay.style.border = `4px solid ${color}`;
       }
     }
 
@@ -1369,19 +1363,19 @@
       const file = frameCustomFile.files[0];
       if (!file || !activeUser) return;
 
-      frameCustomUploadStatus.innerText = 'Загрузка PNG-рамки...';
+      frameCustomUploadStatus.innerText = 'Загрузка текстуры/рамки...';
       const fileExt = file.name.split('.').pop();
       const fileName = `frame_${activeUser.id}_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
       if (uploadError) {
         frameCustomUploadStatus.innerText = '';
-        return alert('Ошибка загрузки рамки: ' + uploadError.message);
+        return alert('Ошибка загрузки: ' + uploadError.message);
       }
 
       const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
       frameUploadedImgUrl = publicUrl;
-      frameCustomUploadStatus.innerText = 'Рамка загружена!';
+      frameCustomUploadStatus.innerText = 'Изображение загружено!';
       btnClearFrameCustomFile.style.display = 'inline-block';
       updateLiveFramePreview();
     });
@@ -1472,7 +1466,6 @@
     async function loadCreationsList() {
       creationsListContainer.innerHTML = 'Загрузка каталога работ...';
       
-      // Сначала подгружаем актуальные лайки текущего пользователя
       if (activeUser) {
         const { data: cLikes } = await window.sbClient.from('creation_likes').select('creation_id').eq('user_id', activeUser.id);
         userLikedCreations = new Set((cLikes || []).map(l => l.creation_id));
@@ -1506,23 +1499,16 @@
             </div>
           `;
         } else {
-          if (cfg.imgUrl) {
-            previewHTML = `
-              <div style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
-                <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
-                <img src="${cfg.imgUrl}" class="avatar-frame-img" style="top:-10px; left:-10px; width:calc(100% + 20px); height:calc(100% + 20px);" alt="custom frame">
-              </div>
-            `;
-          } else {
-            const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
-            const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
-            previewHTML = `
-              <div style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
-                <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
-                <div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; border:3px solid ${cfg.color};"></div>
-              </div>
-            `;
-          }
+          const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
+          const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+          const bgStyle = cfg.imgUrl ? `background-image: url('${cfg.imgUrl}');` : `background-color: ${cfg.color}; border: 4px solid ${cfg.color};`;
+
+          previewHTML = `
+            <div class="preview-big-frame" style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
+              <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
+              <div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; ${bgStyle}"></div>
+            </div>
+          `;
         }
 
         return `
@@ -1635,25 +1621,26 @@
     function applyFrameStyles(cfg) {
       if (!cfg) return;
       
-      function attachToWrapper(overlayEl, imgEl) {
-        if (!overlayEl || !imgEl) return;
+      function attachToWrapper(overlayEl) {
+        if (!overlayEl) return;
+        overlayEl.style.display = 'block';
+        overlayEl.className = `avatar-frame-overlay frame-shape-${cfg.shape || 'circle'}`;
+        if (cfg.animation === 'glow') overlayEl.classList.add('anim-glow');
+        if (cfg.animation === 'rainbow') overlayEl.classList.add('anim-rainbow');
+        overlayEl.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+
         if (cfg.imgUrl) {
-          imgEl.src = cfg.imgUrl;
-          imgEl.style.display = 'block';
-          overlayEl.style.display = 'none';
+          overlayEl.style.backgroundImage = `url('${cfg.imgUrl}')`;
+          overlayEl.style.border = 'none';
         } else {
-          imgEl.style.display = 'none';
-          overlayEl.style.display = 'block';
-          overlayEl.className = `avatar-frame-overlay frame-shape-${cfg.shape || 'circle'}`;
-          if (cfg.animation === 'glow') overlayEl.classList.add('anim-glow');
-          if (cfg.animation === 'rainbow') overlayEl.classList.add('anim-rainbow');
-          overlayEl.style.border = `3px solid ${cfg.color || '#00e5ff'}`;
-          overlayEl.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+          overlayEl.style.backgroundImage = 'none';
+          overlayEl.style.backgroundColor = cfg.color || '#00e5ff';
+          overlayEl.style.border = `4px solid ${cfg.color || '#00e5ff'}`;
         }
       }
 
-      attachToWrapper(userProfileFrameOverlay, userProfileFrameImg);
-      attachToWrapper(sidebarFrameOverlay, sidebarFrameImg);
+      attachToWrapper(userProfileFrameOverlay);
+      attachToWrapper(sidebarFrameOverlay);
     }
 
     btnResetAllStyles.onclick = async () => {
@@ -1663,7 +1650,7 @@
       document.body.style.backgroundImage = "url('bg.jpg')";
       document.body.style.fontFamily = "Tahoma, sans-serif";
       
-      [userProfileFrameOverlay, userProfileFrameImg, sidebarFrameOverlay, sidebarFrameImg].forEach(el => {
+      [userProfileFrameOverlay, sidebarFrameOverlay].forEach(el => {
         if (el) el.style.display = 'none';
       });
 
@@ -1709,42 +1696,34 @@
       }
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ ====================
-    async function loadFeed(feedType = 'all') {
+    // ==================== ЛЕНТА И ПОСТЫ (С ОТОБРАЖЕНИЕМ РАМКИ) ====================
+    async function loadUserLikes() {
       if (!activeUser) return;
-      feedList.innerHTML = 'Загрузка записей...';
-      await loadAllProfiles();
-      await loadAllCommunitiesCache();
-      await loadFriends();
+      const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
+      userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
+      const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
+      userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
+    }
 
-      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
+    // Хелпер создания аватара с рамкой в ленте и комментариях
+    function renderAvatarWithFrame(userId, isBig = false) {
+      const prof = profilesMap[userId] || { avatar_url: DEFAULT_AVATAR, username: 'Аноним' };
+      const cfg = prof.custom_frame;
+      let frameMarkup = '';
 
-      if (feedType === 'all') {
-        query = query.is('community_id', null);
-      } else if (feedType === 'friends') {
-        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
-        if (feedTargetIds.length === 0) {
-          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
-          return;
-        }
-        query = query.is('community_id', null).in('user_id', feedTargetIds);
-      } else if (feedType === 'communities') {
-        query = query.not('community_id', 'is', null);
+      if (cfg) {
+        const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
+        const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+        const bgStyle = cfg.imgUrl ? `background-image: url('${cfg.imgUrl}');` : `background-color: ${cfg.color}; border: 3px solid ${cfg.color};`;
+        frameMarkup = `<div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; ${bgStyle}"></div>`;
       }
 
-      const { data: posts, error } = await query;
-      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
-
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
+      return `
+        <div class="avatar-wrapper" style="${isBig ? 'width:68px; height:68px;' : 'width:28px; height:28px;'}">
+          <img src="${prof.avatar_url}" class="${isBig ? 'profile-avatar-big' : 'avatar-mini'}" alt="avatar">
+          ${frameMarkup}
+        </div>
+      `;
     }
 
     function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false) {
@@ -1760,7 +1739,9 @@
         const comm = communitiesMap[p.community_id];
         authorDisplay = `
           <div class="author-info" onclick="openCommunity(${comm.id})">
-            <img src="${comm.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+            <div class="avatar-wrapper" style="width:28px; height:28px;">
+              <img src="${comm.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+            </div>
             <span class="post-author">${escapeHtml(comm.title)}</span>
             <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
           </div>
@@ -1769,7 +1750,7 @@
         const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
         authorDisplay = `
           <div class="author-info" onclick="goToProfile('${p.user_id}')">
-            <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+            ${renderAvatarWithFrame(p.user_id, false)}
             <span class="post-author">${escapeHtml(prof.username)}</span>
             <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
           </div>
@@ -1817,8 +1798,11 @@
 
       return `
         <div class="comment-item" id="comment-${c.id}">
-          <div class="comment-content">
-            <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
+          <div class="comment-content" style="display:flex; align-items:center; gap:6px;">
+            ${renderAvatarWithFrame(c.user_id, false)}
+            <div>
+              <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
+            </div>
           </div>
           <div class="comment-controls">
             <button id="clike-btn-${c.id}" onclick="toggleCommentLike(${c.id}, '${c.user_id}', ${postId})" style="font-size:10px; padding:1px 4px;">
@@ -2277,11 +2261,11 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
+      // Надеваем рамочку на открытый профиль
       if (prof.custom_frame) {
         applyFrameStyles(prof.custom_frame);
       } else {
         userProfileFrameOverlay.style.display = 'none';
-        userProfileFrameImg.style.display = 'none';
       }
 
       if (activeUser && userId !== activeUser.id) {
@@ -2320,7 +2304,7 @@
       profileFriendsList.innerHTML = confirmedIds.length === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         confirmedIds.map(fId => `
           <div class="friend-card" onclick="goToProfile('${fId}')">
-            <img src="${profilesMap[fId]?.avatar_url || DEFAULT_AVATAR}" alt="friend">
+            ${renderAvatarWithFrame(fId, false)}
             <div class="friend-name">${escapeHtml(profilesMap[fId]?.username || 'Пользователь')}</div>
           </div>
         `).join('');
@@ -2471,7 +2455,7 @@
         Array.from(pendingIncomingIds).map(uId => `
           <div class="friend-row-card">
             <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+              ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
             <div>
@@ -2485,7 +2469,7 @@
         Array.from(userFriendIds).map(uId => `
           <div class="friend-row-card">
             <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+              ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
             <div><button onclick="removeFriendFromManager('${uId}')" style="color:#a00; font-size:10px;">Удалить</button></div>
@@ -2496,7 +2480,7 @@
         Array.from(pendingOutgoingIds).map(uId => `
           <div class="friend-row-card">
             <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+              ${renderAvatarWithFrame(uId, false)}
               <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
             </div>
             <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить</button></div>
