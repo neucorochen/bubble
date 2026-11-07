@@ -170,7 +170,7 @@
 </head>
 <body>
 
-  <!-- Модальное окно авторизации/регистрации -->
+  <!-- Окно авторизации/регистрации -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar">
@@ -195,7 +195,7 @@
     </div>
   </div>
 
-  <!-- Главное окно сайта -->
+  <!-- Главное окно -->
   <div class="desktop">
     <div class="window ie-window">
       <div class="title-bar">
@@ -281,8 +281,8 @@
     const SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co';
     const SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
 
-    // Инициализация Supabase клиента
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Используем уникальное имя клиента sbClient во избежание конфликта
+    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     let currentUser = null;
     let currentTab = 'all';
@@ -302,15 +302,6 @@
     const postText = document.getElementById('postText');
     const postIsGroup = document.getElementById('postIsGroup');
 
-    // Проверка текущей сессии
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      handleUserSession(session);
-    });
-
-    supabase.auth.onAuthStateChange((event, session) => {
-      handleUserSession(session);
-    });
-
     function handleUserSession(session) {
       currentUser = session ? session.user : null;
       if (currentUser) {
@@ -321,6 +312,14 @@
         authModal.style.display = 'flex';
       }
     }
+
+    sbClient.auth.getSession().then(({ data: { session } }) => {
+      handleUserSession(session);
+    });
+
+    sbClient.auth.onAuthStateChange((event, session) => {
+      handleUserSession(session);
+    });
 
     // Регистрация
     document.getElementById('authRegisterBtn').addEventListener('click', async () => {
@@ -342,13 +341,13 @@
       }
 
       try {
-        const { data, error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await sbClient.auth.signUp({ email, password });
         if (error) {
           authError.style.color = 'red';
           authError.innerText = error.message;
         } else if (data?.user && !data?.session) {
           authError.style.color = 'green';
-          authError.innerText = 'Письмо отправлено на почту! Подтвердите её или отключите Confirm email в настройках.';
+          authError.innerText = 'Письмо отправлено! Подтвердите почту (или отключите Confirm email в Supabase).';
         } else {
           authError.style.color = 'green';
           authError.innerText = 'Успешно! Выполняется вход...';
@@ -362,7 +361,7 @@
     // Вход
     document.getElementById('authLoginBtn').addEventListener('click', async () => {
       authError.style.color = '#333';
-      authError.innerText = 'Проверка пароля...';
+      authError.innerText = 'Проверка данных...';
 
       const email = authEmail.value.trim();
       const password = authPass.value.trim();
@@ -374,7 +373,7 @@
       }
 
       try {
-        const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+        const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
         if (error) {
           authError.style.color = 'red';
           authError.innerText = error.message;
@@ -388,12 +387,10 @@
       }
     });
 
-    // Выход
     document.getElementById('logoutBtn').addEventListener('click', async () => {
-      await supabase.auth.signOut();
+      await sbClient.auth.signOut();
     });
 
-    // Вкладки
     function setTab(tab) {
       currentTab = tab;
       document.getElementById('tabFeedAll').style.fontWeight = tab === 'all' ? 'bold' : 'normal';
@@ -419,12 +416,11 @@
     document.getElementById('tabFeedGroups').addEventListener('click', () => setTab('groups'));
     document.getElementById('tabChats').addEventListener('click', () => setTab('chats'));
 
-    // Загрузка стены
     async function loadFeed() {
       if (!currentUser) return;
       feedList.innerHTML = 'Загрузка записей...';
 
-      let query = supabase.from('posts').select('*').order('id', { ascending: false }).limit(25);
+      let query = sbClient.from('posts').select('*').order('id', { ascending: false }).limit(25);
 
       if (currentTab === 'all') {
         feedTitle.innerText = 'Общая хроника';
@@ -433,7 +429,7 @@
         query = query.not('community_id', 'is', null);
       } else if (currentTab === 'friends') {
         feedTitle.innerText = 'Лента друзей';
-        const { data: friends } = await supabase.from('friendships').select('friend_id').eq('user_id', currentUser.id);
+        const { data: friends } = await sbClient.from('friendships').select('friend_id').eq('user_id', currentUser.id);
         const ids = friends ? friends.map(f => f.friend_id) : [];
         ids.push(currentUser.id);
         query = query.in('user_id', ids);
@@ -461,7 +457,6 @@
       `).join('');
     }
 
-    // Создание записи
     document.getElementById('sendPostBtn').addEventListener('click', async () => {
       const text = postText.value.trim();
       if (!text || !currentUser) return;
@@ -473,82 +468,6 @@
         community_id: postIsGroup.checked ? 1 : null
       };
 
-      await supabase.from('posts').insert([newPost]);
+      await sbClient.from('posts').insert([newPost]);
       postText.value = '';
-      postIsGroup.checked = false;
-      loadFeed();
-    });
-
-    // Чаты
-    async function loadUsersForChat() {
-      const { data: users } = await supabase.from('profiles').select('*').neq('id', currentUser.id);
-      const listEl = document.getElementById('usersList');
-      if (!users || users.length === 0) {
-        listEl.innerHTML = '<small>Нет других пользователей</small>';
-        return;
-      }
-      listEl.innerHTML = users.map(u => `
-        <button class="chat-user-btn" type="button" onclick="openChat('${u.id}', '${u.username}')">${escapeHtml(u.username)}</button>
-      `).join('');
-    }
-
-    window.openChat = async function(userId, userName) {
-      activeChatUserId = userId;
-      document.getElementById('currentChatTitle').innerText = 'Диалог с: ' + userName;
-      loadChatMessages();
-    };
-
-    async function loadChatMessages() {
-      if (!activeChatUserId || !currentUser) return;
-      const history = document.getElementById('chatHistory');
-
-      const { data: msgs } = await supabase
-        .from('direct_messages')
-        .select('*')
-        .or(`and(sender_id.eq.${currentUser.id},receiver_id.eq.${activeChatUserId}),and(sender_id.eq.${activeChatUserId},receiver_id.eq.${currentUser.id})`)
-        .order('id', { ascending: true });
-
-      history.innerHTML = (msgs || []).map(m => `
-        <div class="chat-msg">
-          <b>${m.sender_id === currentUser.id ? 'Вы' : 'Собеседник'}:</b> ${escapeHtml(m.content)}
-        </div>
-      `).join('');
-      history.scrollTop = history.scrollHeight;
-    }
-
-    document.getElementById('sendChatBtn').addEventListener('click', async () => {
-      const input = document.getElementById('chatInput');
-      const text = input.value.trim();
-      if (!text || !activeChatUserId) return;
-
-      await supabase.from('direct_messages').insert([{
-        sender_id: currentUser.id,
-        receiver_id: activeChatUserId,
-        content: text
-      }]);
-      input.value = '';
-      loadChatMessages();
-    });
-
-    // Realtime
-    supabase.channel('messages-live')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'direct_messages' }, payload => {
-        if (activeChatUserId && (payload.new.sender_id === activeChatUserId || payload.new.receiver_id === activeChatUserId)) {
-          loadChatMessages();
-        }
-      })
-      .subscribe();
-
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.innerText = text;
-      return div.innerHTML;
-    }
-
-    // Часы в трее
-    setInterval(() => {
-      document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    }, 1000);
-  </script>
-</body>
-</html>
+      postIs
