@@ -330,7 +330,6 @@
         </div>
 
         <div class="main-view" id="mainContainer">
-          
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
@@ -379,7 +378,6 @@
               <div id="profilePostsList">Загрузка записей...</div>
             </fieldset>
           </div>
-
         </div>
       </div>
     </div>
@@ -391,7 +389,6 @@
   </div>
 
   <script>
-    // 1. Фиксация клиента в глобальной области видимости window
     window.SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co';
     window.SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
     window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -402,6 +399,7 @@
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
     let profilesMap = {};
+    let realtimeChannel = null;
 
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
@@ -448,14 +446,14 @@
 
     function getUserName(user) {
       if (!user) return 'Аноним';
-      return user.user_metadata?.username || user.email.split('@')[0];
+      return user.user_metadata?.username || (user.email ? user.email.split('@')[0] : 'Аноним');
     }
 
     async function ensureProfile(user) {
       if (!user) return;
       try {
         const nick = getUserName(user);
-        const { data } = await window.sbClient.from('profiles').select('*').eq('id', user.id).single();
+        const { data } = await window.sbClient.from('profiles').select('*').eq('id', user.id).maybeSingle();
         if (!data) {
           await window.sbClient.from('profiles').insert([{
             id: user.id,
@@ -500,13 +498,16 @@
         switchTab('feed');
       } else {
         authModal.style.display = 'flex';
+        if (realtimeChannel) {
+          window.sbClient.removeChannel(realtimeChannel);
+          realtimeChannel = null;
+        }
       }
     }
 
     window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
     window.sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    // Авторизация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Создание...';
@@ -572,7 +573,11 @@
 
     function initRealtimeNotifications() {
       if (!activeUser) return;
-      window.sbClient
+      if (realtimeChannel) {
+        window.sbClient.removeChannel(realtimeChannel);
+        realtimeChannel = null;
+      }
+      realtimeChannel = window.sbClient
         .channel('user_notifications_' + activeUser.id)
         .on('postgres_changes', {
           event: 'INSERT',
@@ -589,7 +594,7 @@
     }
 
     async function createNotification(targetUserId, type, message, postId) {
-      if (!targetUserId || targetUserId === activeUser.id) return;
+      if (!targetUserId || !activeUser || targetUserId === activeUser.id) return;
       try {
         const myProf = profilesMap[activeUser.id] || {};
         const senderNick = myProf.username || getUserName(activeUser);
@@ -631,7 +636,7 @@
       currentTab = tab;
       btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
       btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
-      btnTabProfile.style.fontWeight = (tab === 'profile' && targetUserId === activeUser.id) ? 'bold' : 'normal';
+      btnTabProfile.style.fontWeight = (tab === 'profile' && activeUser && targetUserId === activeUser.id) ? 'bold' : 'normal';
 
       sectionFeed.style.display = tab === 'feed' ? 'block' : 'none';
       sectionNotifications.style.display = tab === 'notifications' ? 'block' : 'none';
@@ -644,14 +649,16 @@
         urlInput.value = 'https://bubble.net/notifications';
         loadNotifications();
       } else if (tab === 'profile') {
-        viewingUserId = targetUserId || activeUser.id;
-        openUserProfile(viewingUserId);
+        viewingUserId = targetUserId || (activeUser ? activeUser.id : null);
+        if (viewingUserId) openUserProfile(viewingUserId);
       }
     }
 
     btnTabFeed.addEventListener('click', () => switchTab('feed'));
     btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
-    btnTabProfile.addEventListener('click', () => switchTab('profile', activeUser.id));
+    btnTabProfile.addEventListener('click', () => {
+      if (activeUser) switchTab('profile', activeUser.id);
+    });
     document.getElementById('btnGoReload').addEventListener('click', () => switchTab(currentTab, viewingUserId));
 
     window.goToProfile = function(userId) {
@@ -674,7 +681,8 @@
     function renderPostItem(p, commentsByPost) {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
-      const isMyPost = p.user_id === activeUser.id;
+      const currentUserId = activeUser ? activeUser.id : null;
+      const isMyPost = currentUserId && p.user_id === currentUserId;
       const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
 
       return `
@@ -704,7 +712,7 @@
             <div id="comments-list-${p.id}">
               ${postComments.map(c => {
                 const isCommentLiked = userLikedComments.has(c.id);
-                const isMyComment = c.user_id === activeUser.id;
+                const isMyComment = currentUserId && c.user_id === currentUserId;
                 const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
 
                 return `
@@ -766,7 +774,7 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
-      if (userId === activeUser.id) {
+      if (activeUser && userId === activeUser.id) {
         avatarUploadBox.style.display = 'block';
         profilePostsLegend.innerText = 'Мои публикации';
       } else {
@@ -797,6 +805,7 @@
     }
 
     async function loadNotifications() {
+      if (!activeUser) return;
       notificationsList.innerHTML = 'Загрузка...';
 
       const { data: notifs, error } = await window.sbClient
@@ -818,7 +827,7 @@
     }
 
     window.openTargetPost = async function(postId, notifId) {
-      if (notifId) {
+      if (notifId && activeUser) {
         await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
         await updateUnreadBadge();
       }
@@ -880,6 +889,7 @@
     };
 
     btnCreatePost.addEventListener('click', async () => {
+      if (!activeUser) return;
       const text = postContent.value.trim();
       const file = postImageFile.files[0];
       if (!text && !file) return alert('Введите текст или прикрепите фото!');
@@ -925,14 +935,14 @@
     });
 
     window.deletePost = async function(postId) {
-      if (!confirm('Удалить этот пост?')) return;
+      if (!activeUser || !confirm('Удалить этот пост?')) return;
       const { error } = await window.sbClient.from('posts').delete().match({ id: postId, user_id: activeUser.id });
       if (error) alert('Ошибка удаления: ' + error.message);
       else switchTab(currentTab, viewingUserId);
     };
 
     window.deleteComment = async function(commentId) {
-      if (!confirm('Удалить комментарий?')) return;
+      if (!activeUser || !confirm('Удалить комментарий?')) return;
       const { error } = await window.sbClient.from('comments').delete().match({ id: commentId, user_id: activeUser.id });
       if (error) alert('Ошибка удаления: ' + error.message);
       else switchTab(currentTab, viewingUserId);
@@ -969,9 +979,10 @@
     };
 
     window.sendComment = async function(postId, postAuthorId) {
+      if (!activeUser) return;
       const input = document.getElementById(`comment-input-${postId}`);
       const text = input.value.trim();
-      if (!text || !activeUser) return;
+      if (!text) return;
 
       const myProf = profilesMap[activeUser.id] || {};
       const { error } = await window.sbClient.from('comments').insert([{
