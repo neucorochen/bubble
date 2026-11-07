@@ -4,8 +4,9 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Стрекоза — Социальная сеть в стиле Windows XP</title>
+  <!-- Стили Windows XP -->
   <link rel="stylesheet" href="https://unpkg.com/xp.css/dist/XP.css">
-  <!-- Подключение Supabase JS через CDN -->
+  <!-- Клиентская библиотека Supabase JS -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body {
@@ -28,10 +29,10 @@
       align-items: center;
     }
     .ie-window {
-      width: 850px;
+      width: 900px;
       max-width: 96vw;
-      height: 620px;
-      max-height: 86vh;
+      height: 650px;
+      max-height: 88vh;
       display: flex;
       flex-direction: column;
     }
@@ -54,49 +55,6 @@
       background: #fff;
       padding: 14px;
       margin: 0 !important;
-      <!-- Окно авторизации / профиля -->
-<fieldset style="margin-bottom: 12px;">
-  <legend>Учётная запись</legend>
-  
-  <!-- Форма входа/регистрации (показывается гостям) -->
-  <div id="authSection">
-    <div style="display: flex; gap: 8px; margin-bottom: 8px;">
-      <input type="email" id="emailInput" placeholder="Email" style="flex: 1;">
-      <input type="password" id="passInput" placeholder="Пароль (от 6 символов)" style="flex: 1;">
-    </div>
-    <div style="display: flex; gap: 8px;">
-      <button id="loginBtn" style="font-weight: bold;">Войти</button>
-      <button id="registerBtn">Регистрация</button>
-    </div>
-  </div>
-
-  <!-- Блок текущего пользователя (показывается после входа) -->
-  <div id="userSection" style="display: none; justify-content: space-between; align-items: center;">
-    <div>Вы вошли как: <b id="userEmail"></b></div>
-    <button id="logoutBtn">Выйти</button>
-  </div>
-</fieldset>
-
-<!-- Секция аудиозаписей и загрузки -->
-<fieldset style="margin-bottom: 12px;">
-  <legend>Аудиозаписи</legend>
-  
-  <!-- Загрузка доступна только после авторизации -->
-  <div id="uploadSection" style="display: none; padding-bottom: 10px; border-bottom: 1px solid #aca899; margin-bottom: 10px;">
-    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
-      <input type="text" id="trackArtist" placeholder="Исполнитель">
-      <input type="text" id="trackTitle" placeholder="Название трека">
-    </div>
-    <div style="display: flex; justify-content: space-between; align-items: center;">
-      <input type="file" id="audioFile" accept="audio/mp3,audio/mpeg">
-      <button id="uploadBtn">Загрузить MP3</button>
-    </div>
-    <span id="uploadStatus" style="font-size: 11px; color: #555;"></span>
-  </div>
-
-  <!-- Список треков с плеером -->
-  <div id="tracksList">Загрузка треков...</div>
-</fieldset>
     }
     .post-box {
       background: #fbfbfb;
@@ -112,6 +70,10 @@
     .post-time {
       font-size: 10px;
       color: #777;
+    }
+    .track-item {
+      border-bottom: 1px dotted #ccc;
+      padding: 8px 0;
     }
     .taskbar {
       height: 30px;
@@ -174,8 +136,48 @@
       </div>
 
       <div class="window-body window-body-scroll">
-        <!-- Форма добавления поста -->
-        <fieldset style="margin-bottom: 16px;">
+        <!-- Блок авторизации -->
+        <fieldset style="margin-bottom: 12px;">
+          <legend>Учётная запись</legend>
+          
+          <div id="authSection">
+            <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+              <input type="email" id="emailInput" placeholder="Email" style="flex: 1;">
+              <input type="password" id="passInput" placeholder="Пароль (от 6 символов)" style="flex: 1;">
+            </div>
+            <div style="display: flex; gap: 8px;">
+              <button id="loginBtn" style="font-weight: bold;">Войти</button>
+              <button id="registerBtn">Регистрация</button>
+            </div>
+          </div>
+
+          <div id="userSection" style="display: none; justify-content: space-between; align-items: center;">
+            <div>Вы вошли как: <b id="userEmail"></b></div>
+            <button id="logoutBtn">Выйти</button>
+          </div>
+        </fieldset>
+
+        <!-- Блок аудиозаписей -->
+        <fieldset style="margin-bottom: 12px;">
+          <legend>Аудиозаписи</legend>
+          
+          <div id="uploadSection" style="display: none; padding-bottom: 10px; border-bottom: 1px solid #aca899; margin-bottom: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px;">
+              <input type="text" id="trackArtist" placeholder="Исполнитель">
+              <input type="text" id="trackTitle" placeholder="Название трека">
+            </div>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 8px;">
+              <input type="file" id="audioFile" accept="audio/mp3,audio/mpeg">
+              <button id="uploadBtn">Загрузить MP3</button>
+            </div>
+            <div id="uploadStatus" style="font-size: 11px; color: #555; margin-top: 4px;"></div>
+          </div>
+
+          <div id="tracksList">Загрузка треков...</div>
+        </fieldset>
+
+        <!-- Блок стены и постов -->
+        <fieldset style="margin-bottom: 12px;">
           <legend>Оставить запись на стене</legend>
           <div style="display: flex; gap: 8px; margin-bottom: 6px;">
             <input type="text" id="authorInput" placeholder="Ваш ник" style="width: 160px;" value="Стрекозоид">
@@ -186,10 +188,9 @@
           </div>
         </fieldset>
 
-        <!-- Лента записей -->
         <fieldset>
           <legend>Стена сообщества</legend>
-          <div id="postsFeed">Загрузка записей из базы данных...</div>
+          <div id="postsFeed">Загрузка записей...</div>
         </fieldset>
       </div>
     </div>
@@ -201,21 +202,90 @@
   </div>
 
   <script>
-    // 1. Вставьте ваши ключи из настроек Supabase:
+    // -------------------------------------------------------------
+    // ВСТАВЬТЕ СЮДА ВАШИ ДАННЫЕ ИЗ SUPABASE:
+    // -------------------------------------------------------------
     const SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co/rest/v1/';
     const SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
+    // -------------------------------------------------------------
 
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // DOM-элементы
+    const authSection = document.getElementById('authSection');
+    const userSection = document.getElementById('userSection');
+    const userEmail = document.getElementById('userEmail');
+    const emailInput = document.getElementById('emailInput');
+    const passInput = document.getElementById('passInput');
+    const loginBtn = document.getElementById('loginBtn');
+    const registerBtn = document.getElementById('registerBtn');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    const uploadSection = document.getElementById('uploadSection');
+    const trackArtist = document.getElementById('trackArtist');
+    const trackTitle = document.getElementById('trackTitle');
+    const audioFile = document.getElementById('audioFile');
+    const uploadBtn = document.getElementById('uploadBtn');
+    const uploadStatus = document.getElementById('uploadStatus');
+    const tracksList = document.getElementById('tracksList');
 
     const postsFeed = document.getElementById('postsFeed');
     const authorInput = document.getElementById('authorInput');
     const contentInput = document.getElementById('contentInput');
     const sendBtn = document.getElementById('sendBtn');
 
-    // Отрисовка постов
+    let currentUser = null;
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.innerText = text;
+      return div.innerHTML;
+    }
+
+    // --- 1. АВТОРИЗАЦИЯ ---
+    supabase.auth.onAuthStateChange((event, session) => {
+      currentUser = session ? session.user : null;
+      if (currentUser) {
+        authSection.style.display = 'none';
+        userSection.style.display = 'flex';
+        userEmail.innerText = currentUser.email;
+        uploadSection.style.display = 'block';
+        authorInput.value = currentUser.email.split('@')[0];
+      } else {
+        authSection.style.display = 'block';
+        userSection.style.display = 'none';
+        uploadSection.style.display = 'none';
+        authorInput.value = 'Стрекозоид';
+      }
+    });
+
+    registerBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passInput.value.trim();
+      if (!email || !password) return alert('Введите email и пароль');
+
+      const { error } = await supabase.auth.signUp({ email, password });
+      if (error) alert('Ошибка регистрации: ' + error.message);
+      else alert('Успешная регистрация!');
+    });
+
+    loginBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      const password = passInput.value.trim();
+      if (!email || !password) return alert('Введите email и пароль');
+
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      if (error) alert('Ошибка входа: ' + error.message);
+    });
+
+    logoutBtn.addEventListener('click', async () => {
+      await supabase.auth.signOut();
+    });
+
+    // --- 2. СТЕНА И ПОСТЫ ---
     function renderPosts(posts) {
       if (!posts || posts.length === 0) {
-        postsFeed.innerHTML = '<p>Пока нет ни одной записи. Будьте первым!</p>';
+        postsFeed.innerHTML = '<p>Записей пока нет. Будьте первым!</p>';
         return;
       }
       postsFeed.innerHTML = posts.map(post => `
@@ -226,13 +296,6 @@
       `).join('');
     }
 
-    function escapeHtml(text) {
-      const div = document.createElement('div');
-      div.innerText = text;
-      return div.innerHTML;
-    }
-
-    // Загрузка постов из PostgreSQL
     async function loadPosts() {
       const { data, error } = await supabase
         .from('posts')
@@ -241,17 +304,15 @@
         .limit(30);
 
       if (error) {
-        postsFeed.innerHTML = '<p style="color:red">Ошибка подключения к БД: ' + error.message + '</p>';
+        postsFeed.innerHTML = '<p style="color:red">Ошибка загрузки: ' + error.message + '</p>';
       } else {
         renderPosts(data);
       }
     }
 
-    // Отправка новой записи
     sendBtn.addEventListener('click', async () => {
       const content = contentInput.value.trim();
       const author = authorInput.value.trim() || 'Аноним';
-
       if (!content) return;
 
       sendBtn.disabled = true;
@@ -259,17 +320,91 @@
       sendBtn.disabled = false;
 
       if (error) {
-        alert('Ошибка при отправке: ' + error.message);
+        alert('Ошибка при публикации: ' + error.message);
       } else {
         contentInput.value = '';
         loadPosts();
       }
     });
 
-    // Realtime-подписка: новые посты появляются без обновления страницы
+    // --- 3. АУДИОЗАПИСИ И ЗАГРУЗКА В STORAGE ---
+    async function loadTracks() {
+      const { data: tracks, error } = await supabase
+        .from('tracks')
+        .select('*')
+        .order('id', { ascending: false });
+
+      if (error) {
+        tracksList.innerHTML = '<p style="color:red">Ошибка загрузки аудио: ' + error.message + '</p>';
+        return;
+      }
+
+      if (!tracks || tracks.length === 0) {
+        tracksList.innerHTML = '<p>Аудиозаписей пока нет.</p>';
+        return;
+      }
+
+      tracksList.innerHTML = tracks.map(track => `
+        <div class="track-item">
+          <div><b>${escapeHtml(track.artist)}</b> — ${escapeHtml(track.title)}</div>
+          <audio controls style="width: 100%; height: 28px; margin-top: 4px;">
+            <source src="${track.audio_url}" type="audio/mpeg">
+            Ваш браузер не воспроизводит аудио.
+          </audio>
+        </div>
+      `).join('');
+    }
+
+    uploadBtn.addEventListener('click', async () => {
+      const file = audioFile.files[0];
+      const artist = trackArtist.value.trim() || 'Неизвестный исполнитель';
+      const title = trackTitle.value.trim() || 'Без названия';
+
+      if (!file) return alert('Выберите файл MP3');
+      uploadBtn.disabled = true;
+      uploadStatus.innerText = 'Загрузка файла в хранилище...';
+
+      const fileExt = file.name.split('.').pop();
+      const filePath = `${currentUser.id}/${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('audio')
+        .upload(filePath, file);
+
+      if (uploadError) {
+        uploadStatus.innerText = '';
+        uploadBtn.disabled = false;
+        return alert('Ошибка загрузки: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('audio')
+        .getPublicUrl(filePath);
+
+      const { error: dbError } = await supabase.from('tracks').insert([{
+        title,
+        artist,
+        audio_url: publicUrl,
+        user_id: currentUser.id
+      }]);
+
+      uploadBtn.disabled = false;
+      uploadStatus.innerText = '';
+
+      if (dbError) {
+        alert('Ошибка сохранения записи: ' + dbError.message);
+      } else {
+        trackArtist.value = '';
+        trackTitle.value = '';
+        audioFile.value = '';
+        loadTracks();
+      }
+    });
+
+    // --- 4. REALTIME СИНХРОНИЗАЦИЯ ПОСТОВ ---
     supabase
       .channel('schema-db-changes')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, payload => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => {
         loadPosts();
       })
       .subscribe();
@@ -282,8 +417,9 @@
     setInterval(updateClock, 1000);
     updateClock();
 
-    // Первичная загрузка
+    // Запуск при старте страницы
     loadPosts();
+    loadTracks();
   </script>
 </body>
 </html>
