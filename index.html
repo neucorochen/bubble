@@ -112,26 +112,36 @@
     .author-info:hover .post-author { text-decoration: underline; }
     .post-author { font-weight: bold; color: #0b388f; }
 
-    /* Обертка аватара и накладываемая поверх рамка */
+    /* Обертка аватара и позиционирование рамок */
     .avatar-wrapper {
       position: relative; display: inline-flex; align-items: center; justify-content: center;
       flex-shrink: 0;
     }
     .avatar-mini {
       width: 28px; height: 28px; border-radius: 50% !important; object-fit: cover;
-      border: 1px solid #7f9db9; background: #eee;
+      border: 1px solid #7f9db9; background: #eee; position: relative; z-index: 1;
     }
     .profile-avatar-big {
       width: 68px; height: 68px; border-radius: 50% !important; object-fit: cover;
-      border: 2px solid #0055ea; background: #fff;
+      border: 2px solid #0055ea; background: #fff; position: relative; z-index: 1;
     }
+    
+    /* Рамка строго поверх аватара, квадратная вровень, остальные увеличены на 8px */
     .avatar-frame-overlay {
-      position: absolute; top: -5px; left: -5px; right: -5px; bottom: -5px;
-      pointer-events: none; z-index: 2; box-sizing: border-box;
+      position: absolute; pointer-events: none; z-index: 10; box-sizing: border-box;
     }
+    .avatar-frame-overlay.frame-shape-square {
+      top: 0; left: 0; width: 100%; height: 100%;
+    }
+    .avatar-frame-overlay.frame-shape-circle,
+    .avatar-frame-overlay.frame-shape-hexagon,
+    .avatar-frame-overlay.frame-shape-star {
+      top: -8px; left: -8px; width: calc(100% + 16px); height: calc(100% + 16px);
+    }
+
     .avatar-frame-img {
       position: absolute; top: -10px; left: -10px; width: calc(100% + 20px); height: calc(100% + 20px);
-      object-fit: contain; pointer-events: none; z-index: 3;
+      object-fit: contain; pointer-events: none; z-index: 15;
     }
 
     .profile-card {
@@ -371,6 +381,8 @@
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
               <div class="avatar-wrapper" id="sidebarAvatarContainer">
                 <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
+                <div id="sidebarFrameOverlay" class="avatar-frame-overlay" style="display:none;"></div>
+                <img id="sidebarFrameImg" class="avatar-frame-img" style="display:none;" alt="frame">
               </div>
               <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0b388f; word-break: break-all;">...</div>
             </div>
@@ -397,10 +409,13 @@
               <legend>Новая запись на стену</legend>
               <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble? (упоминания через @никнейм)"></textarea>
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
-                <label style="font-size: 11px; cursor: pointer;">
-                  Прикрепить фото:
-                  <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
-                </label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <label style="font-size: 11px; cursor: pointer;">
+                    Прикрепить фото:
+                    <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
+                  </label>
+                  <button type="button" id="btnClearPostImage" style="display:none; font-size:10px; color:#a00;">✖ Отмена</button>
+                </div>
                 <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
               </div>
               <div id="uploadStatus" style="font-size: 10px; color: #444; margin-top: 2px;"></div>
@@ -426,8 +441,7 @@
               <div id="boxThemeCreator">
                 <input type="hidden" id="editingThemeId" value="">
                 
-                <!-- Окошко живого предпросмотра темы -->
-                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр темы:</div>
+                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр темы в реальном времени:</div>
                 <div class="live-theme-preview" id="liveThemePreviewBox">
                   <div id="prevSidebarPane" style="padding:6px; border-radius:4px; border:1px solid rgba(0,0,0,0.15);">
                     <button id="prevBtnSample" style="font-size:10px; padding:3px 6px; border-radius:3px;">Кнопка</button>
@@ -435,7 +449,7 @@
                   <div style="flex:1;">
                     <div id="prevPostSample" style="border:1px solid #ccc; padding:6px; border-radius:4px;">
                       <div id="prevAuthorSample" style="font-weight:bold; font-size:11px;">Автор поста</div>
-                      <div id="prevTextSample" style="font-size:11px;">Так будет выглядеть текст, карточки и элементы сайта.</div>
+                      <div id="prevTextSample" style="font-size:11px;">Цвет текста, фона окна и карточек меняется мгновенно.</div>
                     </div>
                   </div>
                 </div>
@@ -456,11 +470,11 @@
                     </select>
                   </div>
                   <div>
-                    <label>Цвет основного фона окна (вместо белого):</label>
+                    <label>Цвет основного фона окна:</label>
                     <input type="color" id="themeMainBgColor" value="#ffffff" style="width:100%; height:24px;">
                   </div>
                   <div>
-                    <label>Цвет боковой панели (Sidebar):</label>
+                    <label>Цвет боковой панели:</label>
                     <input type="color" id="themeSidebarColor" value="#b9e1fa" style="width:100%; height:24px;">
                   </div>
                   <div>
@@ -480,8 +494,11 @@
                     <input type="color" id="themeTextColor" value="#003366" style="width:100%; height:24px;">
                   </div>
                   <div style="grid-column: 1 / -1;">
-                    <label>URL фоновой картинки всего сайта (необязательно):</label>
-                    <input type="text" id="themeBgUrl" placeholder="https://example.com/background.jpg" style="width:100%; font-size:11px;">
+                    <label>URL фоновой картинки сайта:</label>
+                    <div style="display:flex; gap:4px;">
+                      <input type="text" id="themeBgUrl" placeholder="https://example.com/background.jpg" style="flex:1; font-size:11px;">
+                      <button type="button" id="btnClearThemeBgUrl" style="font-size:10px; color:#a00;">Очистить</button>
+                    </div>
                   </div>
                 </div>
 
@@ -495,9 +512,8 @@
               <div id="boxFrameCreator" style="display:none;">
                 <input type="hidden" id="editingFrameId" value="">
 
-                <!-- Предпросмотр рамочки -->
-                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр надетой рамочки на круглый аватар:</div>
-                <div style="display:flex; justify-content:center; align-items:center; padding:10px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
+                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр рамки поверх круглой аватарки:</div>
+                <div style="display:flex; justify-content:center; align-items:center; padding:15px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
                   <div class="avatar-wrapper" style="width:68px; height:68px;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
                     <div id="prevFrameOverlay" class="avatar-frame-overlay frame-shape-circle" style="border:3px solid #00e5ff;"></div>
@@ -511,12 +527,12 @@
                     <input type="text" id="frameTitleInput" placeholder="Неоновое сияние" style="width:100%; font-size:11px;">
                   </div>
                   <div>
-                    <label>Форма рамки вокруг аватара:</label>
+                    <label>Форма рамки (увеличена вокруг аватарки):</label>
                     <select id="frameShapeSelect" style="width:100%; font-size:11px;">
-                      <option value="circle">Круглая рамка</option>
+                      <option value="circle">Круглая рамка (больше аватара)</option>
                       <option value="square">Квадратная рамка</option>
                       <option value="hexagon">Шестиугольная рамка</option>
-                      <option value="star">Звездная рамка</option>
+                      <option value="star">Звёздная рамка</option>
                     </select>
                   </div>
                   <div>
@@ -532,8 +548,11 @@
                     </select>
                   </div>
                   <div style="grid-column: 1 / -1;">
-                    <label>Или прикрепить своё PNG-изображение рамки (с прозрачностью):</label>
-                    <input type="file" id="frameCustomFile" accept="image/png,image/*" style="font-size:11px; width:100%;">
+                    <label>Или прикрепить своё PNG-изображение рамки с прозрачностью:</label>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <input type="file" id="frameCustomFile" accept="image/png,image/*" style="flex:1; font-size:11px;">
+                      <button type="button" id="btnClearFrameCustomFile" style="display:none; font-size:10px; color:#a00;">✖ Сбросить файл</button>
+                    </div>
                     <div id="frameCustomUploadStatus" style="font-size:10px; color:#555;"></div>
                   </div>
                 </div>
@@ -601,10 +620,13 @@
                 <input type="text" id="globalTrackArtist" placeholder="Исполнитель" style="flex: 1; font-size: 11px;">
               </div>
               <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                <label style="font-size: 11px; cursor: pointer;">
-                  Файл аудио (MP3):
-                  <input type="file" id="globalAudioFile" accept="audio/*" style="font-size: 10px;">
-                </label>
+                <div style="display:flex; align-items:center; gap:6px;">
+                  <label style="font-size: 11px; cursor: pointer;">
+                    Файл аудио (MP3):
+                    <input type="file" id="globalAudioFile" accept="audio/*" style="font-size: 10px;">
+                  </label>
+                  <button type="button" id="btnClearAudioFile" style="display:none; font-size:10px; color:#a00;">✖ Отмена</button>
+                </div>
                 <button id="btnUploadGlobalTrack" style="font-weight: bold; font-size: 11px;">Опубликовать трек</button>
               </div>
               <div id="globalAudioUploadStatus" style="font-size: 10px; color: #555; margin-top: 2px;"></div>
@@ -657,10 +679,13 @@
                 <legend>Опубликовать запись от имени сообщества</legend>
                 <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость от лица сообщества..."></textarea>
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
-                  <label style="font-size: 11px; cursor: pointer;">
-                    Фото:
-                    <input type="file" id="commPostImage" accept="image/*" style="font-size: 11px;">
-                  </label>
+                  <div style="display:flex; align-items:center; gap:6px;">
+                    <label style="font-size: 11px; cursor: pointer;">
+                      Фото:
+                      <input type="file" id="commPostImage" accept="image/*" style="font-size: 11px;">
+                    </label>
+                    <button type="button" id="btnClearCommPostImage" style="display:none; font-size:10px; color:#a00;">✖ Отмена</button>
+                  </div>
                   <button id="btnCreateCommPost" type="button" style="font-weight: bold;">Опубликовать от группы</button>
                 </div>
               </fieldset>
@@ -791,6 +816,8 @@
 
     const sideUserName = document.getElementById('sideUserName');
     const sideAvatar = document.getElementById('sideAvatar');
+    const sidebarFrameOverlay = document.getElementById('sidebarFrameOverlay');
+    const sidebarFrameImg = document.getElementById('sidebarFrameImg');
     const urlInput = document.getElementById('urlInput');
 
     const sidebarPanel = document.getElementById('sidebarPanel');
@@ -827,6 +854,43 @@
     const notificationsList = document.getElementById('notificationsList');
     const btnMarkAllRead = document.getElementById('btnMarkAllRead');
 
+    // Кнопки отмены/очистки файлов
+    const postImageFile = document.getElementById('postImageFile');
+    const btnClearPostImage = document.getElementById('btnClearPostImage');
+    const globalAudioFile = document.getElementById('globalAudioFile');
+    const btnClearAudioFile = document.getElementById('btnClearAudioFile');
+    const commPostImage = document.getElementById('commPostImage');
+    const btnClearCommPostImage = document.getElementById('btnClearCommPostImage');
+    const themeBgUrl = document.getElementById('themeBgUrl');
+    const btnClearThemeBgUrl = document.getElementById('btnClearThemeBgUrl');
+    const frameCustomFile = document.getElementById('frameCustomFile');
+    const btnClearFrameCustomFile = document.getElementById('btnClearFrameCustomFile');
+
+    function bindFileClear(inputEl, btnEl, onClearCallback) {
+      inputEl.addEventListener('change', () => {
+        btnEl.style.display = inputEl.files && inputEl.files.length > 0 ? 'inline-block' : 'none';
+      });
+      btnEl.addEventListener('click', () => {
+        inputEl.value = '';
+        btnEl.style.display = 'none';
+        if (onClearCallback) onClearCallback();
+      });
+    }
+
+    bindFileClear(postImageFile, btnClearPostImage);
+    bindFileClear(globalAudioFile, btnClearAudioFile);
+    bindFileClear(commPostImage, btnClearCommPostImage);
+    bindFileClear(frameCustomFile, btnClearFrameCustomFile, () => {
+      frameUploadedImgUrl = null;
+      document.getElementById('frameCustomUploadStatus').innerText = '';
+      updateLiveFramePreview();
+    });
+
+    btnClearThemeBgUrl.onclick = () => {
+      themeBgUrl.value = '';
+      updateLiveThemePreview();
+    };
+
     // Мастерская DOM
     const btnSwitchToThemeCreator = document.getElementById('btnSwitchToThemeCreator');
     const btnSwitchToFrameCreator = document.getElementById('btnSwitchToFrameCreator');
@@ -843,11 +907,9 @@
     const themeBtnBgColor = document.getElementById('themeBtnBgColor');
     const themeBtnTextColor = document.getElementById('themeBtnTextColor');
     const themeTextColor = document.getElementById('themeTextColor');
-    const themeBgUrl = document.getElementById('themeBgUrl');
     const btnPublishTheme = document.getElementById('btnPublishTheme');
     const btnCancelEditTheme = document.getElementById('btnCancelEditTheme');
 
-    // Живой предпросмотр темы
     const liveThemePreviewBox = document.getElementById('liveThemePreviewBox');
     const prevSidebarPane = document.getElementById('prevSidebarPane');
     const prevBtnSample = document.getElementById('prevBtnSample');
@@ -855,12 +917,10 @@
     const prevAuthorSample = document.getElementById('prevAuthorSample');
     const prevTextSample = document.getElementById('prevTextSample');
 
-    // Рамочки DOM
     const frameTitleInput = document.getElementById('frameTitleInput');
     const frameShapeSelect = document.getElementById('frameShapeSelect');
     const frameColorInput = document.getElementById('frameColorInput');
     const frameAnimSelect = document.getElementById('frameAnimSelect');
-    const frameCustomFile = document.getElementById('frameCustomFile');
     const frameCustomUploadStatus = document.getElementById('frameCustomUploadStatus');
     const btnPublishFrame = document.getElementById('btnPublishFrame');
     const btnCancelEditFrame = document.getElementById('btnCancelEditFrame');
@@ -903,7 +963,6 @@
     const commUserRole = document.getElementById('commUserRole');
     const commCreatePostBox = document.getElementById('commCreatePostBox');
     const commPostContent = document.getElementById('commPostContent');
-    const commPostImage = document.getElementById('commPostImage');
     const btnCreateCommPost = document.getElementById('btnCreateCommPost');
     const commPostsList = document.getElementById('commPostsList');
 
@@ -922,14 +981,12 @@
 
     // Посты & Музыка
     const postContent = document.getElementById('postContent');
-    const postImageFile = document.getElementById('postImageFile');
     const btnCreatePost = document.getElementById('btnCreatePost');
     const uploadStatus = document.getElementById('uploadStatus');
     const allTracksList = document.getElementById('allTracksList');
     const searchGlobalMusic = document.getElementById('searchGlobalMusic');
     const globalTrackTitle = document.getElementById('globalTrackTitle');
     const globalTrackArtist = document.getElementById('globalTrackArtist');
-    const globalAudioFile = document.getElementById('globalAudioFile');
     const btnUploadGlobalTrack = document.getElementById('btnUploadGlobalTrack');
     const globalAudioUploadStatus = document.getElementById('globalAudioUploadStatus');
 
@@ -1249,7 +1306,6 @@
       boxFrameCreator.style.display = 'block';
     };
 
-    // Обновление живого предпросмотра темы в конструкторе
     function updateLiveThemePreview() {
       liveThemePreviewBox.style.fontFamily = themeFontSelect.value;
       liveThemePreviewBox.style.backgroundColor = themeMainBgColor.value;
@@ -1266,7 +1322,6 @@
     });
     updateLiveThemePreview();
 
-    // Обновление живого предпросмотра рамочки в конструкторе
     let frameUploadedImgUrl = null;
     function updateLiveFramePreview() {
       const shape = frameShapeSelect.value;
@@ -1293,7 +1348,6 @@
     });
     updateLiveFramePreview();
 
-    // Загрузка кастомной PNG-рамки
     frameCustomFile.addEventListener('change', async () => {
       const file = frameCustomFile.files[0];
       if (!file || !activeUser) return;
@@ -1314,7 +1368,6 @@
       updateLiveFramePreview();
     });
 
-    // Публикация/Обновление темы
     btnPublishTheme.onclick = async () => {
       if (!activeUser) return;
       const title = themeTitleInput.value.trim() || 'Моя тема Bubble';
@@ -1354,7 +1407,6 @@
       themeTitleInput.value = '';
     };
 
-    // Публикация/Обновление рамочки
     btnPublishFrame.onclick = async () => {
       if (!activeUser) return;
       const title = frameTitleInput.value.trim() || 'Кастомная рамка';
@@ -1382,6 +1434,8 @@
       frameTitleInput.value = '';
       frameCustomFile.value = '';
       frameUploadedImgUrl = null;
+      btnClearFrameCustomFile.style.display = 'none';
+      document.getElementById('frameCustomUploadStatus').innerText = '';
       updateLiveFramePreview();
       loadCreationsList();
     };
@@ -1392,10 +1446,11 @@
       btnCancelEditFrame.style.display = 'none';
       frameTitleInput.value = '';
       frameUploadedImgUrl = null;
+      btnClearFrameCustomFile.style.display = 'none';
+      document.getElementById('frameCustomUploadStatus').innerText = '';
       updateLiveFramePreview();
     };
 
-    // Каталог работ
     async function loadCreationsList() {
       creationsListContainer.innerHTML = 'Загрузка каталога работ...';
       const { data: creations, error } = await window.sbClient.from('community_creations').select('*').order('id', { ascending: false });
@@ -1430,7 +1485,7 @@
             previewHTML = `
               <div style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
                 <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
-                <img src="${cfg.imgUrl}" class="avatar-frame-img" style="top:-6px; left:-6px; width:calc(100% + 12px); height:calc(100% + 12px);" alt="custom frame">
+                <img src="${cfg.imgUrl}" class="avatar-frame-img" style="top:-8px; left:-8px; width:calc(100% + 16px); height:calc(100% + 16px);" alt="custom frame">
               </div>
             `;
           } else {
@@ -1471,7 +1526,6 @@
       }).join('');
     }
 
-    // Редактирование работы автором
     window.editCreation = function(id, type, title, cfg) {
       if (type === 'theme') {
         btnSwitchToThemeCreator.click();
@@ -1503,7 +1557,6 @@
       boxThemeCreator.scrollIntoView({ behavior: 'smooth' });
     };
 
-    // Удаление работы автором
     window.deleteCreation = async function(id) {
       if (!confirm('Удалить эту работу из каталога?')) return;
       await window.sbClient.from('community_creations').delete().eq('id', id);
@@ -1524,7 +1577,6 @@
       }
     };
 
-    // Применение стилей темы ко всем контейнерам (включая фон и кнопки)
     function applyThemeStyles(cfg) {
       if (!cfg) return;
       let css = '';
@@ -1553,26 +1605,28 @@
       dynamicCustomThemeStyle.innerHTML = css;
     }
 
-    // Применение рамочки поверх аватара
     function applyFrameStyles(cfg) {
       if (!cfg) return;
-      const overlay = document.getElementById('userProfileFrameOverlay');
-      const imgFrame = document.getElementById('userProfileFrameImg');
-      if (!overlay || !imgFrame) return;
-
-      if (cfg.imgUrl) {
-        imgFrame.src = cfg.imgUrl;
-        imgFrame.style.display = 'block';
-        overlay.style.display = 'none';
-      } else {
-        imgFrame.style.display = 'none';
-        overlay.style.display = 'block';
-        overlay.className = `avatar-frame-overlay frame-shape-${cfg.shape || 'circle'}`;
-        if (cfg.animation === 'glow') overlay.classList.add('anim-glow');
-        if (cfg.animation === 'rainbow') overlay.classList.add('anim-rainbow');
-        overlay.style.border = `3px solid ${cfg.color || '#00e5ff'}`;
-        overlay.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+      
+      function attachToWrapper(overlayEl, imgEl) {
+        if (!overlayEl || !imgEl) return;
+        if (cfg.imgUrl) {
+          imgEl.src = cfg.imgUrl;
+          imgEl.style.display = 'block';
+          overlayEl.style.display = 'none';
+        } else {
+          imgEl.style.display = 'none';
+          overlayEl.style.display = 'block';
+          overlayEl.className = `avatar-frame-overlay frame-shape-${cfg.shape || 'circle'}`;
+          if (cfg.animation === 'glow') overlayEl.classList.add('anim-glow');
+          if (cfg.animation === 'rainbow') overlayEl.classList.add('anim-rainbow');
+          overlayEl.style.border = `3px solid ${cfg.color || '#00e5ff'}`;
+          overlayEl.style.setProperty('--frame-color', cfg.color || '#00e5ff');
+        }
       }
+
+      attachToWrapper(userProfileFrameOverlay, userProfileFrameImg);
+      attachToWrapper(sidebarFrameOverlay, sidebarFrameImg);
     }
 
     btnResetAllStyles.onclick = async () => {
@@ -1580,10 +1634,9 @@
       document.body.style.backgroundImage = "url('bg.jpg')";
       document.body.style.fontFamily = "Tahoma, sans-serif";
       
-      const overlay = document.getElementById('userProfileFrameOverlay');
-      const imgFrame = document.getElementById('userProfileFrameImg');
-      if (overlay) overlay.style.display = 'none';
-      if (imgFrame) imgFrame.style.display = 'none';
+      [userProfileFrameOverlay, userProfileFrameImg, sidebarFrameOverlay, sidebarFrameImg].forEach(el => {
+        if (el) el.style.display = 'none';
+      });
 
       if (activeUser) {
         await window.sbClient.from('profiles').update({ custom_theme: null, custom_frame: null }).eq('id', activeUser.id);
@@ -1625,98 +1678,6 @@
     };
 
     // ==================== ЛЕНТА И ПОСТЫ ====================
-    async function loadUserLikes() {
-      if (!activeUser) return;
-      const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
-      userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
-      const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
-      userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
-    }
-
-    function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false) {
-      const isPostLiked = userLikedPosts.has(p.id);
-      const postComments = commentsByPost[p.id] || [];
-      const currentUserId = activeUser ? activeUser.id : null;
-      const isMyPost = currentUserId && p.user_id === currentUserId;
-      const canDelete = isMyPost || canModerate;
-      const uniquePostKey = `${context}-${p.id}`;
-
-      let authorDisplay = '';
-      if (p.community_id && communitiesMap[p.community_id]) {
-        const comm = communitiesMap[p.community_id];
-        authorDisplay = `
-          <div class="author-info" onclick="openCommunity(${comm.id})">
-            <img src="${comm.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
-            <span class="post-author">${escapeHtml(comm.title)}</span>
-            <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-          </div>
-        `;
-      } else {
-        const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
-        authorDisplay = `
-          <div class="author-info" onclick="goToProfile('${p.user_id}')">
-            <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
-            <span class="post-author">${escapeHtml(prof.username)}</span>
-            <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-          </div>
-        `;
-      }
-
-      return `
-        <div class="post-box" id="post-${uniquePostKey}">
-          <div class="post-header">
-            ${authorDisplay}
-            ${canDelete ? `<button class="btn-delete-post" onclick="deletePost(${p.id}, '${uniquePostKey}')">✖ Удалить</button>` : ''}
-          </div>
-
-          <div style="margin: 6px 0; word-break: break-word;">${escapeHtml(p.content)}</div>
-          ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
-
-          <div class="post-actions">
-            <button id="like-btn-${uniquePostKey}" onclick="togglePostLike(${p.id}, '${p.user_id}', '${uniquePostKey}')">
-              ${isPostLiked ? '❤️' : '🤍'} <span id="like-count-${uniquePostKey}">${p.likes_count || 0}</span>
-            </button>
-            <button onclick="toggleCommentsVisibility('${uniquePostKey}')" style="font-size:11px;">
-              💬 Комментарии (<span id="comments-count-${uniquePostKey}">${postComments.length}</span>)
-            </button>
-          </div>
-
-          <div class="comments-section" id="comments-box-${uniquePostKey}">
-            <div class="comments-inner">
-              <div id="comments-list-${uniquePostKey}">
-                ${postComments.map(c => renderCommentHTML(c, p.id, uniquePostKey, canModerate)).join('')}
-              </div>
-              <div style="display:flex; gap:4px; margin-top:6px;">
-                <input type="text" id="comment-input-${uniquePostKey}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
-                <button onclick="sendComment(${p.id}, '${p.user_id}', '${uniquePostKey}')" style="font-size:11px;">Ответить</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderCommentHTML(c, postId, uniquePostKey, canModerate = false) {
-      const isCommentLiked = userLikedComments.has(c.id);
-      const isMyComment = activeUser && c.user_id === activeUser.id;
-      const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
-
-      return `
-        <div class="comment-item" id="comment-${c.id}">
-          <div class="comment-content">
-            <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
-          </div>
-          <div class="comment-controls">
-            <button id="clike-btn-${c.id}" onclick="toggleCommentLike(${c.id}, '${c.user_id}', ${postId})" style="font-size:10px; padding:1px 4px;">
-              ${isCommentLiked ? '❤️' : '🤍'} <span id="clike-count-${c.id}">${c.likes_count || 0}</span>
-            </button>
-            <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
-            ${(isMyComment || canModerate) ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id}, '${uniquePostKey}')">×</button>` : ''}
-          </div>
-        </div>
-      `;
-    }
-
     async function loadFeed(feedType = 'all') {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
@@ -1864,6 +1825,7 @@
 
       btnCreatePost.disabled = false;
       postContent.value = ''; postImageFile.value = '';
+      btnClearPostImage.style.display = 'none';
       loadFeed(currentTab === 'friends_feed' ? 'friends' : (currentTab === 'communities_feed' ? 'communities' : 'all'));
     };
 
@@ -1989,6 +1951,7 @@
 
       btnCreateCommPost.disabled = false;
       commPostContent.value = ''; commPostImage.value = '';
+      btnClearCommPostImage.style.display = 'none';
       loadCommunityPosts(currentCommunityId);
     };
 
@@ -2198,7 +2161,6 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
-      // Надеваем рамочку на открытый профиль
       if (prof.custom_frame) {
         applyFrameStyles(prof.custom_frame);
       } else {
