@@ -45,9 +45,9 @@
       box-shadow: 2px 2px 10px rgba(0,0,0,0.5);
     }
     .ie-window {
-      width: 980px;
+      width: 990px;
       max-width: 98vw;
-      height: 700px;
+      height: 720px;
       max-height: 90vh;
       display: flex;
       flex-direction: column;
@@ -80,7 +80,7 @@
       position: relative;
     }
     .sidebar {
-      width: 195px;
+      width: 205px;
       background: #ece9d8;
       border-right: 2px groove #fff;
       padding: 8px;
@@ -90,6 +90,7 @@
       flex-shrink: 0;
       transition: transform 0.25s ease-out;
       z-index: 100;
+      overflow-y: auto;
     }
     .sidebar button {
       width: 100%;
@@ -255,8 +256,6 @@
       margin-left: 4px;
       font-weight: bold;
     }
-
-    /* Карточки в разделе Друзья */
     .friends-list-container {
       display: flex;
       flex-direction: column;
@@ -271,20 +270,13 @@
       padding: 6px 8px;
       font-size: 11px;
     }
-    .friend-row-card:hover {
-      background: #edf4ff;
-    }
+    .friend-row-card:hover { background: #edf4ff; }
     .friend-row-info {
       display: flex;
       align-items: center;
       gap: 8px;
       cursor: pointer;
     }
-    .friend-row-info b:hover {
-      text-decoration: underline;
-    }
-
-    /* Сетка друзей в профиле */
     .friends-grid {
       display: grid;
       grid-template-columns: repeat(auto-fill, minmax(75px, 1fr));
@@ -301,10 +293,7 @@
       background: #fff;
       border: 1px solid #dfdfdf;
     }
-    .friend-card:hover {
-      background: #edf4ff;
-      border-color: #0055ea;
-    }
+    .friend-card:hover { background: #edf4ff; border-color: #0055ea; }
     .friend-card img {
       width: 40px;
       height: 40px;
@@ -320,8 +309,6 @@
       text-overflow: ellipsis;
       white-space: nowrap;
     }
-
-    /* Всплывающее облачко Windows XP Balloon Tooltip */
     .xp-balloon {
       position: fixed;
       bottom: 38px;
@@ -357,8 +344,6 @@
       font-weight: bold;
       padding: 0 2px;
     }
-    .xp-balloon-close:hover { color: #000; }
-
     .player-dock {
       background: #ece9d8;
       border-top: 2px groove #fff;
@@ -404,6 +389,21 @@
       background: #0055ea !important;
       color: #fff !important;
       font-weight: bold;
+    }
+    .community-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 8px;
+      background: #fff;
+      border: 1px solid #7f9db9;
+      margin-bottom: 6px;
+    }
+    .community-info {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
     }
     .taskbar {
       height: 30px;
@@ -514,12 +514,15 @@
           <button id="btnTabFeed" type="button" style="font-weight: bold;">📰 Общая лента</button>
           <button id="btnTabFriendsFeed" type="button">📰 Лента друзей</button>
           <button id="btnTabFriendsManager" type="button">👥 Друзья <span id="friendsBadge" class="badge" style="display:none;">0</span></button>
+          <button id="btnTabMusic" type="button">🎵 Вся музыка</button>
+          <button id="btnTabCommunities" type="button">🌐 Сообщества</button>
           <button id="btnTabNotifications" type="button">🔔 Уведомления <span id="notifBadge" class="badge" style="display:none;">0</span></button>
           <button id="btnTabProfile" type="button">👤 Мой профиль</button>
         </div>
 
         <div class="main-view" id="mainContainer">
           
+          <!-- Раздел: Лента -->
           <div id="sectionFeed">
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
@@ -540,7 +543,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Управление друзьями и заявками -->
+          <!-- Раздел: Друзья -->
           <div id="sectionFriendsManager" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>📥 Входящие заявки в друзья (<span id="countIncoming">0</span>)</legend>
@@ -558,13 +561,114 @@
             </fieldset>
           </div>
 
-          <div id="sectionNotifications" style="display:none;">
+          <!-- Раздел: Вся музыка на сайте -->
+          <div id="sectionMusic" style="display:none;">
+            <fieldset style="margin-bottom: 12px;">
+              <legend>Загрузить песню в общую медиатеку</legend>
+              <div style="display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap;">
+                <input type="text" id="globalTrackTitle" placeholder="Название песни" style="flex: 1; font-size: 11px;">
+                <input type="text" id="globalTrackArtist" placeholder="Исполнитель" style="flex: 1; font-size: 11px;">
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                <label style="font-size: 11px; cursor: pointer;">
+                  Файл аудио (MP3):
+                  <input type="file" id="globalAudioFile" accept="audio/*" style="font-size: 10px;">
+                </label>
+                <button id="btnUploadGlobalTrack" style="font-weight: bold; font-size: 11px;">Опубликовать трек</button>
+              </div>
+              <div id="globalAudioUploadStatus" style="font-size: 10px; color: #555; margin-top: 2px;"></div>
+            </fieldset>
+
             <fieldset>
-              <legend>Уведомления</legend>
-              <div id="notificationsList">Загрузка уведомлений...</div>
+              <legend>🎵 Все песни, загруженные пользователями Bubble</legend>
+              <div style="margin-bottom: 6px;">
+                <input type="text" id="searchGlobalMusic" placeholder="Поиск по названию или исполнителю..." style="width: 100%; font-size: 11px;">
+              </div>
+              <div id="allTracksList" style="max-height: 400px; overflow-y: auto;">Загрузка треков...</div>
             </fieldset>
           </div>
 
+          <!-- Раздел: Сообщества -->
+          <div id="sectionCommunities" style="display:none;">
+            <div id="communityViewList">
+              <fieldset style="margin-bottom: 12px;">
+                <legend>Создать новое сообщество</legend>
+                <div style="display: flex; gap: 4px; margin-bottom: 4px;">
+                  <input type="text" id="newCommTitle" placeholder="Название сообщества" style="flex: 1; font-size: 11px;">
+                </div>
+                <textarea id="newCommDesc" rows="2" placeholder="Краткое описание сообщества..." style="width: 100%; font-size: 11px; margin-bottom: 4px;"></textarea>
+                <button id="btnCreateCommunity" style="font-weight: bold; font-size: 11px;">Создать сообщество</button>
+              </fieldset>
+
+              <fieldset>
+                <legend>🌐 Список сообществ Bubble</legend>
+                <div id="communitiesListContainer">Загрузка сообществ...</div>
+              </fieldset>
+            </div>
+
+            <!-- Внутренняя страница выбранного сообщества -->
+            <div id="communityViewSingle" style="display:none;">
+              <button id="btnBackToCommunities" style="margin-bottom: 8px;">← Назад к списку сообществ</button>
+              
+              <div class="profile-card">
+                <img id="commAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="comm avatar">
+                <div style="flex:1;">
+                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="commTitle">...</div>
+                    <button id="btnCommJoinLeave" style="font-size:11px;">Вступить</button>
+                  </div>
+                  <div style="font-size:11px; color:#555; margin-top:4px;" id="commDesc">...</div>
+                  <div style="font-size:10px; color:#0055ea; margin-top:2px;" id="commUserRole">Ваша роль: Участник</div>
+                </div>
+              </div>
+
+              <!-- Панель управления ролями (только для Creator / Admin) -->
+              <fieldset id="commAdminPanel" style="margin-bottom: 12px; display:none;">
+                <legend>⚙️ Управление участниками и ролями</legend>
+                <div id="commMembersList" style="max-height: 140px; overflow-y: auto; font-size: 11px;">Загрузка участников...</div>
+              </fieldset>
+
+              <!-- Музыка сообщества -->
+              <fieldset style="margin-bottom: 12px;">
+                <legend>🎵 Музыка сообщества</legend>
+                <div id="commMusicControls" style="margin-bottom: 6px; display:none;">
+                  <button id="btnAddTrackToCommPrompt" style="font-size:10px;">+ Добавить песню из своей музыки</button>
+                </div>
+                <div id="commTracksList" style="max-height: 160px; overflow-y: auto;">Загрузка треков...</div>
+              </fieldset>
+
+              <!-- Публикация поста в сообществе -->
+              <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
+                <legend>Новая запись в сообществе</legend>
+                <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость в сообщество..."></textarea>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
+                  <label style="font-size: 11px; cursor: pointer;">
+                    📷 Фото:
+                    <input type="file" id="commPostImage" accept="image/*" style="font-size: 11px;">
+                  </label>
+                  <button id="btnCreateCommPost" type="button" style="font-weight: bold;">Опубликовать в группу</button>
+                </div>
+              </fieldset>
+
+              <fieldset>
+                <legend>Стена сообщества</legend>
+                <div id="commPostsList">Загрузка постов...</div>
+              </fieldset>
+            </div>
+          </div>
+
+          <!-- Раздел: Уведомления -->
+          <div id="sectionNotifications" style="display:none;">
+            <fieldset>
+              <legend>
+                Уведомления
+                <button id="btnMarkAllRead" style="float: right; font-size: 10px; margin-top: -2px;">✓ Прочитать все</button>
+              </legend>
+              <div id="notificationsList" style="margin-top: 6px;">Загрузка уведомлений...</div>
+            </fieldset>
+          </div>
+
+          <!-- Раздел: Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
@@ -591,31 +695,7 @@
 
             <fieldset style="margin-bottom: 12px;">
               <legend>🎵 Музыка пользователя</legend>
-              
-              <div id="musicUploadBlock" style="margin-bottom: 8px; padding-bottom: 8px; border-bottom: 1px dotted #ccc; display:none;">
-                <div style="display: flex; gap: 4px; margin-bottom: 4px; flex-wrap: wrap;">
-                  <input type="text" id="trackTitle" placeholder="Название песни" style="flex: 1; font-size: 11px;">
-                  <input type="text" id="trackArtist" placeholder="Исполнитель" style="flex: 1; font-size: 11px;">
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
-                  <label style="font-size: 11px; cursor: pointer;">
-                    Выбрать MP3/Audio:
-                    <input type="file" id="audioFileInput" accept="audio/*" style="font-size: 10px;">
-                  </label>
-                  <button id="btnUploadTrack" style="font-weight: bold; font-size: 11px;">Загрузить трек</button>
-                </div>
-                <div id="audioUploadStatus" style="font-size: 10px; color: #555; margin-top: 2px;"></div>
-              </div>
-
-              <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
-                <div style="display:flex; gap:4px;">
-                  <input type="text" id="newPlaylistTitle" placeholder="Новый плейлист..." style="flex:1; font-size:11px;">
-                  <button id="btnCreatePlaylist" style="font-size:11px;">Создать плейлист</button>
-                </div>
-              </div>
-
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
-
               <div id="profileTracksList" style="max-height: 220px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
 
@@ -628,6 +708,7 @@
         </div>
       </div>
 
+      <!-- Аудиоплеер -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">⏹ Ничего не играет</div>
@@ -666,9 +747,11 @@
     let activeUser = null;
     let currentTab = 'feed';
     let viewingUserId = null;
+    let currentCommunityId = null;
+    let currentCommunityRole = null; // 'creator', 'admin', 'moderator', 'member', null
+
     let userLikedPosts = new Set();
     let userLikedComments = new Set();
-    
     let userFriendIds = new Set();
     let pendingOutgoingIds = new Set();
     let pendingIncomingIds = new Set();
@@ -680,9 +763,9 @@
     let currentTrackIndex = -1;
     let loopMode = 'none';
     const audioPlayer = document.getElementById('globalAudioPlayer');
-
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
+    // DOM элементы
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
@@ -700,13 +783,18 @@
     const btnTabFeed = document.getElementById('btnTabFeed');
     const btnTabFriendsFeed = document.getElementById('btnTabFriendsFeed');
     const btnTabFriendsManager = document.getElementById('btnTabFriendsManager');
+    const btnTabMusic = document.getElementById('btnTabMusic');
+    const btnTabCommunities = document.getElementById('btnTabCommunities');
     const btnTabNotifications = document.getElementById('btnTabNotifications');
     const btnTabProfile = document.getElementById('btnTabProfile');
+
     const notifBadge = document.getElementById('notifBadge');
     const friendsBadge = document.getElementById('friendsBadge');
 
     const sectionFeed = document.getElementById('sectionFeed');
     const sectionFriendsManager = document.getElementById('sectionFriendsManager');
+    const sectionMusic = document.getElementById('sectionMusic');
+    const sectionCommunities = document.getElementById('sectionCommunities');
     const sectionNotifications = document.getElementById('sectionNotifications');
     const sectionProfile = document.getElementById('sectionProfile');
 
@@ -714,6 +802,7 @@
     const feedList = document.getElementById('feedList');
     const profilePostsList = document.getElementById('profilePostsList');
     const notificationsList = document.getElementById('notificationsList');
+    const btnMarkAllRead = document.getElementById('btnMarkAllRead');
 
     const listIncomingReqs = document.getElementById('listIncomingReqs');
     const listAcceptedFriends = document.getElementById('listAcceptedFriends');
@@ -737,18 +826,41 @@
     const btnCreatePost = document.getElementById('btnCreatePost');
     const uploadStatus = document.getElementById('uploadStatus');
 
-    const musicUploadBlock = document.getElementById('musicUploadBlock');
-    const playlistCreateBlock = document.getElementById('playlistCreateBlock');
-    const audioFileInput = document.getElementById('audioFileInput');
-    const trackTitle = document.getElementById('trackTitle');
-    const trackArtist = document.getElementById('trackArtist');
-    const btnUploadTrack = document.getElementById('btnUploadTrack');
-    const audioUploadStatus = document.getElementById('audioUploadStatus');
-    const newPlaylistTitle = document.getElementById('newPlaylistTitle');
-    const btnCreatePlaylist = document.getElementById('btnCreatePlaylist');
+    // Музыка DOM
+    const allTracksList = document.getElementById('allTracksList');
+    const searchGlobalMusic = document.getElementById('searchGlobalMusic');
+    const globalTrackTitle = document.getElementById('globalTrackTitle');
+    const globalTrackArtist = document.getElementById('globalTrackArtist');
+    const globalAudioFile = document.getElementById('globalAudioFile');
+    const btnUploadGlobalTrack = document.getElementById('btnUploadGlobalTrack');
+    const globalAudioUploadStatus = document.getElementById('globalAudioUploadStatus');
     const playlistSelectContainer = document.getElementById('playlistSelectContainer');
     const profileTracksList = document.getElementById('profileTracksList');
 
+    // Сообщества DOM
+    const communityViewList = document.getElementById('communityViewList');
+    const communityViewSingle = document.getElementById('communityViewSingle');
+    const communitiesListContainer = document.getElementById('communitiesListContainer');
+    const newCommTitle = document.getElementById('newCommTitle');
+    const newCommDesc = document.getElementById('newCommDesc');
+    const btnCreateCommunity = document.getElementById('btnCreateCommunity');
+    const btnBackToCommunities = document.getElementById('btnBackToCommunities');
+    const commTitle = document.getElementById('commTitle');
+    const commDesc = document.getElementById('commDesc');
+    const commAvatar = document.getElementById('commAvatar');
+    const btnCommJoinLeave = document.getElementById('btnCommJoinLeave');
+    const commUserRole = document.getElementById('commUserRole');
+    const commAdminPanel = document.getElementById('commAdminPanel');
+    const commMembersList = document.getElementById('commMembersList');
+    const commMusicControls = document.getElementById('commMusicControls');
+    const btnAddTrackToCommPrompt = document.getElementById('btnAddTrackToCommPrompt');
+    const commTracksList = document.getElementById('commTracksList');
+    const commPostContent = document.getElementById('commPostContent');
+    const commPostImage = document.getElementById('commPostImage');
+    const btnCreateCommPost = document.getElementById('btnCreateCommPost');
+    const commPostsList = document.getElementById('commPostsList');
+
+    // Плеер DOM
     const currentTrackDisplay = document.getElementById('currentTrackDisplay');
     const currentPlaylistDisplay = document.getElementById('currentPlaylistDisplay');
     const btnPlayPause = document.getElementById('btnPlayPause');
@@ -960,7 +1072,6 @@
       hideXPBalloon();
     });
 
-    // Надежная подписка Realtime без строгих фильтров (фильтрация внутри события)
     function initRealtimeNotifications() {
       if (!activeUser) return;
       if (realtimeChannel) {
@@ -970,11 +1081,7 @@
 
       realtimeChannel = window.sbClient
         .channel('bubble_public_events')
-        .on('postgres_changes', {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'notifications'
-        }, (payload) => {
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'notifications' }, (payload) => {
           if (payload?.new && payload.new.user_id === activeUser.id) {
             updateUnreadBadge();
             loadFriends();
@@ -983,9 +1090,7 @@
             if (currentTab === 'friends_manager') loadFriendsManager();
           }
         })
-        .subscribe((status) => {
-          console.log('Realtime статус:', status);
-        });
+        .subscribe();
     }
 
     async function createNotification(targetUserId, type, message, postId) {
@@ -1027,11 +1132,15 @@
       btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
       btnTabFriendsFeed.style.fontWeight = tab === 'friends_feed' ? 'bold' : 'normal';
       btnTabFriendsManager.style.fontWeight = tab === 'friends_manager' ? 'bold' : 'normal';
+      btnTabMusic.style.fontWeight = tab === 'music' ? 'bold' : 'normal';
+      btnTabCommunities.style.fontWeight = tab === 'communities' ? 'bold' : 'normal';
       btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
       btnTabProfile.style.fontWeight = (tab === 'profile' && activeUser && targetUserId === activeUser.id) ? 'bold' : 'normal';
 
       sectionFeed.style.display = (tab === 'feed' || tab === 'friends_feed') ? 'block' : 'none';
       sectionFriendsManager.style.display = tab === 'friends_manager' ? 'block' : 'none';
+      sectionMusic.style.display = tab === 'music' ? 'block' : 'none';
+      sectionCommunities.style.display = tab === 'communities' ? 'block' : 'none';
       sectionNotifications.style.display = tab === 'notifications' ? 'block' : 'none';
       sectionProfile.style.display = tab === 'profile' ? 'block' : 'none';
 
@@ -1046,6 +1155,12 @@
       } else if (tab === 'friends_manager') {
         urlInput.value = 'https://bubble.net/friends';
         loadFriendsManager();
+      } else if (tab === 'music') {
+        urlInput.value = 'https://bubble.net/music';
+        loadAllGlobalMusic();
+      } else if (tab === 'communities') {
+        urlInput.value = 'https://bubble.net/communities';
+        showCommunitiesList();
       } else if (tab === 'notifications') {
         urlInput.value = 'https://bubble.net/notifications';
         loadNotifications();
@@ -1058,6 +1173,8 @@
     btnTabFeed.addEventListener('click', () => switchTab('feed'));
     btnTabFriendsFeed.addEventListener('click', () => switchTab('friends_feed'));
     btnTabFriendsManager.addEventListener('click', () => switchTab('friends_manager'));
+    btnTabMusic.addEventListener('click', () => switchTab('music'));
+    btnTabCommunities.addEventListener('click', () => switchTab('communities'));
     btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
     btnTabProfile.addEventListener('click', () => {
       if (activeUser) switchTab('profile', activeUser.id);
@@ -1080,46 +1197,13 @@
       }
     }
 
-    btnFriendAction.addEventListener('click', async () => {
-      if (!activeUser || !viewingUserId) return;
-      btnFriendAction.disabled = true;
-
-      const isFriend = userFriendIds.has(viewingUserId);
-      const isOutgoing = pendingOutgoingIds.has(viewingUserId);
-      const isIncoming = pendingIncomingIds.has(viewingUserId);
-
-      if (isFriend) {
-        if (!confirm('Удалить пользователя из друзей?')) {
-          btnFriendAction.disabled = false;
-          return;
-        }
-        await window.sbClient.from('friends').delete().or(
-          `and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`
-        );
-      } else if (isOutgoing) {
-        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
-      } else if (isIncoming) {
-        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: viewingUserId, friend_id: activeUser.id });
-        await createNotification(viewingUserId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
-      } else {
-        await window.sbClient.from('friends').insert([{
-          user_id: activeUser.id,
-          friend_id: viewingUserId,
-          status: 'pending'
-        }]);
-        await createNotification(viewingUserId, 'friend_request', 'хочет добавить вас в друзья', null);
-      }
-
-      await loadFriends();
-      openUserProfile(viewingUserId);
-      btnFriendAction.disabled = false;
-    });
-
-    function renderPostItem(p, commentsByPost, context = 'feed') {
+    // Рендер постов
+    function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false) {
       const isPostLiked = userLikedPosts.has(p.id);
       const postComments = commentsByPost[p.id] || [];
       const currentUserId = activeUser ? activeUser.id : null;
       const isMyPost = currentUserId && p.user_id === currentUserId;
+      const canDelete = isMyPost || canModerate;
       const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
       const uniquePostKey = `${context}-${p.id}`;
 
@@ -1131,7 +1215,7 @@
               <span class="post-author">🫧 ${escapeHtml(prof.username)}</span>
               <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
             </div>
-            ${isMyPost ? `<button class="btn-delete-post" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
+            ${canDelete ? `<button class="btn-delete-post" onclick="deletePost(${p.id}, '${context}')">✖ Удалить</button>` : ''}
           </div>
 
           <div style="margin: 6px 0; word-break: break-word;">${escapeHtml(p.content)}</div>
@@ -1164,7 +1248,7 @@
                           ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
                         </button>
                         <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
-                        ${isMyComment ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
+                        ${(isMyComment || canModerate) ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
                       </div>
                     </div>
                   `;
@@ -1180,17 +1264,15 @@
       `;
     }
 
-    // Лента записей: если включен фильтр друзей, отображаем посты подтвержденных друзей И тех, кому отправлена неотклоненная заявка
     async function loadFeed(onlyFriends = false) {
       if (!activeUser) return;
       feedList.innerHTML = 'Загрузка записей...';
       await loadAllProfiles();
       await loadFriends();
 
-      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
+      let query = window.sbClient.from('posts').select('*').is('community_id', null).order('id', { ascending: false }).limit(30);
 
       if (onlyFriends) {
-        // Подтверждённые друзья + отправленные заявки
         const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
         if (feedTargetIds.length === 0) {
           feedList.innerHTML = '<p>У вас пока нет друзей или отправленных заявок. Отправьте заявку пользователю, и его посты появятся здесь!</p>';
@@ -1218,7 +1300,350 @@
       feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, onlyFriends ? 'friends' : 'feed')).join('');
     }
 
-    // Раздел "Друзья": отображение списков входящих, подтверждённых и отправленных заявок
+    // ==================== РАЗДЕЛ: ВСЯ МУЗЫКА ====================
+    let allTracksCache = [];
+
+    async function loadAllGlobalMusic() {
+      allTracksList.innerHTML = 'Загрузка музыки Bubble...';
+      const { data: tracks, error } = await window.sbClient.from('tracks').select('*').order('id', { ascending: false });
+      if (error) return allTracksList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!tracks || tracks.length === 0) return allTracksList.innerHTML = '<p>Пока никто не загрузил музыку.</p>';
+
+      allTracksCache = tracks;
+      renderGlobalTracks(tracks);
+    }
+
+    function renderGlobalTracks(tracks) {
+      if (tracks.length === 0) {
+        allTracksList.innerHTML = '<p>Ничего не найдено.</p>';
+        return;
+      }
+      allTracksList.innerHTML = tracks.map((t, idx) => {
+        return `
+          <div class="track-list-item">
+            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека Bubble')">
+              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+            </div>
+            <div style="display:flex; gap:4px; align-items:center;">
+              <button onclick="addTrackToMyLibrary(${t.id})" title="Добавить к себе в профиль" style="font-size:10px;">➕ к себе</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    searchGlobalMusic.addEventListener('input', () => {
+      const q = searchGlobalMusic.value.toLowerCase().trim();
+      if (!q) return renderGlobalTracks(allTracksCache);
+      const filtered = allTracksCache.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q)));
+      renderGlobalTracks(filtered);
+    });
+
+    btnUploadGlobalTrack.addEventListener('click', async () => {
+      const file = globalAudioFile.files[0];
+      const title = globalTrackTitle.value.trim();
+      const artist = globalTrackArtist.value.trim() || 'Неизвестный исполнитель';
+
+      if (!file || !title) return alert('Выберите MP3-файл и укажите название!');
+      if (!activeUser) return;
+
+      btnUploadGlobalTrack.disabled = true;
+      globalAudioUploadStatus.innerText = 'Загрузка трека...';
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('audio_tracks').upload(fileName, file);
+      if (uploadError) {
+        globalAudioUploadStatus.innerText = '';
+        btnUploadGlobalTrack.disabled = false;
+        return alert('Ошибка загрузки аудио: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('audio_tracks').getPublicUrl(fileName);
+      const { data: trackData, error: trackError } = await window.sbClient.from('tracks').insert([{
+        title, artist, audio_url: publicUrl, uploader_id: activeUser.id
+      }]).select().single();
+
+      if (trackError) {
+        alert('Ошибка сохранения: ' + trackError.message);
+      } else {
+        await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackData.id }]);
+        globalTrackTitle.value = '';
+        globalTrackArtist.value = '';
+        globalAudioFile.value = '';
+        globalAudioUploadStatus.innerText = 'Трек опубликован!';
+        setTimeout(() => globalAudioUploadStatus.innerText = '', 2000);
+        loadAllGlobalMusic();
+      }
+      btnUploadGlobalTrack.disabled = false;
+    });
+
+    // ==================== РАЗДЕЛ: СООБЩЕСТВА ====================
+    async function showCommunitiesList() {
+      communityViewList.style.display = 'block';
+      communityViewSingle.style.display = 'none';
+      communitiesListContainer.innerHTML = 'Загрузка...';
+
+      const { data: comms, error } = await window.sbClient.from('communities').select('*').order('id', { ascending: false });
+      if (error) return communitiesListContainer.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!comms || comms.length === 0) return communitiesListContainer.innerHTML = '<p>Пока нет сообществ. Создайте первое!</p>';
+
+      communitiesListContainer.innerHTML = comms.map(c => `
+        <div class="community-card">
+          <div class="community-info" onclick="openCommunity(${c.id})">
+            <img src="${c.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+            <div>
+              <div style="font-weight:bold; color:#0b388f;">${escapeHtml(c.title)}</div>
+              <div style="font-size:10px; color:#666;">${escapeHtml(c.description || 'Без описания')}</div>
+            </div>
+          </div>
+          <button onclick="openCommunity(${c.id})" style="font-size:11px;">Открыть</button>
+        </div>
+      `).join('');
+    }
+
+    btnCreateCommunity.addEventListener('click', async () => {
+      const title = newCommTitle.value.trim();
+      const desc = newCommDesc.value.trim();
+      if (!title || !activeUser) return alert('Введите название сообщества!');
+
+      const { data: comm, error } = await window.sbClient.from('communities').insert([{
+        title, description: desc, creator_id: activeUser.id
+      }]).select().single();
+
+      if (error) return alert('Ошибка создания сообщества: ' + error.message);
+
+      // Добавляем создателя в участники с ролью 'creator'
+      await window.sbClient.from('community_members').insert([{
+        community_id: comm.id, user_id: activeUser.id, role: 'creator'
+      }]);
+
+      newCommTitle.value = '';
+      newCommDesc.value = '';
+      openCommunity(comm.id);
+    });
+
+    btnBackToCommunities.addEventListener('click', () => showCommunitiesList());
+
+    async function openCommunity(commId) {
+      currentCommunityId = commId;
+      communityViewList.style.display = 'none';
+      communityViewSingle.style.display = 'block';
+      urlInput.value = `https://bubble.net/community/${commId}`;
+
+      const { data: comm } = await window.sbClient.from('communities').select('*').eq('id', commId).single();
+      if (!comm) return alert('Сообщество не найдено');
+
+      commTitle.innerText = comm.title;
+      commDesc.innerText = comm.description || 'Без описания';
+      commAvatar.src = comm.avatar_url || DEFAULT_AVATAR;
+
+      // Проверка роли пользователя в этом сообществе
+      currentCommunityRole = null;
+      if (activeUser) {
+        const { data: member } = await window.sbClient
+          .from('community_members')
+          .select('role')
+          .eq('community_id', commId)
+          .eq('user_id', activeUser.id)
+          .maybeSingle();
+
+        if (member) currentCommunityRole = member.role;
+      }
+
+      // Текст роли и кнопка вступления
+      if (!currentCommunityRole) {
+        btnCommJoinLeave.innerText = '+ Вступить';
+        commUserRole.innerText = 'Вы не состоите в сообществе';
+      } else {
+        const roleNames = { creator: 'Создатель 👑', admin: 'Администратор 🛡️', moderator: 'Модератор 🔨', member: 'Участник 👤' };
+        commUserRole.innerText = 'Ваша роль: ' + (roleNames[currentCommunityRole] || 'Участник');
+        btnCommJoinLeave.innerText = currentCommunityRole === 'creator' ? 'Удалить группу' : 'Покинуть';
+      }
+
+      // Панель управления (для Создателя и Администраторов)
+      if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
+        commAdminPanel.style.display = 'block';
+        loadCommunityMembers(commId, currentCommunityRole);
+      } else {
+        commAdminPanel.style.display = 'none';
+      }
+
+      // Возможность добавления музыки в сообщество (для админов и создателя)
+      if (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') {
+        commMusicControls.style.display = 'block';
+      } else {
+        commMusicControls.style.display = 'none';
+      }
+
+      loadCommunityMusic(commId);
+      loadCommunityPosts(commId);
+    }
+
+    // Вступить / Покинуть сообщество
+    btnCommJoinLeave.addEventListener('click', async () => {
+      if (!activeUser || !currentCommunityId) return;
+
+      if (!currentCommunityRole) {
+        await window.sbClient.from('community_members').insert([{
+          community_id: currentCommunityId, user_id: activeUser.id, role: 'member'
+        }]);
+      } else if (currentCommunityRole === 'creator') {
+        if (!confirm('Вы создатель. Удалить всё сообщество?')) return;
+        await window.sbClient.from('communities').delete().eq('id', currentCommunityId);
+        showCommunitiesList();
+        return;
+      } else {
+        await window.sbClient.from('community_members').delete().match({
+          community_id: currentCommunityId, user_id: activeUser.id
+        });
+      }
+      openCommunity(currentCommunityId);
+    });
+
+    // Список участников и назначение ролей
+    async function loadCommunityMembers(commId, myRole) {
+      commMembersList.innerHTML = 'Загрузка участников...';
+      const { data: members } = await window.sbClient.from('community_members').select('*').eq('community_id', commId);
+
+      commMembersList.innerHTML = (members || []).map(m => {
+        const prof = profilesMap[m.user_id] || { username: 'Пользователь' };
+        const isSelf = m.user_id === activeUser.id;
+        const canManage = (myRole === 'creator' && !isSelf) || (myRole === 'admin' && m.role !== 'creator' && m.role !== 'admin' && !isSelf);
+
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:3px 0; border-bottom:1px dotted #ccc;">
+            <span><b>${escapeHtml(prof.username)}</b> (${m.role})</span>
+            ${canManage ? `
+              <select onchange="changeMemberRole(${m.id}, this.value)" style="font-size:10px;">
+                <option value="">Сменить роль...</option>
+                ${myRole === 'creator' ? '<option value="admin">Сделать Админом</option>' : ''}
+                <option value="moderator">Сделать Модератором</option>
+                <option value="member">Сделать Участником</option>
+                <option value="kick">Исключить</option>
+              </select>
+            ` : ''}
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.changeMemberRole = async function(memberRecordId, action) {
+      if (!action) return;
+      if (action === 'kick') {
+        await window.sbClient.from('community_members').delete().eq('id', memberRecordId);
+      } else {
+        await window.sbClient.from('community_members').update({ role: action }).eq('id', memberRecordId);
+      }
+      openCommunity(currentCommunityId);
+    };
+
+    // Музыка сообщества
+    async function loadCommunityMusic(commId) {
+      commTracksList.innerHTML = 'Загрузка...';
+      const { data: rows } = await window.sbClient
+        .from('community_tracks')
+        .select('track_id, tracks(*)')
+        .eq('community_id', commId);
+
+      const tracks = (rows || []).map(r => r.tracks).filter(Boolean);
+      if (tracks.length === 0) {
+        commTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В сообществе пока нет музыки.</div>';
+        return;
+      }
+
+      commTracksList.innerHTML = tracks.map((t, idx) => `
+        <div class="track-list-item">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка сообщества')">
+            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+          </div>
+          <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>
+        </div>
+      `).join('');
+    }
+
+    btnAddTrackToCommPrompt.addEventListener('click', async () => {
+      const { data: userTracks } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', activeUser.id);
+      const myMusic = (userTracks || []).map(u => u.tracks).filter(Boolean);
+      if (myMusic.length === 0) return alert('Сначала добавьте музыку в свой профиль!');
+
+      const trackTitles = myMusic.map((t, i) => `${i + 1}. ${t.artist} - ${t.title}`).join('\n');
+      const choice = prompt(`Введите номер трека, чтобы прикрепить в сообщество:\n${trackTitles}`);
+      const index = parseInt(choice) - 1;
+
+      if (!isNaN(index) && myMusic[index]) {
+        await window.sbClient.from('community_tracks').insert([{
+          community_id: currentCommunityId, track_id: myMusic[index].id
+        }]);
+        loadCommunityMusic(currentCommunityId);
+      }
+    });
+
+    // Публикация поста в сообществе
+    btnCreateCommPost.addEventListener('click', async () => {
+      if (!activeUser || !currentCommunityId) return;
+      if (!currentCommunityRole) return alert('Вступите в сообщество, чтобы писать на стене!');
+
+      const text = commPostContent.value.trim();
+      const file = commPostImage.files[0];
+      if (!text && !file) return alert('Введите текст или прикрепите фото!');
+
+      btnCreateCommPost.disabled = true;
+      let imageUrl = null;
+
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (!uploadError) {
+          const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
+          imageUrl = publicUrl;
+        }
+      }
+
+      const myProf = profilesMap[activeUser.id] || {};
+      const { data: insertedPost } = await window.sbClient.from('posts').insert([{
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        user_id: activeUser.id,
+        community_id: currentCommunityId,
+        image_url: imageUrl,
+        likes_count: 0
+      }]).select().single();
+
+      btnCreateCommPost.disabled = false;
+      commPostContent.value = '';
+      commPostImage.value = '';
+      if (insertedPost) await parseMentions(text, insertedPost.id);
+      loadCommunityPosts(currentCommunityId);
+    });
+
+    // Посты сообщества
+    async function loadCommunityPosts(commId) {
+      commPostsList.innerHTML = 'Загрузка...';
+      const { data: posts, error } = await window.sbClient
+        .from('posts')
+        .select('*')
+        .eq('community_id', commId)
+        .order('id', { ascending: false });
+
+      if (error) return commPostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return commPostsList.innerHTML = '<p>В сообществе пока нет записей.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      const canModerate = currentCommunityRole === 'creator' || currentCommunityRole === 'admin' || currentCommunityRole === 'moderator';
+      commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
+    }
+
+    // ==================== РАЗДЕЛ: ДРУЗЬЯ ====================
     async function loadFriendsManager() {
       await loadAllProfiles();
       await loadFriends();
@@ -1227,7 +1652,6 @@
       countAccepted.innerText = userFriendIds.size;
       countOutgoing.innerText = pendingOutgoingIds.size;
 
-      // 1. Входящие
       if (pendingIncomingIds.size === 0) {
         listIncomingReqs.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Нет входящих заявок.</div>';
       } else {
@@ -1248,7 +1672,6 @@
         }).join('');
       }
 
-      // 2. Подтверждённые
       if (userFriendIds.size === 0) {
         listAcceptedFriends.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Список друзей пуст.</div>';
       } else {
@@ -1268,7 +1691,6 @@
         }).join('');
       }
 
-      // 3. Отправленные
       if (pendingOutgoingIds.size === 0) {
         listOutgoingReqs.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Нет отправленных заявок.</div>';
       } else {
@@ -1314,6 +1736,88 @@
       await loadFriendsManager();
     };
 
+    // ==================== РАЗДЕЛ: УВЕДОМЛЕНИЯ ====================
+    async function loadNotifications() {
+      if (!activeUser) return;
+      notificationsList.innerHTML = 'Загрузка...';
+
+      const { data: notifs, error } = await window.sbClient
+        .from('notifications')
+        .select('*')
+        .eq('user_id', activeUser.id)
+        .order('id', { ascending: false })
+        .limit(40);
+
+      if (error) return notificationsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!notifs || notifs.length === 0) return notificationsList.innerHTML = '<p>Уведомлений пока нет.</p>';
+
+      notificationsList.innerHTML = notifs.map(n => {
+        const isFriendReq = n.type === 'friend_request';
+        return `
+          <div class="notification-item" style="${n.is_read ? 'opacity:0.8;' : 'background:#fff8db; font-weight:bold; border-color:#d49b00;'}">
+            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
+              <div onclick="${n.post_id ? `openTargetPost(${n.post_id}, ${n.id})` : `goToProfile('${n.from_user_id}')`}" style="cursor:pointer; flex:1;">
+                <b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}
+                <div style="font-size:9px; color:#888; font-weight:normal;">${new Date(n.created_at).toLocaleString()}</div>
+              </div>
+              ${isFriendReq ? `
+                <div style="display:flex; gap:4px;">
+                  <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, true)" style="font-size:10px;">Принять</button>
+                  <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, false)" style="font-size:10px; color:#a00;">Отклонить</button>
+                </div>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    // Кнопка "Прочитать все"
+    btnMarkAllRead.addEventListener('click', async () => {
+      if (!activeUser) return;
+      await window.sbClient.from('notifications').update({ is_read: true }).eq('user_id', activeUser.id).eq('is_read', false);
+      await updateUnreadBadge();
+      loadNotifications();
+    });
+
+    window.respondFriendRequest = async function(senderId, notifId, accept) {
+      if (!activeUser) return;
+      if (accept) {
+        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: senderId, friend_id: activeUser.id });
+        await createNotification(senderId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
+      } else {
+        await window.sbClient.from('friends').delete().match({ user_id: senderId, friend_id: activeUser.id, status: 'pending' });
+      }
+      await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
+      await loadFriends();
+      await updateUnreadBadge();
+      loadNotifications();
+    };
+
+    window.openTargetPost = async function(postId, notifId) {
+      if (notifId && activeUser) {
+        await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
+        await updateUnreadBadge();
+      }
+      if (!postId) return switchTab('notifications');
+
+      switchTab('feed');
+      setTimeout(() => {
+        const postEl = document.getElementById(`post-feed-${postId}`);
+        if (postEl) {
+          postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          postEl.classList.add('highlight');
+          setTimeout(() => postEl.classList.remove('highlight'), 2500);
+
+          const commentsBox = document.getElementById(`comments-box-feed-${postId}`);
+          if (commentsBox && !commentsBox.classList.contains('open')) {
+            commentsBox.classList.add('open');
+          }
+        }
+      }, 500);
+    };
+
+    // ==================== ПРОФИЛЬ ====================
     async function loadProfileFriends(userId) {
       profileFriendsList.innerHTML = 'Загрузка...';
       try {
@@ -1341,10 +1845,46 @@
           `;
         }).join('');
       } catch (e) {
-        console.warn('loadProfileFriends:', e);
         profileFriendsList.innerHTML = '<div style="font-size:11px; color:red;">Ошибка загрузки друзей.</div>';
       }
     }
+
+    async function loadUserMusic(userId) {
+      profileTracksList.innerHTML = 'Загрузка...';
+      const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', userId);
+      const tracks = (data || []).map(d => d.tracks).filter(Boolean);
+
+      if (tracks.length === 0) {
+        profileTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">Музыка не добавлена.</div>';
+        return;
+      }
+
+      const isMyProfile = activeUser && userId === activeUser.id;
+      profileTracksList.innerHTML = tracks.map((t, idx) => `
+        <div class="track-list-item">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка профиля')">
+            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+          </div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            ${!isMyProfile ? `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">➕ к себе</button>` : ''}
+            ${isMyProfile ? `<button onclick="removeTrackFromLibrary(${t.id})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
+          </div>
+        </div>
+      `).join('');
+    }
+
+    window.addTrackToMyLibrary = async function(trackId) {
+      if (!activeUser) return;
+      const { error } = await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackId }]);
+      if (error && error.code !== '23505') alert('Ошибка: ' + error.message);
+      else alert('Трек добавлен в ваш профиль!');
+    };
+
+    window.removeTrackFromLibrary = async function(trackId) {
+      if (!confirm('Удалить трек из профиля?')) return;
+      await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: trackId });
+      loadUserMusic(activeUser.id);
+    };
 
     async function openUserProfile(userId) {
       await loadAllProfiles();
@@ -1366,16 +1906,11 @@
         } else {
           btnFriendAction.innerText = '+ Добавить в друзья';
         }
-
         avatarUploadBox.style.display = 'none';
-        musicUploadBlock.style.display = 'none';
-        playlistCreateBlock.style.display = 'none';
         profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
       } else {
         btnFriendAction.style.display = 'none';
         avatarUploadBox.style.display = 'block';
-        musicUploadBlock.style.display = 'block';
-        playlistCreateBlock.style.display = 'block';
         profilePostsLegend.innerText = 'Мои публикации';
       }
 
@@ -1383,7 +1918,7 @@
       loadUserMusic(userId);
 
       profilePostsList.innerHTML = 'Загрузка записей...';
-      const { data: posts, error } = await window.sbClient.from('posts').select('*').eq('user_id', userId).order('id', { ascending: false });
+      const { data: posts, error } = await window.sbClient.from('posts').select('*').eq('user_id', userId).is('community_id', null).order('id', { ascending: false });
 
       if (error) return profilePostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
       if (!posts || posts.length === 0) return profilePostsList.innerHTML = '<p>Публикаций пока нет.</p>';
@@ -1400,142 +1935,202 @@
       profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
     }
 
-    // Музыка
-    btnUploadTrack.addEventListener('click', async () => {
-      const file = audioFileInput.files[0];
-      const title = trackTitle.value.trim();
-      const artist = trackArtist.value.trim() || 'Неизвестный исполнитель';
+    avatarFileInput.addEventListener('change', async () => {
+      const file = avatarFileInput.files[0];
+      if (!file || !activeUser) return;
 
-      if (!file || !title) return alert('Выберите аудиофайл и введите название песни!');
-      if (!activeUser) return;
-
-      btnUploadTrack.disabled = true;
-      audioUploadStatus.innerText = 'Загрузка трека на сервер...';
-
+      avatarStatus.innerText = 'Загрузка...';
       const fileExt = file.name.split('.').pop();
       const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await window.sbClient.storage.from('audio_tracks').upload(fileName, file);
+      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
       if (uploadError) {
-        audioUploadStatus.innerText = '';
-        btnUploadTrack.disabled = false;
-        return alert('Ошибка загрузки аудио: ' + uploadError.message);
+        avatarStatus.innerText = '';
+        return alert('Ошибка загрузки: ' + uploadError.message);
       }
 
-      const { data: { publicUrl } } = window.sbClient.storage.from('audio_tracks').getPublicUrl(fileName);
+      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
+      await window.sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
 
-      const { data: trackData, error: trackError } = await window.sbClient.from('tracks').insert([{
-        title, artist, audio_url: publicUrl, uploader_id: activeUser.id
+      avatarStatus.innerText = 'Готово!';
+      profileAvatar.src = publicUrl;
+      sideAvatar.src = publicUrl;
+      avatarFileInput.value = '';
+      await loadAllProfiles();
+    });
+
+    btnFriendAction.addEventListener('click', async () => {
+      if (!activeUser || !viewingUserId) return;
+      btnFriendAction.disabled = true;
+
+      const isFriend = userFriendIds.has(viewingUserId);
+      const isOutgoing = pendingOutgoingIds.has(viewingUserId);
+      const isIncoming = pendingIncomingIds.has(viewingUserId);
+
+      if (isFriend) {
+        if (!confirm('Удалить пользователя из друзей?')) {
+          btnFriendAction.disabled = false;
+          return;
+        }
+        await window.sbClient.from('friends').delete().or(
+          `and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`
+        );
+      } else if (isOutgoing) {
+        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
+      } else if (isIncoming) {
+        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: viewingUserId, friend_id: activeUser.id });
+        await createNotification(viewingUserId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
+      } else {
+        await window.sbClient.from('friends').insert([{ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' }]);
+        await createNotification(viewingUserId, 'friend_request', 'хочет добавить вас в друзья', null);
+      }
+
+      await loadFriends();
+      openUserProfile(viewingUserId);
+      btnFriendAction.disabled = false;
+    });
+
+    // ==================== ЛАЙКИ, КОММЕНТАРИИ И ПОСТЫ ====================
+    window.toggleCommentsVisibility = function(uniquePostKey) {
+      const box = document.getElementById(`comments-box-${uniquePostKey}`);
+      if (!box) return;
+      box.classList.toggle('open');
+    };
+
+    window.replyToComment = function(uniquePostKey, author) {
+      const box = document.getElementById(`comments-box-${uniquePostKey}`);
+      if (box && !box.classList.contains('open')) box.classList.add('open');
+      const input = document.getElementById(`comment-input-${uniquePostKey}`);
+      if (input) {
+        input.value = `@${author} ` + input.value;
+        input.focus();
+      }
+    };
+
+    btnCreatePost.addEventListener('click', async () => {
+      if (!activeUser) return;
+      const text = postContent.value.trim();
+      const file = postImageFile.files[0];
+      if (!text && !file) return alert('Введите текст или прикрепите фото!');
+
+      btnCreatePost.disabled = true;
+      let imageUrl = null;
+
+      if (file) {
+        uploadStatus.innerText = 'Загрузка фото...';
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (!uploadError) {
+          const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
+          imageUrl = publicUrl;
+        }
+      }
+
+      uploadStatus.innerText = 'Публикация...';
+      const myProf = profilesMap[activeUser.id] || {};
+      const { data: insertedPost } = await window.sbClient.from('posts').insert([{
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        user_id: activeUser.id,
+        community_id: null,
+        image_url: imageUrl,
+        likes_count: 0
       }]).select().single();
 
-      if (trackError) {
-        alert('Ошибка сохранения: ' + trackError.message);
-      } else {
-        await window.sbClient.from('user_tracks').insert([{
-          user_id: activeUser.id, track_id: trackData.id
-        }]);
-        trackTitle.value = '';
-        trackArtist.value = '';
-        audioFileInput.value = '';
-        audioUploadStatus.innerText = 'Трек успешно добавлен!';
-        setTimeout(() => audioUploadStatus.innerText = '', 2000);
-        loadUserMusic(activeUser.id);
-      }
-      btnUploadTrack.disabled = false;
+      btnCreatePost.disabled = false;
+      uploadStatus.innerText = '';
+      postContent.value = '';
+      postImageFile.value = '';
+      if (insertedPost) await parseMentions(text, insertedPost.id);
+      switchTab(currentTab, viewingUserId);
     });
 
-    btnCreatePlaylist.addEventListener('click', async () => {
-      const title = newPlaylistTitle.value.trim();
-      if (!title || !activeUser) return;
-      await window.sbClient.from('playlists').insert([{ user_id: activeUser.id, title }]);
-      newPlaylistTitle.value = '';
-      loadUserMusic(activeUser.id);
-    });
-
-    async function loadUserMusic(userId, activePlaylistId = null) {
-      profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
-
-      const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
-      playlistSelectContainer.innerHTML = `
-        <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
-        ${(playlists || []).map(pl => `
-          <button style="${activePlaylistId === pl.id ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', ${pl.id})">💿 ${escapeHtml(pl.title)}</button>
-        `).join('')}
-      `;
-
-      let tracks = [];
-      if (activePlaylistId) {
-        const { data } = await window.sbClient
-          .from('playlist_tracks')
-          .select('track_id, tracks(*)')
-          .eq('playlist_id', activePlaylistId);
-        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+    window.deletePost = async function(postId, context) {
+      if (!confirm('Удалить этот пост?')) return;
+      await window.sbClient.from('posts').delete().eq('id', postId);
+      if (context.startsWith('comm-')) {
+        loadCommunityPosts(currentCommunityId);
       } else {
-        const { data } = await window.sbClient
-          .from('user_tracks')
-          .select('track_id, tracks(*)')
-          .eq('user_id', userId);
-        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+        switchTab(currentTab, viewingUserId);
       }
+    };
 
-      if (tracks.length === 0) {
-        profileTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В этом списке пока нет аудиозаписей.</div>';
-        return;
+    window.deleteComment = async function(commentId) {
+      if (!confirm('Удалить комментарий?')) return;
+      await window.sbClient.from('comments').delete().eq('id', commentId);
+      if (currentCommunityId && communityViewSingle.style.display === 'block') {
+        loadCommunityPosts(currentCommunityId);
+      } else {
+        switchTab(currentTab, viewingUserId);
       }
+    };
 
-      const isMyProfile = activeUser && userId === activeUser.id;
-
-      let myPlaylists = [];
-      if (activeUser) {
-        const { data: myPl } = await window.sbClient.from('playlists').select('id, title').eq('user_id', activeUser.id);
-        myPlaylists = myPl || [];
-      }
-
-      profileTracksList.innerHTML = tracks.map((t, idx) => {
-        return `
-          <div class="track-list-item">
-            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, '${activePlaylistId ? 'Плейлист' : 'Библиотека'}')">
-              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
-            </div>
-            <div style="display:flex; gap:4px; align-items:center;">
-              ${!isMyProfile ? `<button onclick="addTrackToMyLibrary(${t.id})" title="Добавить к себе в профиль" style="font-size:10px;">➕ к себе</button>` : ''}
-              ${(isMyProfile && myPlaylists.length > 0) ? `
-                <select onchange="addTrackToPlaylist(${t.id}, this.value); this.value='';" style="font-size:10px;">
-                  <option value="">+ В плейлист...</option>
-                  ${myPlaylists.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('')}
-                </select>
-              ` : ''}
-              ${isMyProfile ? `<button onclick="removeTrackFromLibrary(${t.id}, ${activePlaylistId})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.addTrackToMyLibrary = async function(trackId) {
+    window.togglePostLike = async function(postId, currentLikes, postAuthorId) {
       if (!activeUser) return;
-      const { error } = await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackId }]);
-      if (error && error.code !== '23505') alert('Ошибка добавления: ' + error.message);
-      else alert('Трек успешно добавлен в ваш профиль!');
-    };
-
-    window.addTrackToPlaylist = async function(trackId, playlistId) {
-      if (!playlistId || !activeUser) return;
-      const { error } = await window.sbClient.from('playlist_tracks').insert([{ playlist_id: playlistId, track_id: trackId }]);
-      if (error && error.code !== '23505') alert('Ошибка: ' + error.message);
-      else alert('Трек добавлен в плейлист!');
-    };
-
-    window.removeTrackFromLibrary = async function(trackId, playlistId) {
-      if (!confirm('Удалить трек?')) return;
-      if (playlistId) {
-        await window.sbClient.from('playlist_tracks').delete().match({ playlist_id: playlistId, track_id: trackId });
+      if (userLikedPosts.has(postId)) {
+        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
+        await window.sbClient.from('posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
+        userLikedPosts.delete(postId);
       } else {
-        await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: trackId });
+        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
+        await window.sbClient.from('posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
+        userLikedPosts.add(postId);
+        await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
       }
-      loadUserMusic(activeUser.id, playlistId);
+      if (currentCommunityId && communityViewSingle.style.display === 'block') {
+        loadCommunityPosts(currentCommunityId);
+      } else {
+        switchTab(currentTab, viewingUserId);
+      }
     };
 
+    window.toggleCommentLike = async function(commentId, currentLikes, commentAuthorId, postId) {
+      if (!activeUser) return;
+      if (userLikedComments.has(commentId)) {
+        await window.sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
+        await window.sbClient.from('comments').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', commentId);
+        userLikedComments.delete(commentId);
+      } else {
+        await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
+        await window.sbClient.from('comments').update({ likes_count: currentLikes + 1 }).eq('id', commentId);
+        userLikedComments.add(commentId);
+        await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
+      }
+      if (currentCommunityId && communityViewSingle.style.display === 'block') {
+        loadCommunityPosts(currentCommunityId);
+      } else {
+        switchTab(currentTab, viewingUserId);
+      }
+    };
+
+    window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
+      if (!activeUser) return;
+      const input = document.getElementById(`comment-input-${uniquePostKey}`);
+      const text = input ? input.value.trim() : '';
+      if (!text) return;
+
+      const myProf = profilesMap[activeUser.id] || {};
+      await window.sbClient.from('comments').insert([{
+        post_id: postId,
+        user_id: activeUser.id,
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        likes_count: 0
+      }]);
+
+      input.value = '';
+      await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
+      await parseMentions(text, postId);
+
+      if (currentCommunityId && communityViewSingle.style.display === 'block') {
+        loadCommunityPosts(currentCommunityId);
+      } else {
+        switchTab(currentTab, viewingUserId);
+      }
+    };
+
+    // ==================== ПЛЕЕР ====================
     window.playQueue = function(tracks, startIndex, playlistName = 'Список') {
       playlistQueue = tracks;
       currentTrackIndex = startIndex;
@@ -1614,235 +2209,6 @@
         }
       }
     });
-
-    async function loadNotifications() {
-      if (!activeUser) return;
-      notificationsList.innerHTML = 'Загрузка...';
-
-      const { data: notifs, error } = await window.sbClient
-        .from('notifications')
-        .select('*')
-        .eq('user_id', activeUser.id)
-        .order('id', { ascending: false })
-        .limit(40);
-
-      if (error) return notificationsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!notifs || notifs.length === 0) return notificationsList.innerHTML = '<p>Уведомлений пока нет.</p>';
-
-      notificationsList.innerHTML = notifs.map(n => {
-        const isFriendReq = n.type === 'friend_request';
-        return `
-          <div class="notification-item" style="${n.is_read ? 'opacity:0.8;' : 'background:#fff8db; font-weight:bold; border-color:#d49b00;'}">
-            <div style="display:flex; justify-content:space-between; align-items:center; gap:6px;">
-              <div onclick="${n.post_id ? `openTargetPost(${n.post_id}, ${n.id})` : `goToProfile('${n.from_user_id}')`}" style="cursor:pointer; flex:1;">
-                <b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}
-                <div style="font-size:9px; color:#888; font-weight:normal;">${new Date(n.created_at).toLocaleString()}</div>
-              </div>
-              ${isFriendReq ? `
-                <div style="display:flex; gap:4px;">
-                  <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, true)" style="font-size:10px;">Принять</button>
-                  <button onclick="respondFriendRequest('${n.from_user_id}', ${n.id}, false)" style="font-size:10px; color:#a00;">Отклонить</button>
-                </div>
-              ` : ''}
-            </div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.respondFriendRequest = async function(senderId, notifId, accept) {
-      if (!activeUser) return;
-
-      if (accept) {
-        await window.sbClient.from('friends').update({ status: 'accepted' }).match({ user_id: senderId, friend_id: activeUser.id });
-        await createNotification(senderId, 'friend_accept', 'принял(а) вашу заявку в друзья!', null);
-      } else {
-        await window.sbClient.from('friends').delete().match({ user_id: senderId, friend_id: activeUser.id, status: 'pending' });
-      }
-
-      await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
-      await loadFriends();
-      await updateUnreadBadge();
-      loadNotifications();
-    };
-
-    window.openTargetPost = async function(postId, notifId) {
-      if (notifId && activeUser) {
-        await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
-        await updateUnreadBadge();
-      }
-      if (!postId) return switchTab('notifications');
-
-      switchTab('feed');
-      setTimeout(() => {
-        const postEl = document.getElementById(`post-feed-${postId}`);
-        if (postEl) {
-          postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-          postEl.classList.add('highlight');
-          setTimeout(() => postEl.classList.remove('highlight'), 2500);
-
-          const commentsBox = document.getElementById(`comments-box-feed-${postId}`);
-          if (commentsBox && !commentsBox.classList.contains('open')) {
-            commentsBox.classList.add('open');
-          }
-        }
-      }, 500);
-    };
-
-    avatarFileInput.addEventListener('change', async () => {
-      const file = avatarFileInput.files[0];
-      if (!file || !activeUser) return;
-
-      avatarStatus.innerText = 'Загрузка...';
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
-      if (uploadError) {
-        avatarStatus.innerText = '';
-        return alert('Ошибка загрузки: ' + uploadError.message);
-      }
-
-      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
-      await window.sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
-
-      avatarStatus.innerText = 'Готово!';
-      profileAvatar.src = publicUrl;
-      sideAvatar.src = publicUrl;
-      avatarFileInput.value = '';
-      await loadAllProfiles();
-    });
-
-    window.toggleCommentsVisibility = function(uniquePostKey) {
-      const box = document.getElementById(`comments-box-${uniquePostKey}`);
-      if (!box) return;
-      box.classList.toggle('open');
-    };
-
-    window.replyToComment = function(uniquePostKey, author) {
-      const box = document.getElementById(`comments-box-${uniquePostKey}`);
-      if (box && !box.classList.contains('open')) box.classList.add('open');
-      const input = document.getElementById(`comment-input-${uniquePostKey}`);
-      if (input) {
-        input.value = `@${author} ` + input.value;
-        input.focus();
-      }
-    };
-
-    btnCreatePost.addEventListener('click', async () => {
-      if (!activeUser) return;
-      const text = postContent.value.trim();
-      const file = postImageFile.files[0];
-      if (!text && !file) return alert('Введите текст или прикрепите фото!');
-
-      btnCreatePost.disabled = true;
-      let imageUrl = null;
-
-      if (file) {
-        uploadStatus.innerText = 'Загрузка фото...';
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
-        if (uploadError) {
-          uploadStatus.innerText = '';
-          btnCreatePost.disabled = false;
-          return alert('Ошибка фото: ' + uploadError.message);
-        }
-        const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
-        imageUrl = publicUrl;
-      }
-
-      uploadStatus.innerText = 'Публикация...';
-      const myProf = profilesMap[activeUser.id] || {};
-      const { data: insertedPost, error } = await window.sbClient.from('posts').insert([{
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        user_id: activeUser.id,
-        image_url: imageUrl,
-        likes_count: 0
-      }]).select().single();
-
-      btnCreatePost.disabled = false;
-      uploadStatus.innerText = '';
-
-      if (error) {
-        alert('Ошибка: ' + error.message);
-      } else {
-        postContent.value = '';
-        postImageFile.value = '';
-        if (insertedPost) await parseMentions(text, insertedPost.id);
-        switchTab(currentTab, viewingUserId);
-      }
-    });
-
-    window.deletePost = async function(postId) {
-      if (!activeUser || !confirm('Удалить этот пост?')) return;
-      const { error } = await window.sbClient.from('posts').delete().match({ id: postId, user_id: activeUser.id });
-      if (error) alert('Ошибка удаления: ' + error.message);
-      else switchTab(currentTab, viewingUserId);
-    };
-
-    window.deleteComment = async function(commentId) {
-      if (!activeUser || !confirm('Удалить комментарий?')) return;
-      const { error } = await window.sbClient.from('comments').delete().match({ id: commentId, user_id: activeUser.id });
-      if (error) alert('Ошибка удаления: ' + error.message);
-      else switchTab(currentTab, viewingUserId);
-    };
-
-    window.togglePostLike = async function(postId, currentLikes, postAuthorId) {
-      if (!activeUser) return;
-      if (userLikedPosts.has(postId)) {
-        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
-        await window.sbClient.from('posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
-        userLikedPosts.delete(postId);
-      } else {
-        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
-        await window.sbClient.from('posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
-        userLikedPosts.add(postId);
-        await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
-      }
-      switchTab(currentTab, viewingUserId);
-    };
-
-    window.toggleCommentLike = async function(commentId, currentLikes, commentAuthorId, postId) {
-      if (!activeUser) return;
-      if (userLikedComments.has(commentId)) {
-        await window.sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
-        await window.sbClient.from('comments').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', commentId);
-        userLikedComments.delete(commentId);
-      } else {
-        await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
-        await window.sbClient.from('comments').update({ likes_count: currentLikes + 1 }).eq('id', commentId);
-        userLikedComments.add(commentId);
-        await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
-      }
-      switchTab(currentTab, viewingUserId);
-    };
-
-    window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
-      if (!activeUser) return;
-      const input = document.getElementById(`comment-input-${uniquePostKey}`);
-      const text = input ? input.value.trim() : '';
-      if (!text) return;
-
-      const myProf = profilesMap[activeUser.id] || {};
-      const { error } = await window.sbClient.from('comments').insert([{
-        post_id: postId,
-        user_id: activeUser.id,
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        likes_count: 0
-      }]);
-
-      if (error) {
-        alert('Ошибка комментария: ' + error.message);
-      } else {
-        if (input) input.value = '';
-        await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
-        await parseMentions(text, postId);
-        switchTab(currentTab, viewingUserId);
-      }
-    };
 
     setInterval(() => {
       document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
