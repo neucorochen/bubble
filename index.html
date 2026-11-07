@@ -1588,10 +1588,22 @@
 
       peerConnection = new RTCPeerConnection(rtcConfig);
 
+      // Воспроизводим звук ТОЛЬКО если это удаленный поток (не наш собственный микрофон)
       peerConnection.ontrack = (event) => {
+        const stream = event.streams[0];
+        if (!stream) return;
+
+        // Защита: проверяем, что ID потока не совпадает с нашим локальным микрофоном
+        if (localStream && stream.id === localStream.id) {
+          return;
+        }
+
         if (remoteAudioPlayer) {
-          remoteAudioPlayer.srcObject = event.streams[0];
-          remoteAudioPlayer.play().catch(e => console.warn('Автовоспроизведение аудио:', e));
+          remoteAudioPlayer.srcObject = stream;
+          remoteAudioPlayer.muted = false; // Удаленный звук не заглушаем
+          remoteAudioPlayer.play().catch(e => {
+            console.warn('Автовоспроизведение заблокировано браузером:', e);
+          });
         }
       };
 
