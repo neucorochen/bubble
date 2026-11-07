@@ -10,7 +10,6 @@
     body {
       margin: 0;
       padding: 0;
-      /* Замените bg.jpg на имя вашего файла фона в репозитории */
       background: #004e98 url('bg.jpg') no-repeat center center fixed;
       background-size: cover;
       font-family: "Tahoma", sans-serif;
@@ -392,9 +391,10 @@
   </div>
 
   <script>
-    const SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co';
-    const SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
-    const sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // 1. Фиксация клиента в глобальной области видимости window
+    window.SUPABASE_URL = 'https://gcebeebtccfzmpflztee.supabase.co';
+    window.SUPABASE_ANON_KEY = 'sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X';
+    window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
     let activeUser = null;
     let currentTab = 'feed';
@@ -453,26 +453,34 @@
 
     async function ensureProfile(user) {
       if (!user) return;
-      const nick = getUserName(user);
-      const { data } = await sbClient.from('profiles').select('*').eq('id', user.id).single();
-      if (!data) {
-        await sbClient.from('profiles').insert([{
-          id: user.id,
-          username: nick,
-          avatar_url: DEFAULT_AVATAR
-        }]);
+      try {
+        const nick = getUserName(user);
+        const { data } = await window.sbClient.from('profiles').select('*').eq('id', user.id).single();
+        if (!data) {
+          await window.sbClient.from('profiles').insert([{
+            id: user.id,
+            username: nick,
+            avatar_url: DEFAULT_AVATAR
+          }]);
+        }
+      } catch (e) {
+        console.warn('ensureProfile warning:', e);
       }
     }
 
     async function loadAllProfiles() {
-      const { data } = await sbClient.from('profiles').select('*');
-      profilesMap = {};
-      (data || []).forEach(p => {
-        profilesMap[p.id] = {
-          username: p.username || 'Аноним',
-          avatar_url: p.avatar_url || DEFAULT_AVATAR
-        };
-      });
+      try {
+        const { data } = await window.sbClient.from('profiles').select('*');
+        profilesMap = {};
+        (data || []).forEach(p => {
+          profilesMap[p.id] = {
+            username: p.username || 'Аноним',
+            avatar_url: p.avatar_url || DEFAULT_AVATAR
+          };
+        });
+      } catch (e) {
+        console.warn('loadAllProfiles warning:', e);
+      }
     }
 
     async function updateSessionState(session) {
@@ -495,10 +503,10 @@
       }
     }
 
-    sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
-    sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
+    window.sbClient.auth.getSession().then(({ data: { session } }) => updateSessionState(session));
+    window.sbClient.auth.onAuthStateChange((_, session) => updateSessionState(session));
 
-    // Регистрация
+    // Авторизация
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Создание...';
@@ -509,7 +517,7 @@
       if (!username || !email || !password) return authStatus.innerText = 'Заполните все поля!';
       if (password.length < 6) return authStatus.innerText = 'Пароль от 6 символов!';
 
-      const { data, error } = await sbClient.auth.signUp({
+      const { data, error } = await window.sbClient.auth.signUp({
         email, password, options: { data: { username } }
       });
       if (error) {
@@ -523,7 +531,6 @@
       }
     });
 
-    // Вход
     document.getElementById('btnActionLogin').addEventListener('click', async () => {
       authStatus.style.color = '#333';
       authStatus.innerText = 'Проверка...';
@@ -531,7 +538,7 @@
       const password = inputPass.value.trim();
       if (!email || !password) return authStatus.innerText = 'Введите почту и пароль!';
 
-      const { data, error } = await sbClient.auth.signInWithPassword({ email, password });
+      const { data, error } = await window.sbClient.auth.signInWithPassword({ email, password });
       if (error) {
         authStatus.style.color = 'red';
         authStatus.innerText = error.message;
@@ -540,30 +547,32 @@
       }
     });
 
-    document.getElementById('btnLogout').addEventListener('click', () => sbClient.auth.signOut());
+    document.getElementById('btnLogout').addEventListener('click', () => window.sbClient.auth.signOut());
 
-    // Обновление бейджа с цифрой
     async function updateUnreadBadge() {
       if (!activeUser) return;
-      const { data } = await sbClient
-        .from('notifications')
-        .select('id')
-        .eq('user_id', activeUser.id)
-        .eq('is_read', false);
+      try {
+        const { data } = await window.sbClient
+          .from('notifications')
+          .select('id')
+          .eq('user_id', activeUser.id)
+          .eq('is_read', false);
 
-      const count = (data || []).length;
-      if (count > 0) {
-        notifBadge.style.display = 'inline-block';
-        notifBadge.innerText = count;
-      } else {
-        notifBadge.style.display = 'none';
+        const count = (data || []).length;
+        if (count > 0) {
+          notifBadge.style.display = 'inline-block';
+          notifBadge.innerText = count;
+        } else {
+          notifBadge.style.display = 'none';
+        }
+      } catch (e) {
+        console.warn('updateUnreadBadge error:', e);
       }
     }
 
-    // Слушатель событий Realtime
     function initRealtimeNotifications() {
       if (!activeUser) return;
-      sbClient
+      window.sbClient
         .channel('user_notifications_' + activeUser.id)
         .on('postgres_changes', {
           event: 'INSERT',
@@ -579,27 +588,413 @@
         .subscribe();
     }
 
-    // Отправка уведомления
     async function createNotification(targetUserId, type, message, postId) {
       if (!targetUserId || targetUserId === activeUser.id) return;
-      const myProf = profilesMap[activeUser.id] || {};
-      const senderNick = myProf.username || getUserName(activeUser);
+      try {
+        const myProf = profilesMap[activeUser.id] || {};
+        const senderNick = myProf.username || getUserName(activeUser);
 
-      await sbClient.from('notifications').insert([{
-        user_id: targetUserId,
-        from_user_id: activeUser.id,
-        from_username: senderNick,
-        type,
-        message,
-        post_id: postId,
-        is_read: false
-      }]);
+        await window.sbClient.from('notifications').insert([{
+          user_id: targetUserId,
+          from_user_id: activeUser.id,
+          from_username: senderNick,
+          type,
+          message,
+          post_id: postId,
+          is_read: false
+        }]);
+      } catch (e) {
+        console.warn('createNotification error:', e);
+      }
     }
 
-    // Обработка упоминаний через @никнейм
     async function parseMentions(text, postId) {
-      const matches = text.match(/@([a-zA-Z0-9_\u0400-\u04FF\-]+)/g);
-      if (!matches) return;
-      const rawUsernames = matches.map(m => m.replace('@', '').toLowerCase());
+      try {
+        const matches = text.match(/@([a-zA-Z0-9_\u0400-\u04FF\-]+)/g);
+        if (!matches) return;
+        const rawUsernames = matches.map(m => m.replace('@', '').toLowerCase());
 
-      const { data: profiles } = await sbClient
+        const { data: profiles } = await window.sbClient.from('profiles').select('id, username');
+        if (profiles) {
+          for (const p of profiles) {
+            if (rawUsernames.includes(p.username.toLowerCase())) {
+              await createNotification(p.id, 'mention', `упомянул(а) вас: "${text.substring(0, 45)}..."`, postId);
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('parseMentions error:', e);
+      }
+    }
+
+    function switchTab(tab, targetUserId = null) {
+      currentTab = tab;
+      btnTabFeed.style.fontWeight = tab === 'feed' ? 'bold' : 'normal';
+      btnTabNotifications.style.fontWeight = tab === 'notifications' ? 'bold' : 'normal';
+      btnTabProfile.style.fontWeight = (tab === 'profile' && targetUserId === activeUser.id) ? 'bold' : 'normal';
+
+      sectionFeed.style.display = tab === 'feed' ? 'block' : 'none';
+      sectionNotifications.style.display = tab === 'notifications' ? 'block' : 'none';
+      sectionProfile.style.display = tab === 'profile' ? 'block' : 'none';
+
+      if (tab === 'feed') {
+        urlInput.value = 'https://bubble.net/feed/all';
+        loadFeed();
+      } else if (tab === 'notifications') {
+        urlInput.value = 'https://bubble.net/notifications';
+        loadNotifications();
+      } else if (tab === 'profile') {
+        viewingUserId = targetUserId || activeUser.id;
+        openUserProfile(viewingUserId);
+      }
+    }
+
+    btnTabFeed.addEventListener('click', () => switchTab('feed'));
+    btnTabNotifications.addEventListener('click', () => switchTab('notifications'));
+    btnTabProfile.addEventListener('click', () => switchTab('profile', activeUser.id));
+    document.getElementById('btnGoReload').addEventListener('click', () => switchTab(currentTab, viewingUserId));
+
+    window.goToProfile = function(userId) {
+      switchTab('profile', userId);
+    };
+
+    async function loadUserLikes() {
+      if (!activeUser) return;
+      try {
+        const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
+        userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
+
+        const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
+        userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
+      } catch (e) {
+        console.warn('loadUserLikes error:', e);
+      }
+    }
+
+    function renderPostItem(p, commentsByPost) {
+      const isPostLiked = userLikedPosts.has(p.id);
+      const postComments = commentsByPost[p.id] || [];
+      const isMyPost = p.user_id === activeUser.id;
+      const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
+
+      return `
+        <div class="post-box" id="post-${p.id}">
+          <div class="post-header">
+            <div class="author-info" onclick="goToProfile('${p.user_id}')">
+              <img src="${prof.avatar_url}" class="avatar-mini" alt="avatar">
+              <span class="post-author">🫧 ${escapeHtml(prof.username)}</span>
+              <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
+            </div>
+            ${isMyPost ? `<button class="btn-delete-post" onclick="deletePost(${p.id})">✖ Удалить</button>` : ''}
+          </div>
+
+          <div style="margin: 6px 0;">${escapeHtml(p.content)}</div>
+          ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
+
+          <div class="post-actions">
+            <button onclick="togglePostLike(${p.id}, ${p.likes_count || 0}, '${p.user_id}')">
+              ${isPostLiked ? '❤️' : '🤍'} ${p.likes_count || 0}
+            </button>
+            <button onclick="toggleCommentsVisibility(${p.id})" style="font-size:11px;">
+              💬 Комментарии (${postComments.length})
+            </button>
+          </div>
+
+          <div class="comments-section" id="comments-box-${p.id}">
+            <div id="comments-list-${p.id}">
+              ${postComments.map(c => {
+                const isCommentLiked = userLikedComments.has(c.id);
+                const isMyComment = c.user_id === activeUser.id;
+                const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
+
+                return `
+                  <div class="comment-item" id="comment-${c.id}">
+                    <div class="comment-content">
+                      <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
+                    </div>
+                    <div class="comment-controls">
+                      <button onclick="toggleCommentLike(${c.id}, ${c.likes_count || 0}, '${c.user_id}', ${p.id})" style="font-size:10px; padding:1px 4px;">
+                        ${isCommentLiked ? '❤️' : '🤍'} ${c.likes_count || 0}
+                      </button>
+                      <button class="btn-comment-reply" onclick="replyToComment(${p.id}, '${escapeHtml(cProf.username)}')">ответить</button>
+                      ${isMyComment ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id})">×</button>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+            <div style="display:flex; gap:4px; margin-top:6px;">
+              <input type="text" id="comment-input-${p.id}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
+              <button onclick="sendComment(${p.id}, '${p.user_id}')" style="font-size:11px;">Ответить</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    async function loadFeed() {
+      if (!activeUser) return;
+      feedList.innerHTML = 'Загрузка записей...';
+      await loadAllProfiles();
+
+      const { data: posts, error } = await window.sbClient
+        .from('posts')
+        .select('*')
+        .order('id', { ascending: false })
+        .limit(30);
+
+      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Пока нет записей. Оставьте первое сообщение!</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
+    }
+
+    async function openUserProfile(userId) {
+      await loadAllProfiles();
+      const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
+
+      profileNick.innerText = prof.username;
+      profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
+      urlInput.value = `https://bubble.net/user/${prof.username}`;
+
+      if (userId === activeUser.id) {
+        avatarUploadBox.style.display = 'block';
+        profilePostsLegend.innerText = 'Мои публикации';
+      } else {
+        avatarUploadBox.style.display = 'none';
+        profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
+      }
+
+      profilePostsList.innerHTML = 'Загрузка записей...';
+      const { data: posts, error } = await window.sbClient
+        .from('posts')
+        .select('*')
+        .eq('user_id', userId)
+        .order('id', { ascending: false });
+
+      if (error) return profilePostsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return profilePostsList.innerHTML = '<p>Публикаций пока нет.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost)).join('');
+    }
+
+    async function loadNotifications() {
+      notificationsList.innerHTML = 'Загрузка...';
+
+      const { data: notifs, error } = await window.sbClient
+        .from('notifications')
+        .select('*')
+        .eq('user_id', activeUser.id)
+        .order('id', { ascending: false })
+        .limit(40);
+
+      if (error) return notificationsList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!notifs || notifs.length === 0) return notificationsList.innerHTML = '<p>Уведомлений пока нет.</p>';
+
+      notificationsList.innerHTML = notifs.map(n => `
+        <div class="notification-item" onclick="openTargetPost(${n.post_id}, ${n.id})" style="${n.is_read ? 'opacity:0.75;' : 'background:#fff8db; font-weight:bold; border-color:#d49b00;'}">
+          <div><b>${escapeHtml(n.from_username)}</b> ${escapeHtml(n.message)}</div>
+          <span style="font-size:9px; color:#888;">${new Date(n.created_at).toLocaleString()}</span>
+        </div>
+      `).join('');
+    }
+
+    window.openTargetPost = async function(postId, notifId) {
+      if (notifId) {
+        await window.sbClient.from('notifications').update({ is_read: true }).eq('id', notifId);
+        await updateUnreadBadge();
+      }
+
+      switchTab('feed');
+
+      setTimeout(() => {
+        const postEl = document.getElementById(`post-${postId}`);
+        if (postEl) {
+          postEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          postEl.classList.add('highlight');
+          setTimeout(() => postEl.classList.remove('highlight'), 2500);
+
+          const commentsBox = document.getElementById(`comments-box-${postId}`);
+          if (commentsBox) commentsBox.style.display = 'block';
+        }
+      }, 500);
+    };
+
+    avatarFileInput.addEventListener('change', async () => {
+      const file = avatarFileInput.files[0];
+      if (!file || !activeUser) return;
+
+      avatarStatus.innerText = 'Загрузка...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('avatars').upload(fileName, file);
+      if (uploadError) {
+        avatarStatus.innerText = '';
+        return alert('Ошибка загрузки: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('avatars').getPublicUrl(fileName);
+
+      await window.sbClient.from('profiles').update({ avatar_url: publicUrl }).eq('id', activeUser.id);
+
+      avatarStatus.innerText = 'Готово!';
+      profileAvatar.src = publicUrl;
+      sideAvatar.src = publicUrl;
+      avatarFileInput.value = '';
+      await loadAllProfiles();
+    });
+
+    window.toggleCommentsVisibility = function(postId) {
+      const box = document.getElementById(`comments-box-${postId}`);
+      if (!box) return;
+      box.style.display = box.style.display === 'block' ? 'none' : 'block';
+    };
+
+    window.replyToComment = function(postId, author) {
+      const box = document.getElementById(`comments-box-${postId}`);
+      if (box) box.style.display = 'block';
+      const input = document.getElementById(`comment-input-${postId}`);
+      if (input) {
+        input.value = `@${author} ` + input.value;
+        input.focus();
+      }
+    };
+
+    btnCreatePost.addEventListener('click', async () => {
+      const text = postContent.value.trim();
+      const file = postImageFile.files[0];
+      if (!text && !file) return alert('Введите текст или прикрепите фото!');
+
+      btnCreatePost.disabled = true;
+      let imageUrl = null;
+
+      if (file) {
+        uploadStatus.innerText = 'Загрузка фото...';
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (uploadError) {
+          uploadStatus.innerText = '';
+          btnCreatePost.disabled = false;
+          return alert('Ошибка фото: ' + uploadError.message);
+        }
+        const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
+        imageUrl = publicUrl;
+      }
+
+      uploadStatus.innerText = 'Публикация...';
+      const myProf = profilesMap[activeUser.id] || {};
+      const { data: insertedPost, error } = await window.sbClient.from('posts').insert([{
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        user_id: activeUser.id,
+        image_url: imageUrl,
+        likes_count: 0
+      }]).select().single();
+
+      btnCreatePost.disabled = false;
+      uploadStatus.innerText = '';
+
+      if (error) {
+        alert('Ошибка: ' + error.message);
+      } else {
+        postContent.value = '';
+        postImageFile.value = '';
+        if (insertedPost) await parseMentions(text, insertedPost.id);
+        switchTab(currentTab, viewingUserId);
+      }
+    });
+
+    window.deletePost = async function(postId) {
+      if (!confirm('Удалить этот пост?')) return;
+      const { error } = await window.sbClient.from('posts').delete().match({ id: postId, user_id: activeUser.id });
+      if (error) alert('Ошибка удаления: ' + error.message);
+      else switchTab(currentTab, viewingUserId);
+    };
+
+    window.deleteComment = async function(commentId) {
+      if (!confirm('Удалить комментарий?')) return;
+      const { error } = await window.sbClient.from('comments').delete().match({ id: commentId, user_id: activeUser.id });
+      if (error) alert('Ошибка удаления: ' + error.message);
+      else switchTab(currentTab, viewingUserId);
+    };
+
+    window.togglePostLike = async function(postId, currentLikes, postAuthorId) {
+      if (!activeUser) return;
+      if (userLikedPosts.has(postId)) {
+        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
+        await window.sbClient.from('posts').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', postId);
+        userLikedPosts.delete(postId);
+      } else {
+        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
+        await window.sbClient.from('posts').update({ likes_count: currentLikes + 1 }).eq('id', postId);
+        userLikedPosts.add(postId);
+        await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
+      }
+      switchTab(currentTab, viewingUserId);
+    };
+
+    window.toggleCommentLike = async function(commentId, currentLikes, commentAuthorId, postId) {
+      if (!activeUser) return;
+      if (userLikedComments.has(commentId)) {
+        await window.sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
+        await window.sbClient.from('comments').update({ likes_count: Math.max(0, currentLikes - 1) }).eq('id', commentId);
+        userLikedComments.delete(commentId);
+      } else {
+        await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
+        await window.sbClient.from('comments').update({ likes_count: currentLikes + 1 }).eq('id', commentId);
+        userLikedComments.add(commentId);
+        await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
+      }
+      switchTab(currentTab, viewingUserId);
+    };
+
+    window.sendComment = async function(postId, postAuthorId) {
+      const input = document.getElementById(`comment-input-${postId}`);
+      const text = input.value.trim();
+      if (!text || !activeUser) return;
+
+      const myProf = profilesMap[activeUser.id] || {};
+      const { error } = await window.sbClient.from('comments').insert([{
+        post_id: postId,
+        user_id: activeUser.id,
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        likes_count: 0
+      }]);
+
+      if (error) {
+        alert('Ошибка комментария: ' + error.message);
+      } else {
+        input.value = '';
+        await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
+        await parseMentions(text, postId);
+        switchTab(currentTab, viewingUserId);
+      }
+    };
+
+    setInterval(() => {
+      document.getElementById('clock').innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    }, 1000);
+  </script>
+</body>
+</html>
