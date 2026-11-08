@@ -164,7 +164,6 @@
       border: 2px solid #0055ea; background: #fff; position: relative; z-index: 2;
     }
     
-    /* Рамка шире аватара и обрезается по заданной фигуре */
     .avatar-frame-overlay {
       position: absolute; pointer-events: none; z-index: 1; box-sizing: border-box;
       top: -6px; left: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
@@ -296,6 +295,17 @@
     .friend-card:hover { background: #edf4ff; border-color: #0055ea; }
     .friend-name { font-size: 10px; color: #000080; max-width: 70px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
+    /* Кнопки плейлистов в профиле */
+    .playlist-tab-btn {
+      display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; font-size: 11px;
+    }
+    .playlist-tab-btn.active {
+      font-weight: bold; background: #d8efff; border-color: #0055ea;
+    }
+    .btn-del-playlist {
+      color: #a00; font-size: 10px; border: none; background: transparent; cursor: pointer; padding: 0 2px;
+    }
+
     /* Frutiger Aero Player Dock */
     .player-dock {
       background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(215,240,255,0.85) 48%, rgba(175,225,255,0.88) 52%, rgba(220,245,255,0.95) 100%);
@@ -394,6 +404,35 @@
           <button id="btnActionRegister" type="button">Регистрация</button>
         </div>
         <div id="authStatus" style="color:red; font-size:11px; margin-top:8px; min-height: 14px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Стильный Репост (вместо prompt) -->
+  <div class="modal-overlay" id="repostModal" style="display:none;">
+    <div class="window" style="width: 440px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">🔁 Поделиться с друзьями</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('repostModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="font-size:11px; color:#555; margin-bottom:6px;">Запись будет опубликована исключительно в <b>Ленту друзей</b>:</div>
+        
+        <div class="repost-container" style="margin-bottom:10px;">
+          <div class="repost-badge" id="repostTargetBadge">🔁 Запись</div>
+          <div style="font-weight:bold; color:#0b388f;" id="repostTargetAuthor">Автор</div>
+          <div id="repostTargetContent" style="margin-top:2px; max-height:80px; overflow-y:auto;">Текст цитаты...</div>
+        </div>
+
+        <label style="font-size:11px; display:block; margin-bottom:4px;">Ваш комментарий к репосту (необязательно):</label>
+        <textarea id="repostUserComment" rows="3" placeholder="Что вы думаете об этом?..." style="width:100%; font-size:11px; box-sizing:border-box; margin-bottom:8px;"></textarea>
+
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+          <button onclick="document.getElementById('repostModal').style.display='none'">Отмена</button>
+          <button id="btnConfirmSubmitRepost" style="font-weight:bold;">Опубликовать репост</button>
+        </div>
       </div>
     </div>
   </div>
@@ -855,7 +894,7 @@
             </fieldset>
           </div>
 
-          <!-- Профиль (с полноценным конструктором плейлистов) -->
+          <!-- Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
@@ -885,11 +924,12 @@
               <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
                 <div style="display: flex; gap: 4px;">
                   <input type="text" id="newPlaylistTitle" placeholder="Название нового плейлиста..." style="flex: 1; font-size: 11px;">
-                  <button id="btnCreatePlaylist" style="font-size: 11px;">Создать плейлист</button>
+                  <button id="btnCreatePlaylist" style="font-size: 11px; font-weight:bold;">+ Создать плейлист</button>
                 </div>
               </div>
 
-              <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
+              <!-- Панель вкладок плейлистов -->
+              <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 6px; flex-wrap: wrap;"></div>
               <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
 
@@ -902,7 +942,7 @@
         </div>
       </div>
 
-      <!-- Frutiger Aero Аудиоплеер со смайликами кнопок -->
+      <!-- Frutiger Aero Аудиоплеер -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">Ничего не играет</div>
@@ -960,6 +1000,9 @@
     // Выбранный трек для поста
     let selectedPostTrack = null;
     let pickerMode = 'my';
+
+    // Текущий репост в модалке
+    let activeRepostData = null;
 
     let selectedGroupFriends = new Set();
 
@@ -1077,6 +1120,14 @@
     const profilePostsList = document.getElementById('profilePostsList');
     const notificationsList = document.getElementById('notificationsList');
     const btnMarkAllRead = document.getElementById('btnMarkAllRead');
+
+    // Модальное окно репоста
+    const repostModal = document.getElementById('repostModal');
+    const repostTargetBadge = document.getElementById('repostTargetBadge');
+    const repostTargetAuthor = document.getElementById('repostTargetAuthor');
+    const repostTargetContent = document.getElementById('repostTargetContent');
+    const repostUserComment = document.getElementById('repostUserComment');
+    const btnConfirmSubmitRepost = document.getElementById('btnConfirmSubmitRepost');
 
     // Пост с музыкой
     const postAttachedTrackPreview = document.getElementById('postAttachedTrackPreview');
@@ -1618,29 +1669,41 @@
       postAttachedTrackPreview.style.display = 'none';
     };
 
-    // ==================== РЕПОСТЫ (ПОПАДАЮТ ТОЛЬКО В ЛЕНТУ ДРУЗЕЙ) ====================
-    window.repostItem = async function(type, id, author, content) {
+    // ==================== РЕПОСТЫ В КРАСИВОМ ОКНЕ ====================
+    window.openRepostModal = function(type, id, author, content) {
       if (!activeUser) return;
-      const comment = prompt('Добавить комментарий к репосту (необязательно):', '');
-      if (comment === null) return;
+      activeRepostData = { type, id, author, content };
+      repostTargetBadge.innerText = `🔁 Репост ${type === 'comment' ? 'комментария' : 'записи'}`;
+      repostTargetAuthor.innerText = author;
+      repostTargetContent.innerText = content || '(без текста)';
+      repostUserComment.value = '';
+      repostModal.style.display = 'flex';
+    };
+
+    btnConfirmSubmitRepost.onclick = async () => {
+      if (!activeUser || !activeRepostData) return;
+      btnConfirmSubmitRepost.disabled = true;
 
       const myProf = profilesMap[activeUser.id] || {};
       const { error } = await window.sbClient.from('posts').insert([{
         author: myProf.username || getUserName(activeUser),
-        content: comment.trim(),
+        content: repostUserComment.value.trim(),
         user_id: activeUser.id,
-        is_friends_only: true, // Исключительно в ленту друзей!
-        repost_type: type,
-        repost_post_id: type === 'post' ? id : null,
-        repost_comment_id: type === 'comment' ? id : null,
-        repost_author: author,
-        repost_content: content,
+        is_friends_only: true, // Попадает исключительно в ленту друзей
+        repost_type: activeRepostData.type,
+        repost_post_id: activeRepostData.type === 'post' ? activeRepostData.id : null,
+        repost_comment_id: activeRepostData.type === 'comment' ? activeRepostData.id : null,
+        repost_author: activeRepostData.author,
+        repost_content: activeRepostData.content,
         likes_count: 0
       }]);
 
+      btnConfirmSubmitRepost.disabled = false;
+      repostModal.style.display = 'none';
+
       if (error) alert('Ошибка репоста: ' + error.message);
       else {
-        alert('Запись успешно репостнута в ленту ваших друзей!');
+        alert('Запись успешно добавлена в ленту друзей!');
         switchTab('friends_feed');
       }
     };
@@ -2107,834 +2170,7 @@
       localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ ====================
-    async function loadUserLikes() {
-      if (!activeUser) return;
-      try {
-        const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
-        if (pLikes) {
-          userLikedPosts = new Set(pLikes.map(l => l.post_id));
-          localStorage.setItem('bubble_user_liked_posts', JSON.stringify(Array.from(userLikedPosts)));
-        }
-        const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
-        if (cLikes) {
-          userLikedComments = new Set(cLikes.map(l => l.comment_id));
-          localStorage.setItem('bubble_user_liked_comments', JSON.stringify(Array.from(userLikedComments)));
-        }
-      } catch (e) {
-        console.warn('loadUserLikes:', e);
-      }
-    }
-
-    function renderAvatarWithFrame(userId, isBig = false) {
-      const prof = profilesMap[userId] || { avatar_url: DEFAULT_AVATAR, username: 'Аноним' };
-      const cfg = prof.custom_frame;
-      let frameMarkup = '';
-
-      if (cfg) {
-        const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
-        const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
-        const bgStyle = cfg.imgUrl ? `background-image: url('${cfg.imgUrl}');` : `background-color: ${cfg.color}; border: 3px solid ${cfg.color};`;
-        frameMarkup = `<div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; ${bgStyle}"></div>`;
-      }
-
-      return `
-        <div class="avatar-wrapper" style="${isBig ? 'width:68px; height:68px;' : 'width:28px; height:28px;'}">
-          <img src="${prof.avatar_url}" class="${isBig ? 'profile-avatar-big' : 'avatar-mini'}" alt="avatar">
-          ${frameMarkup}
-        </div>
-      `;
-    }
-
-    function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false) {
-      const isPostLiked = userLikedPosts.has(p.id);
-      const postComments = commentsByPost[p.id] || [];
-      const currentUserId = activeUser ? activeUser.id : null;
-      const isMyPost = currentUserId && p.user_id === currentUserId;
-      const canDelete = isMyPost || canModerate;
-      const uniquePostKey = `${context}-${p.id}`;
-
-      let authorDisplay = '';
-      if (p.community_id && communitiesMap[p.community_id]) {
-        const comm = communitiesMap[p.community_id];
-        authorDisplay = `
-          <div class="author-info" onclick="openCommunity(${comm.id})">
-            <div class="avatar-wrapper" style="width:28px; height:28px;">
-              <img src="${comm.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
-            </div>
-            <span class="post-author">${escapeHtml(comm.title)}</span>
-            <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-          </div>
-        `;
-      } else {
-        const prof = profilesMap[p.user_id] || { username: p.author, avatar_url: DEFAULT_AVATAR };
-        authorDisplay = `
-          <div class="author-info" onclick="goToProfile('${p.user_id}')">
-            ${renderAvatarWithFrame(p.user_id, false)}
-            <span class="post-author">${escapeHtml(prof.username)}</span>
-            <span style="font-size:10px; color:#777; margin-left:4px;">${new Date(p.created_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}</span>
-          </div>
-        `;
-      }
-
-      // Блок репоста (если пост является репостом)
-      let repostHTML = '';
-      if (p.repost_type) {
-        repostHTML = `
-          <div class="repost-container">
-            <div class="repost-badge">🔁 Репост ${p.repost_type === 'comment' ? 'комментария' : 'записи'} (Только для друзей)</div>
-            <div style="font-weight:bold; color:#0b388f; margin-bottom:2px;">${escapeHtml(p.repost_author)}:</div>
-            <div>${escapeHtml(p.repost_content)}</div>
-          </div>
-        `;
-      }
-
-      // Блок прикрепленного трека
-      let trackHTML = '';
-      if (p.track_id) {
-        const trk = allTracksCache.find(t => t.id === p.track_id);
-        if (trk) {
-          trackHTML = `
-            <div class="post-track-box">
-              <span>🎵 <b>${escapeHtml(trk.artist)}</b> — ${escapeHtml(trk.title)}</span>
-              <button onclick="playQueue([${JSON.stringify(trk).replace(/"/g, '&quot;')}], 0, 'Трек из поста')" style="font-size:10px; font-weight:bold;">▶ Играть</button>
-            </div>
-          `;
-        }
-      }
-
-      return `
-        <div class="post-box" id="post-${uniquePostKey}">
-          <div class="post-header">
-            ${authorDisplay}
-            ${canDelete ? `<button class="btn-delete-post" onclick="deletePost(${p.id}, '${uniquePostKey}')">✖ Удалить</button>` : ''}
-          </div>
-
-          <div style="margin: 6px 0; word-break: break-word;">${escapeHtml(p.content)}</div>
-          ${repostHTML}
-          ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
-          ${trackHTML}
-
-          <div class="post-actions">
-            <button id="like-btn-${uniquePostKey}" onclick="togglePostLike(${p.id}, '${p.user_id}', '${uniquePostKey}')">
-              ${isPostLiked ? '❤️' : '🤍'} <span id="like-count-${uniquePostKey}">${p.likes_count || 0}</span>
-            </button>
-            <button onclick="toggleCommentsVisibility('${uniquePostKey}')" style="font-size:11px;">
-              💬 Комментарии (<span id="comments-count-${uniquePostKey}">${postComments.length}</span>)
-            </button>
-            <button onclick="repostItem('post', ${p.id}, '${escapeHtml(p.author).replace(/'/g, "\\'")}', '${escapeHtml(p.content).replace(/'/g, "\\'")}')" style="font-size:11px;" title="Поделиться в ленту друзей">
-              🔁 Репост
-            </button>
-          </div>
-
-          <div class="comments-section" id="comments-box-${uniquePostKey}">
-            <div class="comments-inner">
-              <div id="comments-list-${uniquePostKey}">
-                ${postComments.map(c => renderCommentHTML(c, p.id, uniquePostKey, canModerate)).join('')}
-              </div>
-              <div style="display:flex; gap:4px; margin-top:6px;">
-                <input type="text" id="comment-input-${uniquePostKey}" placeholder="Написать комментарий..." style="flex:1; font-size:11px;">
-                <button onclick="sendComment(${p.id}, '${p.user_id}', '${uniquePostKey}')" style="font-size:11px;">Ответить</button>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
-    }
-
-    function renderCommentHTML(c, postId, uniquePostKey, canModerate = false) {
-      const isCommentLiked = userLikedComments.has(c.id);
-      const isMyComment = activeUser && c.user_id === activeUser.id;
-      const cProf = profilesMap[c.user_id] || { username: c.author, avatar_url: DEFAULT_AVATAR };
-
-      return `
-        <div class="comment-item" id="comment-${c.id}">
-          <div class="comment-content" style="display:flex; align-items:center; gap:6px;">
-            ${renderAvatarWithFrame(c.user_id, false)}
-            <div>
-              <b onclick="goToProfile('${c.user_id}')">${escapeHtml(cProf.username)}:</b> ${escapeHtml(c.content)}
-            </div>
-          </div>
-          <div class="comment-controls">
-            <button id="clike-btn-${c.id}" onclick="toggleCommentLike(${c.id}, '${c.user_id}', ${postId})" style="font-size:10px; padding:1px 4px;">
-              ${isCommentLiked ? '❤️' : '🤍'} <span id="clike-count-${c.id}">${c.likes_count || 0}</span>
-            </button>
-            <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
-            <button onclick="repostItem('comment', ${c.id}, '${escapeHtml(cProf.username).replace(/'/g, "\\'")}', '${escapeHtml(c.content).replace(/'/g, "\\'")}')" style="font-size:10px;" title="Репост комментария в ленту друзей">🔁</button>
-            ${(isMyComment || canModerate) ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id}, '${uniquePostKey}')">×</button>` : ''}
-          </div>
-        </div>
-      `;
-    }
-
-    async function loadFeed(feedType = 'all') {
-      if (!activeUser) return;
-      feedList.innerHTML = 'Загрузка записей...';
-      await loadAllProfiles();
-      await loadAllCommunitiesCache();
-      await loadFriends();
-      await loadUserLikes();
-
-      // Загружаем общий кэш треков для постов
-      const { data: allTrks } = await window.sbClient.from('tracks').select('*');
-      allTracksCache = allTrks || [];
-
-      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(35);
-
-      if (feedType === 'all') {
-        // В общей ленте показываем публичные записи без пометки "только для друзей"
-        query = query.is('community_id', null).eq('is_friends_only', false);
-      } else if (feedType === 'friends') {
-        // В ленту друзей попадают записи друзей И репосты (свои и друзей)
-        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds, activeUser.id]));
-        query = query.is('community_id', null).in('user_id', feedTargetIds);
-      } else if (feedType === 'communities') {
-        query = query.not('community_id', 'is', null);
-      }
-
-      const { data: posts, error } = await query;
-      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
-
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
-    }
-
-    window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
-      if (!activeUser) return;
-      const countEl = document.getElementById(`like-count-${uniquePostKey}`);
-      const btnEl = document.getElementById(`like-btn-${uniquePostKey}`);
-      let count = parseInt(countEl?.innerText || '0') || 0;
-
-      const { data: existingLike } = await window.sbClient
-        .from('post_likes')
-        .select('id')
-        .match({ post_id: postId, user_id: activeUser.id })
-        .maybeSingle();
-
-      const currentlyLiked = !!existingLike || userLikedPosts.has(postId);
-
-      if (currentlyLiked) {
-        userLikedPosts.delete(postId);
-        count = Math.max(0, count - 1);
-        if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count}</span>`;
-        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
-        await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
-      } else {
-        userLikedPosts.add(postId);
-        count += 1;
-        if (btnEl) btnEl.innerHTML = `❤️ <span id="like-count-${uniquePostKey}">${count}</span>`;
-        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
-        await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
-        await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
-      }
-      localStorage.setItem('bubble_user_liked_posts', JSON.stringify(Array.from(userLikedPosts)));
-    };
-
-    window.toggleCommentLike = async function(commentId, commentAuthorId, postId) {
-      if (!activeUser) return;
-      const countEl = document.getElementById(`clike-count-${commentId}`);
-      const btnEl = document.getElementById(`clike-btn-${commentId}`);
-      let count = parseInt(countEl?.innerText || '0') || 0;
-
-      const { data: existingLike } = await window.sbClient
-        .from('comment_likes')
-        .select('id')
-        .match({ comment_id: commentId, user_id: activeUser.id })
-        .maybeSingle();
-
-      const currentlyLiked = !!existingLike || userLikedComments.has(commentId);
-
-      if (currentlyLiked) {
-        userLikedComments.delete(commentId);
-        count = Math.max(0, count - 1);
-        if (btnEl) btnEl.innerHTML = `🤍 <span id="clike-count-${commentId}">${count}</span>`;
-        await window.sbClient.from('comment_likes').delete().match({ comment_id: commentId, user_id: activeUser.id });
-        await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
-      } else {
-        userLikedComments.add(commentId);
-        count += 1;
-        if (btnEl) btnEl.innerHTML = `❤️ <span id="clike-count-${commentId}">${count}</span>`;
-        await window.sbClient.from('comment_likes').insert([{ comment_id: commentId, user_id: activeUser.id }]);
-        await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
-        await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
-      }
-      localStorage.setItem('bubble_user_liked_comments', JSON.stringify(Array.from(userLikedComments)));
-    };
-
-    window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
-      if (!activeUser) return;
-      const input = document.getElementById(`comment-input-${uniquePostKey}`);
-      const text = input?.value.trim();
-      if (!text) return;
-
-      const myProf = profilesMap[activeUser.id] || {};
-      const { data: newComment } = await window.sbClient.from('comments').insert([{
-        post_id: postId, user_id: activeUser.id,
-        author: myProf.username || getUserName(activeUser), content: text, likes_count: 0
-      }]).select().single();
-
-      input.value = '';
-      const listEl = document.getElementById(`comments-list-${uniquePostKey}`);
-      if (listEl && newComment) listEl.insertAdjacentHTML('beforeend', renderCommentHTML(newComment, postId, uniquePostKey, false));
-      const countEl = document.getElementById(`comments-count-${uniquePostKey}`);
-      if (countEl) countEl.innerText = (parseInt(countEl.innerText) || 0) + 1;
-
-      await createNotification(postAuthorId, 'reply_comment', `прокомментировал(а) ваш пост: "${text.substring(0, 30)}..."`, postId);
-    };
-
-    window.deleteComment = async function(commentId, uniquePostKey) {
-      if (!confirm('Удалить комментарий?')) return;
-      await window.sbClient.from('comments').delete().eq('id', commentId);
-      document.getElementById(`comment-${commentId}`)?.remove();
-      const countEl = document.getElementById(`comments-count-${uniquePostKey}`);
-      if (countEl) countEl.innerText = Math.max(0, (parseInt(countEl.innerText) || 1) - 1);
-    };
-
-    window.deletePost = async function(postId, uniquePostKey) {
-      if (!confirm('Удалить этот пост?')) return;
-      await window.sbClient.from('posts').delete().eq('id', postId);
-      document.getElementById(`post-${uniquePostKey}`)?.remove();
-    };
-
-    window.toggleCommentsVisibility = (key) => document.getElementById(`comments-box-${key}`)?.classList.toggle('open');
-    window.replyToComment = (key, author) => {
-      const box = document.getElementById(`comments-box-${key}`);
-      if (box && !box.classList.contains('open')) box.classList.add('open');
-      const input = document.getElementById(`comment-input-${key}`);
-      if (input) { input.value = `@${author} ` + input.value; input.focus(); }
-    };
-
-    btnCreatePost.onclick = async () => {
-      if (!activeUser) return;
-      const text = postContent.value.trim();
-      const file = postImageFile.files[0];
-      if (!text && !file && !selectedPostTrack) return alert('Введите текст, прикрепите фото или выберите песню!');
-
-      btnCreatePost.disabled = true;
-      let imageUrl = null;
-      if (file) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-        const { error } = await window.sbClient.storage.from('post_images').upload(fileName, file);
-        if (!error) imageUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
-      }
-
-      const myProf = profilesMap[activeUser.id] || {};
-      await window.sbClient.from('posts').insert([{
-        author: myProf.username || getUserName(activeUser),
-        content: text,
-        user_id: activeUser.id,
-        community_id: null,
-        image_url: imageUrl,
-        track_id: selectedPostTrack ? selectedPostTrack.id : null,
-        is_friends_only: false,
-        likes_count: 0
-      }]);
-
-      btnCreatePost.disabled = false;
-      postContent.value = '';
-      postImageFile.value = '';
-      selectedPostTrack = null;
-      postAttachedTrackPreview.style.display = 'none';
-      btnClearPostImage.style.display = 'none';
-      loadFeed(currentTab === 'friends_feed' ? 'friends' : (currentTab === 'communities_feed' ? 'communities' : 'all'));
-    };
-
-    // ==================== СООБЩЕСТВА ====================
-    async function showCommunitiesList() {
-      communityViewList.style.display = 'block';
-      communityViewSingle.style.display = 'none';
-      await loadAllCommunitiesCache();
-      renderCommunitiesList(allCommunitiesCache);
-    }
-
-    function renderCommunitiesList(comms) {
-      if (!comms || comms.length === 0) {
-        communitiesListContainer.innerHTML = '<p>Сообществ не найдено.</p>';
-        return;
-      }
-      communitiesListContainer.innerHTML = comms.map(c => `
-        <div class="community-card">
-          <div class="community-info" onclick="openCommunity(${c.id})">
-            <img src="${c.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
-            <div>
-              <div style="font-weight:bold; color:#0b388f;">${escapeHtml(c.title)}</div>
-              <div style="font-size:10px; color:#666;">${escapeHtml(c.description || 'Без описания')}</div>
-            </div>
-          </div>
-          <button onclick="openCommunity(${c.id})" style="font-size:11px;">Открыть</button>
-        </div>
-      `).join('');
-    }
-
-    searchCommunityInput.addEventListener('input', () => {
-      const q = searchCommunityInput.value.toLowerCase().trim();
-      const filtered = allCommunitiesCache.filter(c => c.title && c.title.toLowerCase().includes(q));
-      renderCommunitiesList(filtered);
-    });
-
-    btnCreateCommunity.onclick = async () => {
-      const title = newCommTitle.value.trim();
-      const desc = newCommDesc.value.trim();
-      if (!title || !activeUser) return alert('Введите название сообщества!');
-
-      const { data: comm } = await window.sbClient.from('communities').insert([{
-        title, description: desc, creator_id: activeUser.id
-      }]).select().single();
-
-      await window.sbClient.from('community_members').insert([{
-        community_id: comm.id, user_id: activeUser.id, role: 'creator'
-      }]);
-
-      newCommTitle.value = ''; newCommDesc.value = '';
-      await loadAllCommunitiesCache();
-      openCommunity(comm.id);
-    };
-
-    btnBackToCommunities.onclick = () => {
-      localStorage.removeItem('bubble_current_comm_id');
-      showCommunitiesList();
-    };
-
-    async function openCommunity(commId) {
-      currentCommunityId = commId;
-      localStorage.setItem('bubble_current_comm_id', commId);
-      communityViewList.style.display = 'none';
-      communityViewSingle.style.display = 'block';
-      urlInput.value = `https://bubble.net/community/${commId}`;
-
-      const { data: comm } = await window.sbClient.from('communities').select('*').eq('id', commId).single();
-      if (!comm) return alert('Сообщество не найдено');
-
-      commTitle.innerText = comm.title;
-      commDesc.innerText = comm.description || 'Без описания';
-      commAvatar.src = comm.avatar_url || DEFAULT_AVATAR;
-
-      currentCommunityRole = null;
-      if (activeUser) {
-        const { data: member } = await window.sbClient
-          .from('community_members').select('role').eq('community_id', commId).eq('user_id', activeUser.id).maybeSingle();
-        if (member) currentCommunityRole = member.role;
-      }
-
-      if (!currentCommunityRole) {
-        btnCommJoinDirect.style.display = 'inline-block';
-        commUserRole.innerText = 'Вы не состоите в сообществе';
-        commCreatePostBox.style.display = 'none';
-      } else {
-        btnCommJoinDirect.style.display = 'none';
-        const roleNames = { creator: 'Создатель', admin: 'Администратор', moderator: 'Модератор', member: 'Участник' };
-        commUserRole.innerText = 'Ваша роль: ' + (roleNames[currentCommunityRole] || 'Участник');
-        commCreatePostBox.style.display = (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') ? 'block' : 'none';
-      }
-
-      loadCommunityPosts(commId);
-    }
-
-    btnCommJoinDirect.onclick = async () => {
-      if (!activeUser || !currentCommunityId) return;
-      await window.sbClient.from('community_members').insert([{
-        community_id: currentCommunityId, user_id: activeUser.id, role: 'member'
-      }]);
-      openCommunity(currentCommunityId);
-    };
-
-    btnCreateCommPost.onclick = async () => {
-      if (!activeUser || !currentCommunityId) return;
-      const text = commPostContent.value.trim();
-      const file = commPostImage.files[0];
-      if (!text && !file) return alert('Введите текст или прикрепите фото!');
-
-      btnCreateCommPost.disabled = true;
-      let imageUrl = null;
-      if (file) {
-        const fileExt = file.name.split('.').pop();
-        const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
-        const { error } = await window.sbClient.storage.from('post_images').upload(fileName, file);
-        if (!error) imageUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
-      }
-
-      const comm = communitiesMap[currentCommunityId] || {};
-      await window.sbClient.from('posts').insert([{
-        author: comm.title || 'Сообщество', content: text,
-        user_id: activeUser.id, community_id: currentCommunityId, image_url: imageUrl, likes_count: 0
-      }]);
-
-      btnCreateCommPost.disabled = false;
-      commPostContent.value = ''; commPostImage.value = '';
-      btnClearCommPostImage.style.display = 'none';
-      loadCommunityPosts(currentCommunityId);
-    };
-
-    async function loadCommunityPosts(commId) {
-      commPostsList.innerHTML = 'Загрузка...';
-      await loadUserLikes();
-      const { data: posts } = await window.sbClient.from('posts').select('*').eq('community_id', commId).order('id', { ascending: false });
-      if (!posts || posts.length === 0) {
-        commPostsList.innerHTML = '<p>В сообществе пока нет записей.</p>';
-        return;
-      }
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      const canModerate = currentCommunityRole === 'creator' || currentCommunityRole === 'admin' || currentCommunityRole === 'moderator';
-      commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
-    }
-
-    // ==================== МЕССЕНДЖЕР И ГРУППОВЫЕ НАСТРОЙКИ ====================
-    async function loadConversationsList() {
-      if (!activeUser) return;
-      chatsListContainer.innerHTML = 'Загрузка...';
-
-      const { data: participations } = await window.sbClient
-        .from('conversation_participants').select('conversation_id').eq('user_id', activeUser.id);
-      const convIds = (participations || []).map(p => p.conversation_id);
-
-      if (convIds.length === 0) {
-        chatsListContainer.innerHTML = '<div style="font-size:11px; padding:10px; color:#777;">Нет диалогов. Напишите другу или вступите в чат!</div>';
-        return;
-      }
-
-      const { data: convs } = await window.sbClient.from('conversations').select('*').in('id', convIds).order('id', { ascending: false });
-      const { data: allParts } = await window.sbClient.from('conversation_participants').select('*').in('conversation_id', convIds);
-
-      chatsListContainer.innerHTML = (convs || []).map(c => {
-        let title = c.title || 'Беседа';
-        let avatar = c.avatar_url || DEFAULT_AVATAR;
-
-        if (c.type === 'direct') {
-          const partnerPart = (allParts || []).find(p => p.conversation_id === c.id && p.user_id !== activeUser.id);
-          const partnerId = partnerPart ? partnerPart.user_id : null;
-          if (partnerId && profilesMap[partnerId]) {
-            title = profilesMap[partnerId].username;
-            avatar = profilesMap[partnerId].avatar_url || DEFAULT_AVATAR;
-          } else {
-            title = 'Личный чат';
-          }
-        } else if (c.type === 'community' && c.community_id && communitiesMap[c.community_id]) {
-          title = `${communitiesMap[c.community_id].title}`;
-          avatar = communitiesMap[c.community_id].avatar_url || DEFAULT_AVATAR;
-        } else if (c.type === 'group') {
-          title = `${c.title || 'Групповой чат'}`;
-        }
-
-        return `
-          <div class="messenger-chat-item ${activeConversationId === c.id ? 'active' : ''}" onclick="openConversation(${c.id})">
-            <img src="${avatar}" class="avatar-mini" alt="chat">
-            <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;"><b>${escapeHtml(title)}</b></div>
-          </div>
-        `;
-      }).join('');
-    }
-
-    async function openConversation(convId) {
-      activeConversationId = convId;
-      chatHeaderBar.style.display = 'flex';
-      chatInputBar.style.display = 'flex';
-      chatMessagesList.innerHTML = 'Загрузка сообщений...';
-
-      const { data: conv } = await window.sbClient.from('conversations').select('*').eq('id', convId).single();
-      let title = conv.title || 'Беседа';
-      btnOpenGroupSettings.style.display = conv.type === 'group' ? 'inline-block' : 'none';
-
-      if (conv.type === 'direct') {
-        const { data: parts } = await window.sbClient.from('conversation_participants').select('user_id').eq('conversation_id', convId);
-        const partnerId = (parts || []).map(p => p.user_id).find(id => id !== activeUser.id);
-        if (partnerId) {
-          title = profilesMap[partnerId]?.username || 'Собеседник';
-        }
-      } else if (conv.type === 'community' && conv.community_id) {
-        title = `Чат группы: ${communitiesMap[conv.community_id]?.title || ''}`;
-      }
-      activeChatTitle.innerText = title;
-
-      const { data: msgs } = await window.sbClient.from('messages').select('*').eq('conversation_id', convId).order('id', { ascending: true });
-      chatMessagesList.innerHTML = '';
-      (msgs || []).forEach(m => appendMessageToDOM(m));
-      chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
-    }
-
-    function appendMessageToDOM(msg) {
-      const isMine = activeUser && msg.sender_id === activeUser.id;
-      const senderNick = profilesMap[msg.sender_id]?.username || 'Пользователь';
-      const el = document.createElement('div');
-      el.className = `msg-bubble ${isMine ? 'msg-out' : 'msg-in'}`;
-      el.innerHTML = `
-        <div style="font-weight:bold; font-size:9px; color:#555; margin-bottom:2px;">${escapeHtml(senderNick)}</div>
-        <div>${escapeHtml(msg.content)}</div>
-      `;
-      chatMessagesList.appendChild(el);
-      chatMessagesList.scrollTop = chatMessagesList.scrollHeight;
-    }
-
-    async function sendChatMessage() {
-      const text = chatMsgInput.value.trim();
-      if (!text || !activeConversationId || !activeUser) return;
-      chatMsgInput.value = '';
-      await window.sbClient.from('messages').insert([{
-        conversation_id: activeConversationId, sender_id: activeUser.id, content: text
-      }]);
-    }
-
-    btnSendChatMessage.onclick = sendChatMessage;
-    chatMsgInput.onkeydown = (e) => { if (e.key === 'Enter') sendChatMessage(); };
-
-    async function getOrCreateDirectChat(targetUserId) {
-      if (!activeUser || targetUserId === activeUser.id) return;
-      const { data: myConvs } = await window.sbClient.from('conversation_participants').select('conversation_id').eq('user_id', activeUser.id);
-      const myConvIds = (myConvs || []).map(c => c.conversation_id);
-
-      if (myConvIds.length > 0) {
-        const { data: directConvs } = await window.sbClient
-          .from('conversations').select('id').in('id', myConvIds).eq('type', 'direct');
-        const directIds = (directConvs || []).map(c => c.id);
-
-        if (directIds.length > 0) {
-          const { data: common } = await window.sbClient
-            .from('conversation_participants').select('conversation_id')
-            .in('conversation_id', directIds).eq('user_id', targetUserId).maybeSingle();
-          if (common) {
-            switchTab('messenger');
-            openConversation(common.conversation_id);
-            return;
-          }
-        }
-      }
-
-      const { data: newConv } = await window.sbClient.from('conversations').insert([{ type: 'direct' }]).select().single();
-      await window.sbClient.from('conversation_participants').insert([
-        { conversation_id: newConv.id, user_id: activeUser.id },
-        { conversation_id: newConv.id, user_id: targetUserId }
-      ]);
-      switchTab('messenger');
-      openConversation(newConv.id);
-    }
-
-    btnOpenCommChat.onclick = async () => {
-      if (!activeUser || !currentCommunityId) return;
-      const { data: existing } = await window.sbClient
-        .from('conversations').select('id').eq('type', 'community').eq('community_id', currentCommunityId).maybeSingle();
-
-      let convId = existing?.id;
-      if (!convId) {
-        const { data: newConv } = await window.sbClient.from('conversations').insert([{
-          type: 'community', community_id: currentCommunityId
-        }]).select().single();
-        convId = newConv.id;
-      }
-
-      await window.sbClient.from('conversation_participants').upsert([
-        { conversation_id: convId, user_id: activeUser.id }
-      ], { onConflict: 'conversation_id,user_id' });
-
-      switchTab('messenger');
-      openConversation(convId);
-    };
-
-    btnOpenCreateGroupModal.onclick = () => {
-      groupChatTitle.value = '';
-      selectedGroupFriends.clear();
-      renderGroupCreationFriends();
-      createGroupModal.style.display = 'flex';
-    };
-
-    function renderGroupCreationFriends() {
-      const fArr = Array.from(userFriendIds);
-      if (fArr.length === 0) {
-        groupFriendsChecklist.innerHTML = '<div style="color:#777;">У вас пока нет подтверждённых друзей.</div>';
-        return;
-      }
-      groupFriendsChecklist.innerHTML = fArr.map(fId => {
-        const isAdded = selectedGroupFriends.has(fId);
-        const name = profilesMap[fId]?.username || 'Друг';
-        return `
-          <div class="participant-select-item ${isAdded ? 'selected' : ''}" onclick="toggleGroupFriendSelection('${fId}')">
-            <span><b>${escapeHtml(name)}</b></span>
-            <span class="participant-status-badge ${isAdded ? 'badge-added' : 'badge-not-added'}">
-              ${isAdded ? '✓ Добавлен' : '➕ Добавить'}
-            </span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.toggleGroupFriendSelection = (fId) => {
-      if (selectedGroupFriends.has(fId)) selectedGroupFriends.delete(fId);
-      else selectedGroupFriends.add(fId);
-      renderGroupCreationFriends();
-    };
-
-    btnSubmitCreateGroup.onclick = async () => {
-      const title = groupChatTitle.value.trim() || 'Беседа';
-      const selectedUserIds = Array.from(selectedGroupFriends);
-
-      const { data: newConv } = await window.sbClient.from('conversations').insert([{
-        type: 'group', title
-      }]).select().single();
-
-      const participants = [{ conversation_id: newConv.id, user_id: activeUser.id }];
-      selectedUserIds.forEach(uId => participants.push({ conversation_id: newConv.id, user_id: uId }));
-      await window.sbClient.from('conversation_participants').insert(participants);
-
-      createGroupModal.style.display = 'none';
-      switchTab('messenger');
-      openConversation(newConv.id);
-    };
-
-    btnOpenGroupSettings.onclick = async () => {
-      if (!activeConversationId) return;
-      groupAvatarUploadStatus.innerText = '';
-      groupSettingsModal.style.display = 'flex';
-      loadGroupAddFriendsList();
-    };
-
-    async function loadGroupAddFriendsList() {
-      groupAddMoreFriendsList.innerHTML = 'Загрузка друзей...';
-      const { data: parts } = await window.sbClient
-        .from('conversation_participants').select('user_id').eq('conversation_id', activeConversationId);
-      const existingUserIds = new Set((parts || []).map(p => p.user_id));
-
-      const friendsToAdd = Array.from(userFriendIds).filter(fId => !existingUserIds.has(fId));
-      if (friendsToAdd.length === 0) {
-        groupAddMoreFriendsList.innerHTML = '<div style="color:#777; padding:4px;">Все ваши друзья уже состоят в этой беседе!</div>';
-        return;
-      }
-
-      groupAddMoreFriendsList.innerHTML = friendsToAdd.map(fId => {
-        const name = profilesMap[fId]?.username || 'Друг';
-        return `
-          <div class="participant-select-item" onclick="addUserToCurrentGroup('${fId}', this)">
-            <span><b>${escapeHtml(name)}</b></span>
-            <span class="participant-status-badge badge-not-added">➕ Добавить в чат</span>
-          </div>
-        `;
-      }).join('');
-    }
-
-    window.addUserToCurrentGroup = async (fId, el) => {
-      if (!activeConversationId) return;
-      await window.sbClient.from('conversation_participants').insert([{
-        conversation_id: activeConversationId, user_id: fId
-      }]);
-      el.classList.add('selected');
-      el.querySelector('.participant-status-badge').className = 'participant-status-badge badge-added';
-      el.querySelector('.participant-status-badge').innerText = '✓ Добавлен!';
-      setTimeout(() => loadGroupAddFriendsList(), 800);
-    };
-
-    groupAvatarFileInput.addEventListener('change', async () => {
-      const file = groupAvatarFileInput.files[0];
-      if (!file || !activeConversationId) return;
-
-      groupAvatarUploadStatus.innerText = 'Загрузка аватарки беседы...';
-      const fileExt = file.name.split('.').pop();
-      const fileName = `group_${activeConversationId}_${Date.now()}.${fileExt}`;
-
-      const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
-      if (uploadError) {
-        groupAvatarUploadStatus.innerText = '';
-        return alert('Ошибка загрузки: ' + uploadError.message);
-      }
-
-      const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
-      await window.sbClient.from('conversations').update({ avatar_url: publicUrl }).eq('id', activeConversationId);
-
-      groupAvatarUploadStatus.innerText = 'Аватарка беседы успешно обновлена!';
-      loadConversationsList();
-    });
-
-    // ==================== ПРОФИЛЬ, МУЗЫКА И ПЛЕЙЛИСТЫ ====================
-    async function openUserProfile(userId) {
-      await loadAllProfiles();
-      await loadFriends();
-      await loadUserLikes();
-      const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
-
-      profileNick.innerText = prof.username;
-      profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
-      urlInput.value = `https://bubble.net/user/${prof.username}`;
-
-      if (prof.custom_frame) {
-        applyFrameStyles(prof.custom_frame);
-      } else {
-        userProfileFrameOverlay.style.display = 'none';
-      }
-
-      const isMyProfile = activeUser && userId === activeUser.id;
-
-      if (!isMyProfile) {
-        btnFriendAction.style.display = 'inline-block';
-        btnProfileSendMsg.style.display = 'inline-block';
-        btnProfileSendMsg.onclick = () => getOrCreateDirectChat(userId);
-        btnFriendAction.innerText = userFriendIds.has(userId) ? 'В друзьях (Удалить)' : (pendingOutgoingIds.has(userId) ? 'Заявка отправлена' : '+ Добавить в друзья');
-        profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
-        playlistCreateBlock.style.display = 'none';
-      } else {
-        btnFriendAction.style.display = 'none';
-        btnProfileSendMsg.style.display = 'none';
-        profilePostsLegend.innerText = 'Мои публикации';
-        playlistCreateBlock.style.display = 'block';
-      }
-
-      loadProfileFriends(userId);
-      loadUserMusic(userId);
-
-      const { data: posts } = await window.sbClient.from('posts').select('*').eq('user_id', userId).is('community_id', null).order('id', { ascending: false });
-      profilePostsList.innerHTML = (!posts || posts.length === 0) ? '<p>Публикаций пока нет.</p>' : '';
-      if (posts && posts.length > 0) {
-        const postIds = posts.map(p => p.id);
-        const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-        const commentsByPost = {};
-        (comments || []).forEach(c => {
-          if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-          commentsByPost[c.post_id].push(c);
-        });
-        profilePostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, 'profile')).join('');
-      }
-    }
-
-    async function loadProfileFriends(userId) {
-      const { data: fRows } = await window.sbClient.from('friends').select('*').eq('status', 'accepted').or(`user_id.eq.${userId},friend_id.eq.${userId}`);
-      const confirmedIds = (fRows || []).map(r => r.user_id === userId ? r.friend_id : r.user_id);
-      friendsBlockLegend.innerText = `Друзья (${confirmedIds.length})`;
-      profileFriendsList.innerHTML = confirmedIds.length === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
-        confirmedIds.map(fId => `
-          <div class="friend-card" onclick="goToProfile('${fId}')">
-            ${renderAvatarWithFrame(fId, false)}
-            <div class="friend-name">${escapeHtml(profilesMap[fId]?.username || 'Пользователь')}</div>
-          </div>
-        `).join('');
-    }
-
-    btnFriendAction.onclick = async () => {
-      if (!activeUser || !viewingUserId) return;
-      if (userFriendIds.has(viewingUserId)) {
-        if (!confirm('Удалить пользователя из друзей?')) return;
-        await window.sbClient.from('friends').delete().or(`and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`);
-      } else if (pendingOutgoingIds.has(viewingUserId)) {
-        await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
-      } else {
-        await window.sbClient.from('friends').insert([{ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' }]);
-        await createNotification(viewingUserId, 'friend_request', 'хочет добавить вас в друзья', null);
-      }
-      await loadFriends();
-      openUserProfile(viewingUserId);
-    };
-
-    // ==================== МУЗЫКА И КОНСТРУКТОР ПЛЕЙЛИСТОВ ====================
+    // ==================== МУЗЫКА И КОНСТРУКТОР ПЛЕЙЛИСТОВ (НАДЁЖНАЯ ВЫБОРКА) ====================
     async function loadAllGlobalMusic() {
       allTracksList.innerHTML = 'Загрузка...';
       const { data: tracks } = await window.sbClient.from('tracks').select('*').order('id', { ascending: false });
@@ -2963,18 +2199,28 @@
       `).join('') || '<p>Ничего не найдено.</p>';
     });
 
-    // Загрузка музыки и плейлистов в профиле
     async function loadUserMusic(userId, activePlaylistId = null) {
       profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
 
       // 1. Плейлисты
-      const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
-      playlistSelectContainer.innerHTML = `
-        <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
-        ${(playlists || []).map(pl => `
-          <button style="${activePlaylistId === pl.id ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', ${pl.id})">💿 ${escapeHtml(pl.title)}</button>
-        `).join('')}
+      const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId).order('id', { ascending: true });
+      const isMyProfile = activeUser && userId === activeUser.id;
+
+      let playlistsHTML = `
+        <button class="playlist-tab-btn ${!activePlaylistId ? 'active' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
       `;
+
+      (playlists || []).forEach(pl => {
+        const isActive = activePlaylistId === pl.id;
+        playlistsHTML += `
+          <div class="playlist-tab-btn ${isActive ? 'active' : ''}">
+            <span onclick="loadUserMusic('${userId}', ${pl.id})" style="cursor:pointer;">💿 ${escapeHtml(pl.title)}</span>
+            ${isMyProfile ? `<button class="btn-del-playlist" onclick="deleteUserPlaylist(${pl.id}, '${userId}')" title="Удалить плейлист">✖</button>` : ''}
+          </div>
+        `;
+      });
+
+      playlistSelectContainer.innerHTML = playlistsHTML;
 
       // 2. Треки
       let tracks = [];
@@ -2991,13 +2237,6 @@
         return;
       }
 
-      const isMyProfile = activeUser && userId === activeUser.id;
-      let myPlaylists = [];
-      if (activeUser) {
-        const { data: myPl } = await window.sbClient.from('playlists').select('id, title').eq('user_id', activeUser.id);
-        myPlaylists = myPl || [];
-      }
-
       profileTracksList.innerHTML = tracks.map((t, idx) => `
         <div class="track-list-item">
           <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, '${activePlaylistId ? 'Плейлист' : 'Библиотека'}')">
@@ -3005,10 +2244,10 @@
           </div>
           <div style="display:flex; gap:4px; align-items:center;">
             ${!isMyProfile ? `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>` : ''}
-            ${(isMyProfile && myPlaylists.length > 0) ? `
+            ${(isMyProfile && (playlists || []).length > 0) ? `
               <select onchange="addTrackToPlaylist(${t.id}, this.value); this.value='';" style="font-size:10px;">
                 <option value="">+ В плейлист...</option>
-                ${myPlaylists.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('')}
+                ${(playlists || []).map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('')}
               </select>
             ` : ''}
             ${isMyProfile ? `<button onclick="removeTrackFromProfile(${t.id}, ${activePlaylistId})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
@@ -3020,9 +2259,18 @@
     btnCreatePlaylist.onclick = async () => {
       const title = newPlaylistTitle.value.trim();
       if (!title || !activeUser) return alert('Введите название плейлиста!');
-      await window.sbClient.from('playlists').insert([{ user_id: activeUser.id, title }]);
-      newPlaylistTitle.value = '';
-      loadUserMusic(activeUser.id);
+      const { error } = await window.sbClient.from('playlists').insert([{ user_id: activeUser.id, title }]);
+      if (error) alert('Ошибка создания плейлиста: ' + error.message);
+      else {
+        newPlaylistTitle.value = '';
+        loadUserMusic(activeUser.id);
+      }
+    };
+
+    window.deleteUserPlaylist = async function(playlistId, userId) {
+      if (!confirm('Удалить этот плейлист?')) return;
+      await window.sbClient.from('playlists').delete().eq('id', playlistId);
+      loadUserMusic(userId, null);
     };
 
     window.addTrackToPlaylist = async function(trackId, playlistId) {
@@ -3190,7 +2438,6 @@
           </div>
         `).join('');
 
-      // Кнопка удаления исключена: удалять из друзей можно только на личной странице профиля
       listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         Array.from(userFriendIds).map(uId => `
           <div class="participant-select-item" onclick="goToProfile('${uId}')" style="cursor:pointer;">
