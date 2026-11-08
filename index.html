@@ -76,7 +76,7 @@
 
     /* Frutiger Aero Header */
     .aero-title-bar {
-      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%) !important;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255,255,255,0.8);
       box-shadow: 0 2px 8px rgba(0, 80, 180, 0.25), inset 0 1px 0 #ffffff;
@@ -89,7 +89,6 @@
       letter-spacing: 0.5px;
     }
 
-    /* Address Bar */
     .address-bar {
       display: flex; align-items: center; gap: 6px; padding: 3px 6px;
       background: linear-gradient(180deg, #f0f7ff 0%, #dbeeff 100%);
@@ -209,6 +208,23 @@
       display: flex; gap: 8px; margin-top: 8px; align-items: center; padding-top: 4px;
       border-top: 1px dashed #dcdcdc; flex-wrap: wrap;
     }
+    
+    /* Блок репоста */
+    .repost-container {
+      background: #f7f9fa; border-left: 3px solid #0055ea; padding: 6px 10px;
+      margin: 6px 0; border-radius: 4px; font-size: 11px;
+    }
+    .repost-badge {
+      font-size: 9px; color: #0055ea; font-weight: bold; margin-bottom: 4px;
+    }
+    
+    /* Прикрепленный трек к посту */
+    .post-track-box {
+      display: flex; align-items: center; justify-content: space-between;
+      background: linear-gradient(180deg, #edf7ff 0%, #d8ecff 100%);
+      border: 1px solid #7f9db9; border-radius: 4px; padding: 5px 8px; margin: 6px 0; font-size: 11px;
+    }
+
     .comments-section {
       display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.25s ease-out, opacity 0.2s ease-out;
       opacity: 0; background: #f0f0f0; border-left: 2px solid #0055ea; overflow: hidden;
@@ -252,7 +268,6 @@
     .msg-out { align-self: flex-end; background: #d0e7ff; border: 1px solid #7f9db9; }
     .messenger-inputbox { padding: 6px; border-top: 1px solid #aca899; display: flex; gap: 6px; background: #f4f4f4; }
 
-    /* Чеклист добавления в беседу */
     .participant-select-item {
       display: flex; justify-content: space-between; align-items: center;
       padding: 5px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #aca899; border-radius: 4px;
@@ -383,6 +398,29 @@
     </div>
   </div>
 
+  <!-- Модальное окно: Выбор музыки для прикрепления к посту -->
+  <div class="modal-overlay" id="postMusicPickerModal" style="display:none;">
+    <div class="window" style="width: 420px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">🎵 Выбрать музыку для поста</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('postMusicPickerModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <div style="display:flex; gap:6px; margin-bottom:8px;">
+          <button id="btnPickerMyTracks" style="font-weight:bold; font-size:11px;">Мои треки</button>
+          <button id="btnPickerGlobalTracks" style="font-size:11px;">Вся медиатека</button>
+        </div>
+        <input type="text" id="pickerSearchInput" placeholder="Поиск песни по названию или автору..." style="width:100%; font-size:11px; margin-bottom:8px;">
+        <div id="pickerTracksList" style="max-height: 220px; overflow-y: auto; font-size:11px;">Загрузка треков...</div>
+        <div style="text-align: right; margin-top:8px;">
+          <button onclick="document.getElementById('postMusicPickerModal').style.display='none'">Отмена</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Модальное окно: Создание группового чата -->
   <div class="modal-overlay" id="createGroupModal" style="display:none;">
     <div class="window" style="width: 380px; max-width: 95%;">
@@ -484,13 +522,21 @@
             <fieldset style="margin-bottom: 12px;" id="boxCreatePost">
               <legend>Новая запись на стену</legend>
               <textarea id="postContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Что нового в Bubble? (упоминания через @никнейм)"></textarea>
+              
+              <!-- Прикрепленный к публикации трек -->
+              <div id="postAttachedTrackPreview" class="post-track-box" style="display:none;">
+                <span id="postAttachedTrackTitle">🎵 Название трека</span>
+                <button type="button" id="btnRemoveAttachedTrack" style="font-size:9px; color:#a00;">✖ Открепить</button>
+              </div>
+
               <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
-                <div style="display:flex; align-items:center; gap:6px;">
+                <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                   <label style="font-size: 11px; cursor: pointer;">
-                    Прикрепить фото:
+                    📷 Фото:
                     <input type="file" id="postImageFile" accept="image/*" style="font-size: 11px;">
                   </label>
-                  <button type="button" id="btnClearPostImage" style="display:none; font-size:10px; color:#a00;">✖ Отмена</button>
+                  <button type="button" id="btnClearPostImage" style="display:none; font-size:10px; color:#a00;">✖</button>
+                  <button type="button" id="btnOpenPostMusicPicker" style="font-size:11px;">🎵 Прикрепить музыку</button>
                 </div>
                 <button id="btnCreatePost" type="button" style="font-weight: bold;">Опубликовать</button>
               </div>
@@ -809,7 +855,7 @@
             </fieldset>
           </div>
 
-          <!-- Профиль -->
+          <!-- Профиль (с полноценным конструктором плейлистов) -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
@@ -832,8 +878,17 @@
               <div id="profileFriendsList" class="friends-grid">Загрузка списка друзей...</div>
             </fieldset>
 
+            <!-- Плейлисты и аудиозаписи профиля -->
             <fieldset style="margin-bottom: 12px;">
-              <legend>Музыка пользователя</legend>
+              <legend>🎵 Музыка пользователя</legend>
+              
+              <div id="playlistCreateBlock" style="margin-bottom: 8px; display:none;">
+                <div style="display: flex; gap: 4px;">
+                  <input type="text" id="newPlaylistTitle" placeholder="Название нового плейлиста..." style="flex: 1; font-size: 11px;">
+                  <button id="btnCreatePlaylist" style="font-size: 11px;">Создать плейлист</button>
+                </div>
+              </div>
+
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 4px; flex-wrap: wrap;"></div>
               <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
@@ -847,7 +902,7 @@
         </div>
       </div>
 
-      <!-- Frutiger Aero Аудиоплеер -->
+      <!-- Frutiger Aero Аудиоплеер со смайликами кнопок -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">Ничего не играет</div>
@@ -860,7 +915,7 @@
           <button id="btnLoopTrack" title="Зациклить песню">🔂 Трек</button>
           <button id="btnLoopAll" title="Зациклить плейлист">🔁 Все</button>
         </div>
-        <audio id="globalAudioPlayer" preload="none"></audio>
+        <audio id="globalAudioPlayer" preload="auto"></audio>
       </div>
     </div>
   </div>
@@ -890,7 +945,6 @@
     let currentCommunityRole = null;
     let activeConversationId = null;
 
-    // Восстановление лайков из локального кэша для исключения мигания белым цветом при загрузке
     let userLikedPosts = new Set(JSON.parse(localStorage.getItem('bubble_user_liked_posts') || '[]'));
     let userLikedComments = new Set(JSON.parse(localStorage.getItem('bubble_user_liked_comments') || '[]'));
     let userLikedCreations = new Set(JSON.parse(localStorage.getItem('bubble_user_liked_creations') || '[]'));
@@ -901,6 +955,11 @@
     let profilesMap = {};
     let communitiesMap = {};
     let allCommunitiesCache = [];
+    let allTracksCache = [];
+
+    // Выбранный трек для поста
+    let selectedPostTrack = null;
+    let pickerMode = 'my';
 
     let selectedGroupFriends = new Set();
 
@@ -909,6 +968,69 @@
     let loopMode = 'none';
     const audioPlayer = document.getElementById('globalAudioPlayer');
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
+
+    // ==================== СОХРАНЕНИЕ И ВОССТАНОВЛЕНИЕ МУЗЫКИ ====================
+    audioPlayer.addEventListener('timeupdate', () => {
+      if (playlistQueue.length > 0 && currentTrackIndex >= 0) {
+        localStorage.setItem('bubble_audio_state', JSON.stringify({
+          queue: playlistQueue,
+          index: currentTrackIndex,
+          time: audioPlayer.currentTime,
+          isPlaying: !audioPlayer.paused,
+          playlistTitle: currentPlaylistDisplay.innerText
+        }));
+      }
+    });
+
+    audioPlayer.addEventListener('pause', () => {
+      const saved = localStorage.getItem('bubble_audio_state');
+      if (saved) {
+        try {
+          const data = JSON.parse(saved);
+          data.isPlaying = false;
+          localStorage.setItem('bubble_audio_state', JSON.stringify(data));
+        } catch(e) {}
+      }
+    });
+
+    function restoreAudioPlayback() {
+      const saved = localStorage.getItem('bubble_audio_state');
+      if (!saved) return;
+      try {
+        const data = JSON.parse(saved);
+        if (data.queue && data.queue[data.index]) {
+          playlistQueue = data.queue;
+          currentTrackIndex = data.index;
+          currentPlaylistDisplay.innerText = data.playlistTitle || 'Плейлист';
+
+          const track = playlistQueue[currentTrackIndex];
+          audioPlayer.src = track.audio_url;
+          audioPlayer.currentTime = data.time || 0;
+          currentTrackDisplay.innerText = `🔊 ${track.artist} — ${track.title}`;
+
+          if (data.isPlaying) {
+            const playPromise = audioPlayer.play();
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                btnPlayPause.innerText = '⏸';
+              }).catch(() => {
+                btnPlayPause.innerText = '▶';
+                window.addEventListener('click', () => {
+                  if (audioPlayer.paused && data.isPlaying) {
+                    audioPlayer.play();
+                    btnPlayPause.innerText = '⏸';
+                  }
+                }, { once: true });
+              });
+            }
+          }
+        }
+      } catch(e) {
+        console.warn('restoreAudioPlayback:', e);
+      }
+    }
+
+    restoreAudioPlayback();
 
     // UI элементы
     const authModal = document.getElementById('authModal');
@@ -955,6 +1077,17 @@
     const profilePostsList = document.getElementById('profilePostsList');
     const notificationsList = document.getElementById('notificationsList');
     const btnMarkAllRead = document.getElementById('btnMarkAllRead');
+
+    // Пост с музыкой
+    const postAttachedTrackPreview = document.getElementById('postAttachedTrackPreview');
+    const postAttachedTrackTitle = document.getElementById('postAttachedTrackTitle');
+    const btnRemoveAttachedTrack = document.getElementById('btnRemoveAttachedTrack');
+    const btnOpenPostMusicPicker = document.getElementById('btnOpenPostMusicPicker');
+    const postMusicPickerModal = document.getElementById('postMusicPickerModal');
+    const btnPickerMyTracks = document.getElementById('btnPickerMyTracks');
+    const btnPickerGlobalTracks = document.getElementById('btnPickerGlobalTracks');
+    const pickerSearchInput = document.getElementById('pickerSearchInput');
+    const pickerTracksList = document.getElementById('pickerTracksList');
 
     // Кнопки отмены файлов
     const postImageFile = document.getElementById('postImageFile');
@@ -1098,6 +1231,9 @@
     const friendsBlockLegend = document.getElementById('friendsBlockLegend');
     const profilePostsLegend = document.getElementById('profilePostsLegend');
     const profileTracksList = document.getElementById('profileTracksList');
+    const playlistCreateBlock = document.getElementById('playlistCreateBlock');
+    const newPlaylistTitle = document.getElementById('newPlaylistTitle');
+    const btnCreatePlaylist = document.getElementById('btnCreatePlaylist');
     const playlistSelectContainer = document.getElementById('playlistSelectContainer');
 
     // Посты & Музыка
@@ -1225,7 +1361,6 @@
         sideUserName.innerText = myProf ? myProf.username : getUserName(activeUser);
         sideAvatar.src = (myProf && myProf.avatar_url) ? myProf.avatar_url : DEFAULT_AVATAR;
 
-        // Строго дожидаемся загрузки лайков из БД перед отображением вкладок
         await loadUserLikes();
         await loadUserThemeAndFrame();
         await updateUnreadBadge();
@@ -1412,6 +1547,103 @@
     btnTabProfile.onclick = () => { if (activeUser) switchTab('profile', activeUser.id); };
     document.getElementById('btnGoReload').onclick = () => switchTab(currentTab, viewingUserId);
     window.goToProfile = (uId) => switchTab('profile', uId);
+
+    // ==================== ВЫБОР МУЗЫКИ ДЛЯ ПОСТА ====================
+    btnOpenPostMusicPicker.onclick = () => {
+      pickerMode = 'my';
+      btnPickerMyTracks.style.fontWeight = 'bold';
+      btnPickerGlobalTracks.style.fontWeight = 'normal';
+      pickerSearchInput.value = '';
+      loadPickerTracks();
+      postMusicPickerModal.style.display = 'flex';
+    };
+
+    btnPickerMyTracks.onclick = () => {
+      pickerMode = 'my';
+      btnPickerMyTracks.style.fontWeight = 'bold';
+      btnPickerGlobalTracks.style.fontWeight = 'normal';
+      loadPickerTracks();
+    };
+
+    btnPickerGlobalTracks.onclick = () => {
+      pickerMode = 'global';
+      btnPickerGlobalTracks.style.fontWeight = 'bold';
+      btnPickerMyTracks.style.fontWeight = 'normal';
+      loadPickerTracks();
+    };
+
+    pickerSearchInput.addEventListener('input', () => {
+      loadPickerTracks();
+    });
+
+    async function loadPickerTracks() {
+      pickerTracksList.innerHTML = 'Загрузка треков...';
+      const search = pickerSearchInput.value.toLowerCase().trim();
+      let tracks = [];
+
+      if (pickerMode === 'my' && activeUser) {
+        const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', activeUser.id);
+        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+      } else {
+        const { data } = await window.sbClient.from('tracks').select('*').order('id', { ascending: false });
+        tracks = data || [];
+      }
+
+      if (search) {
+        tracks = tracks.filter(t => (t.title && t.title.toLowerCase().includes(search)) || (t.artist && t.artist.toLowerCase().includes(search)));
+      }
+
+      if (tracks.length === 0) {
+        pickerTracksList.innerHTML = '<div style="color:#777; padding:4px;">Треки не найдены.</div>';
+        return;
+      }
+
+      pickerTracksList.innerHTML = tracks.map(t => `
+        <div class="track-list-item">
+          <div><b>${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}</div>
+          <button onclick="attachTrackToPost(${t.id}, '${escapeHtml(t.artist).replace(/'/g, "\\'")}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')" style="font-size:10px; font-weight:bold;">Выбрать</button>
+        </div>
+      `).join('');
+    }
+
+    window.attachTrackToPost = (id, artist, title) => {
+      selectedPostTrack = { id, artist, title };
+      postAttachedTrackTitle.innerText = `🎵 ${artist} — ${title}`;
+      postAttachedTrackPreview.style.display = 'flex';
+      postMusicPickerModal.style.display = 'none';
+    };
+
+    btnRemoveAttachedTrack.onclick = () => {
+      selectedPostTrack = null;
+      postAttachedTrackPreview.style.display = 'none';
+    };
+
+    // ==================== РЕПОСТЫ (ПОПАДАЮТ ТОЛЬКО В ЛЕНТУ ДРУЗЕЙ) ====================
+    window.repostItem = async function(type, id, author, content) {
+      if (!activeUser) return;
+      const comment = prompt('Добавить комментарий к репосту (необязательно):', '');
+      if (comment === null) return;
+
+      const myProf = profilesMap[activeUser.id] || {};
+      const { error } = await window.sbClient.from('posts').insert([{
+        author: myProf.username || getUserName(activeUser),
+        content: comment.trim(),
+        user_id: activeUser.id,
+        is_friends_only: true, // Исключительно в ленту друзей!
+        repost_type: type,
+        repost_post_id: type === 'post' ? id : null,
+        repost_comment_id: type === 'comment' ? id : null,
+        repost_author: author,
+        repost_content: content,
+        likes_count: 0
+      }]);
+
+      if (error) alert('Ошибка репоста: ' + error.message);
+      else {
+        alert('Запись успешно репостнута в ленту ваших друзей!');
+        switchTab('friends_feed');
+      }
+    };
 
     // ==================== МАСТЕРСКАЯ ОФОРМЛЕНИЯ ====================
     btnSwitchToThemeCreator.onclick = () => {
@@ -1875,7 +2107,7 @@
       localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ (НАДЕЖНОЕ КЭШИРОВАНИЕ ЛАЙКОВ) ====================
+    // ==================== ЛЕНТА И ПОСТЫ ====================
     async function loadUserLikes() {
       if (!activeUser) return;
       try {
@@ -1945,6 +2177,32 @@
         `;
       }
 
+      // Блок репоста (если пост является репостом)
+      let repostHTML = '';
+      if (p.repost_type) {
+        repostHTML = `
+          <div class="repost-container">
+            <div class="repost-badge">🔁 Репост ${p.repost_type === 'comment' ? 'комментария' : 'записи'} (Только для друзей)</div>
+            <div style="font-weight:bold; color:#0b388f; margin-bottom:2px;">${escapeHtml(p.repost_author)}:</div>
+            <div>${escapeHtml(p.repost_content)}</div>
+          </div>
+        `;
+      }
+
+      // Блок прикрепленного трека
+      let trackHTML = '';
+      if (p.track_id) {
+        const trk = allTracksCache.find(t => t.id === p.track_id);
+        if (trk) {
+          trackHTML = `
+            <div class="post-track-box">
+              <span>🎵 <b>${escapeHtml(trk.artist)}</b> — ${escapeHtml(trk.title)}</span>
+              <button onclick="playQueue([${JSON.stringify(trk).replace(/"/g, '&quot;')}], 0, 'Трек из поста')" style="font-size:10px; font-weight:bold;">▶ Играть</button>
+            </div>
+          `;
+        }
+      }
+
       return `
         <div class="post-box" id="post-${uniquePostKey}">
           <div class="post-header">
@@ -1953,7 +2211,9 @@
           </div>
 
           <div style="margin: 6px 0; word-break: break-word;">${escapeHtml(p.content)}</div>
+          ${repostHTML}
           ${p.image_url ? `<img src="${p.image_url}" class="post-image" alt="Вложение">` : ''}
+          ${trackHTML}
 
           <div class="post-actions">
             <button id="like-btn-${uniquePostKey}" onclick="togglePostLike(${p.id}, '${p.user_id}', '${uniquePostKey}')">
@@ -1961,6 +2221,9 @@
             </button>
             <button onclick="toggleCommentsVisibility('${uniquePostKey}')" style="font-size:11px;">
               💬 Комментарии (<span id="comments-count-${uniquePostKey}">${postComments.length}</span>)
+            </button>
+            <button onclick="repostItem('post', ${p.id}, '${escapeHtml(p.author).replace(/'/g, "\\'")}', '${escapeHtml(p.content).replace(/'/g, "\\'")}')" style="font-size:11px;" title="Поделиться в ленту друзей">
+              🔁 Репост
             </button>
           </div>
 
@@ -1997,6 +2260,7 @@
               ${isCommentLiked ? '❤️' : '🤍'} <span id="clike-count-${c.id}">${c.likes_count || 0}</span>
             </button>
             <button class="btn-comment-reply" onclick="replyToComment('${uniquePostKey}', '${escapeHtml(cProf.username)}')">ответить</button>
+            <button onclick="repostItem('comment', ${c.id}, '${escapeHtml(cProf.username).replace(/'/g, "\\'")}', '${escapeHtml(c.content).replace(/'/g, "\\'")}')" style="font-size:10px;" title="Репост комментария в ленту друзей">🔁</button>
             ${(isMyComment || canModerate) ? `<button class="btn-comment-del" title="Удалить" onclick="deleteComment(${c.id}, '${uniquePostKey}')">×</button>` : ''}
           </div>
         </div>
@@ -2009,18 +2273,20 @@
       await loadAllProfiles();
       await loadAllCommunitiesCache();
       await loadFriends();
-      await loadUserLikes(); // Всегда проверяем статус лайков перед рендером ленты
+      await loadUserLikes();
 
-      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
+      // Загружаем общий кэш треков для постов
+      const { data: allTrks } = await window.sbClient.from('tracks').select('*');
+      allTracksCache = allTrks || [];
+
+      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(35);
 
       if (feedType === 'all') {
-        query = query.is('community_id', null);
+        // В общей ленте показываем публичные записи без пометки "только для друзей"
+        query = query.is('community_id', null).eq('is_friends_only', false);
       } else if (feedType === 'friends') {
-        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
-        if (feedTargetIds.length === 0) {
-          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
-          return;
-        }
+        // В ленту друзей попадают записи друзей И репосты (свои и друзей)
+        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds, activeUser.id]));
         query = query.is('community_id', null).in('user_id', feedTargetIds);
       } else if (feedType === 'communities') {
         query = query.not('community_id', 'is', null);
@@ -2047,7 +2313,6 @@
       const btnEl = document.getElementById(`like-btn-${uniquePostKey}`);
       let count = parseInt(countEl?.innerText || '0') || 0;
 
-      // Двойная проверка: если в БД лайк уже есть, то действие - снять лайк
       const { data: existingLike } = await window.sbClient
         .from('post_likes')
         .select('id')
@@ -2151,7 +2416,7 @@
       if (!activeUser) return;
       const text = postContent.value.trim();
       const file = postImageFile.files[0];
-      if (!text && !file) return alert('Введите текст или прикрепите фото!');
+      if (!text && !file && !selectedPostTrack) return alert('Введите текст, прикрепите фото или выберите песню!');
 
       btnCreatePost.disabled = true;
       let imageUrl = null;
@@ -2164,12 +2429,21 @@
 
       const myProf = profilesMap[activeUser.id] || {};
       await window.sbClient.from('posts').insert([{
-        author: myProf.username || getUserName(activeUser), content: text,
-        user_id: activeUser.id, community_id: null, image_url: imageUrl, likes_count: 0
+        author: myProf.username || getUserName(activeUser),
+        content: text,
+        user_id: activeUser.id,
+        community_id: null,
+        image_url: imageUrl,
+        track_id: selectedPostTrack ? selectedPostTrack.id : null,
+        is_friends_only: false,
+        likes_count: 0
       }]);
 
       btnCreatePost.disabled = false;
-      postContent.value = ''; postImageFile.value = '';
+      postContent.value = '';
+      postImageFile.value = '';
+      selectedPostTrack = null;
+      postAttachedTrackPreview.style.display = 'none';
       btnClearPostImage.style.display = 'none';
       loadFeed(currentTab === 'friends_feed' ? 'friends' : (currentTab === 'communities_feed' ? 'communities' : 'all'));
     };
@@ -2302,7 +2576,7 @@
 
     async function loadCommunityPosts(commId) {
       commPostsList.innerHTML = 'Загрузка...';
-      await loadUserLikes(); // Актуализируем лайки перед рендером стены сообщества
+      await loadUserLikes();
       const { data: posts } = await window.sbClient.from('posts').select('*').eq('community_id', commId).order('id', { ascending: false });
       if (!posts || posts.length === 0) {
         commPostsList.innerHTML = '<p>В сообществе пока нет записей.</p>';
@@ -2582,11 +2856,11 @@
       loadConversationsList();
     });
 
-    // ==================== ПРОФИЛЬ ====================
+    // ==================== ПРОФИЛЬ, МУЗЫКА И ПЛЕЙЛИСТЫ ====================
     async function openUserProfile(userId) {
       await loadAllProfiles();
       await loadFriends();
-      await loadUserLikes(); // Актуализируем лайки перед отрисовкой профиля
+      await loadUserLikes();
       const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
 
       profileNick.innerText = prof.username;
@@ -2599,16 +2873,20 @@
         userProfileFrameOverlay.style.display = 'none';
       }
 
-      if (activeUser && userId !== activeUser.id) {
+      const isMyProfile = activeUser && userId === activeUser.id;
+
+      if (!isMyProfile) {
         btnFriendAction.style.display = 'inline-block';
         btnProfileSendMsg.style.display = 'inline-block';
         btnProfileSendMsg.onclick = () => getOrCreateDirectChat(userId);
         btnFriendAction.innerText = userFriendIds.has(userId) ? 'В друзьях (Удалить)' : (pendingOutgoingIds.has(userId) ? 'Заявка отправлена' : '+ Добавить в друзья');
         profilePostsLegend.innerText = `Публикации пользователя ${prof.username}`;
+        playlistCreateBlock.style.display = 'none';
       } else {
         btnFriendAction.style.display = 'none';
         btnProfileSendMsg.style.display = 'none';
         profilePostsLegend.innerText = 'Мои публикации';
+        playlistCreateBlock.style.display = 'block';
       }
 
       loadProfileFriends(userId);
@@ -2656,11 +2934,12 @@
       openUserProfile(viewingUserId);
     };
 
-    // ==================== МУЗЫКА И ПЛЕЕР ====================
+    // ==================== МУЗЫКА И КОНСТРУКТОР ПЛЕЙЛИСТОВ ====================
     async function loadAllGlobalMusic() {
       allTracksList.innerHTML = 'Загрузка...';
       const { data: tracks } = await window.sbClient.from('tracks').select('*').order('id', { ascending: false });
       if (!tracks || tracks.length === 0) { allTracksList.innerHTML = '<p>Музыки пока нет.</p>'; return; }
+      allTracksCache = tracks;
       allTracksList.innerHTML = tracks.map((t, idx) => `
         <div class="track-list-item">
           <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека Bubble')">
@@ -2671,30 +2950,144 @@
       `).join('');
     }
 
-    async function loadUserMusic(userId) {
-      profileTracksList.innerHTML = 'Загрузка...';
-      const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', userId);
-      const tracks = (data || []).map(d => d.tracks).filter(Boolean);
-      profileTracksList.innerHTML = tracks.length === 0 ? '<div style="font-size:11px; color:#666;">Музыка не добавлена.</div>' :
-        tracks.map((t, idx) => `
-          <div class="track-list-item">
-            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка профиля')">
-              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
-            </div>
-            ${userId === activeUser?.id ? `<button onclick="removeTrackFromProfile(${t.id})" style="font-size:10px; color:#a00;">×</button>` : `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>`}
+    searchGlobalMusic.addEventListener('input', () => {
+      const q = searchGlobalMusic.value.toLowerCase().trim();
+      const filtered = allTracksCache.filter(t => (t.title && t.title.toLowerCase().includes(q)) || (t.artist && t.artist.toLowerCase().includes(q)));
+      allTracksList.innerHTML = filtered.map((t, idx) => `
+        <div class="track-list-item">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(filtered).replace(/"/g, '&quot;')}, ${idx}, 'Медиатека')">
+            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
           </div>
-        `).join('');
+          <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>
+        </div>
+      `).join('') || '<p>Ничего не найдено.</p>';
+    });
+
+    // Загрузка музыки и плейлистов в профиле
+    async function loadUserMusic(userId, activePlaylistId = null) {
+      profileTracksList.innerHTML = 'Загрузка аудиозаписей...';
+
+      // 1. Плейлисты
+      const { data: playlists } = await window.sbClient.from('playlists').select('*').eq('user_id', userId);
+      playlistSelectContainer.innerHTML = `
+        <button style="${!activePlaylistId ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', null)">📁 Вся музыка</button>
+        ${(playlists || []).map(pl => `
+          <button style="${activePlaylistId === pl.id ? 'font-weight:bold;' : ''}" onclick="loadUserMusic('${userId}', ${pl.id})">💿 ${escapeHtml(pl.title)}</button>
+        `).join('')}
+      `;
+
+      // 2. Треки
+      let tracks = [];
+      if (activePlaylistId) {
+        const { data } = await window.sbClient.from('playlist_tracks').select('track_id, tracks(*)').eq('playlist_id', activePlaylistId);
+        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+      } else {
+        const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', userId);
+        tracks = (data || []).map(d => d.tracks).filter(Boolean);
+      }
+
+      if (tracks.length === 0) {
+        profileTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В этом списке пока нет аудиозаписей.</div>';
+        return;
+      }
+
+      const isMyProfile = activeUser && userId === activeUser.id;
+      let myPlaylists = [];
+      if (activeUser) {
+        const { data: myPl } = await window.sbClient.from('playlists').select('id, title').eq('user_id', activeUser.id);
+        myPlaylists = myPl || [];
+      }
+
+      profileTracksList.innerHTML = tracks.map((t, idx) => `
+        <div class="track-list-item">
+          <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, '${activePlaylistId ? 'Плейлист' : 'Библиотека'}')">
+            <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+          </div>
+          <div style="display:flex; gap:4px; align-items:center;">
+            ${!isMyProfile ? `<button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>` : ''}
+            ${(isMyProfile && myPlaylists.length > 0) ? `
+              <select onchange="addTrackToPlaylist(${t.id}, this.value); this.value='';" style="font-size:10px;">
+                <option value="">+ В плейлист...</option>
+                ${myPlaylists.map(p => `<option value="${p.id}">${escapeHtml(p.title)}</option>`).join('')}
+              </select>
+            ` : ''}
+            ${isMyProfile ? `<button onclick="removeTrackFromProfile(${t.id}, ${activePlaylistId})" title="Удалить" style="font-size:10px; color:#a00;">×</button>` : ''}
+          </div>
+        </div>
+      `).join('');
     }
+
+    btnCreatePlaylist.onclick = async () => {
+      const title = newPlaylistTitle.value.trim();
+      if (!title || !activeUser) return alert('Введите название плейлиста!');
+      await window.sbClient.from('playlists').insert([{ user_id: activeUser.id, title }]);
+      newPlaylistTitle.value = '';
+      loadUserMusic(activeUser.id);
+    };
+
+    window.addTrackToPlaylist = async function(trackId, playlistId) {
+      if (!playlistId || !activeUser) return;
+      const { error } = await window.sbClient.from('playlist_tracks').insert([{ playlist_id: playlistId, track_id: trackId }]);
+      if (error && error.code !== '23505') alert('Ошибка добавления: ' + error.message);
+      else alert('Трек успешно добавлен в плейлист!');
+    };
+
+    window.removeTrackFromProfile = async function(trackId, activePlaylistId) {
+      if (!confirm('Удалить трек?')) return;
+      if (activePlaylistId) {
+        await window.sbClient.from('playlist_tracks').delete().match({ playlist_id: activePlaylistId, track_id: trackId });
+      } else {
+        await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: trackId });
+      }
+      loadUserMusic(activeUser.id, activePlaylistId);
+    };
 
     window.addTrackToMyLibrary = async (tId) => {
       if (!activeUser) return;
-      await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: tId }]);
-      alert('Трек добавлен в ваш профиль!');
+      const { error } = await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: tId }]);
+      if (error && error.code !== '23505') alert('Ошибка: ' + error.message);
+      else alert('Трек добавлен в ваш профиль!');
     };
-    window.removeTrackFromProfile = async (tId) => {
-      if (!confirm('Удалить трек?')) return;
-      await window.sbClient.from('user_tracks').delete().match({ user_id: activeUser.id, track_id: tId });
-      loadUserMusic(activeUser.id);
+
+    btnUploadGlobalTrack.onclick = async () => {
+      const file = globalAudioFile.files[0];
+      const title = globalTrackTitle.value.trim();
+      const artist = globalTrackArtist.value.trim() || 'Неизвестный исполнитель';
+
+      if (!file || !title) return alert('Выберите MP3-файл и укажите название!');
+      if (!activeUser) return;
+
+      btnUploadGlobalTrack.disabled = true;
+      globalAudioUploadStatus.innerText = 'Загрузка трека...';
+
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('audio_tracks').upload(fileName, file);
+      if (uploadError) {
+        globalAudioUploadStatus.innerText = '';
+        btnUploadGlobalTrack.disabled = false;
+        return alert('Ошибка загрузки аудио: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('audio_tracks').getPublicUrl(fileName);
+      const { data: trackData, error: trackError } = await window.sbClient.from('tracks').insert([{
+        title, artist, audio_url: publicUrl, uploader_id: activeUser.id
+      }]).select().single();
+
+      if (trackError) {
+        alert('Ошибка сохранения: ' + trackError.message);
+      } else {
+        await window.sbClient.from('user_tracks').insert([{ user_id: activeUser.id, track_id: trackData.id }]);
+        globalTrackTitle.value = '';
+        globalTrackArtist.value = '';
+        globalAudioFile.value = '';
+        btnClearAudioFile.style.display = 'none';
+        globalAudioUploadStatus.innerText = 'Трек опубликован!';
+        setTimeout(() => globalAudioUploadStatus.innerText = '', 2000);
+        loadAllGlobalMusic();
+      }
+      btnUploadGlobalTrack.disabled = false;
     };
 
     window.playQueue = (tracks, startIndex, name = 'Список') => {
@@ -2785,9 +3178,9 @@
 
       listIncomingReqs.innerHTML = pendingIncomingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет входящих заявок.</div>' :
         Array.from(pendingIncomingIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+          <div class="participant-select-item">
+            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
+              ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
             <div>
@@ -2797,22 +3190,23 @@
           </div>
         `).join('');
 
+      // Кнопка удаления исключена: удалять из друзей можно только на личной странице профиля
       listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         Array.from(userFriendIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')" style="cursor:pointer;">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+          <div class="participant-select-item" onclick="goToProfile('${uId}')" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
-            <span style="font-size:10px; color:#0b388f; cursor:pointer;" onclick="goToProfile('${uId}')">Открыть профиль →</span>
+            <span style="font-size:10px; color:#0b388f;">Открыть профиль →</span>
           </div>
         `).join('');
 
       listOutgoingReqs.innerHTML = pendingOutgoingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет отправленных заявок.</div>' :
         Array.from(pendingOutgoingIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+          <div class="participant-select-item">
+            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
+              ${renderAvatarWithFrame(uId, false)}
               <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
             </div>
             <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить заявку</button></div>
