@@ -66,7 +66,6 @@
       display: flex; flex-direction: column; position: relative;
     }
 
-    /* Frutiger Aero Header */
     .aero-title-bar {
       background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -94,7 +93,6 @@
       margin: 0 !important; padding: 0 !important; position: relative;
     }
 
-    /* Frutiger Aero Sidebar */
     .sidebar {
       width: 220px;
       background: linear-gradient(135deg, rgba(230, 248, 255, 0.9) 0%, rgba(185, 225, 250, 0.8) 50%, rgba(150, 210, 245, 0.9) 100%);
@@ -145,7 +143,7 @@
     /* Обертка аватарки */
     .avatar-wrapper {
       position: relative; display: inline-flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin: 6px;
+      flex-shrink: 0; margin: 8px;
     }
     .avatar-mini {
       width: 28px; height: 28px; border-radius: 50% !important; object-fit: cover;
@@ -155,47 +153,63 @@
       width: 68px; height: 68px; border-radius: 50% !important; object-fit: cover;
       border: 2px solid #0055ea; background: #fff; position: relative; z-index: 2;
     }
-    
-    /* Рамка шире аватара и обрезается по заданной фигуре */
+
+    /* Рамка и слои формы с гарантированным свечением */
     .avatar-frame-overlay {
-      position: absolute; pointer-events: none; z-index: 1; box-sizing: border-box;
-      top: -6px; left: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
-      background-size: cover; background-position: center; overflow: hidden;
+      position: absolute; pointer-events: none; z-index: 1;
+      top: -8px; left: -8px; width: calc(100% + 16px); height: calc(100% + 16px);
+      display: flex; align-items: center; justify-content: center;
     }
     .profile-card .avatar-frame-overlay,
     .preview-big-frame .avatar-frame-overlay {
-      top: -12px; left: -12px; width: calc(100% + 24px); height: calc(100% + 24px);
+      top: -16px; left: -16px; width: calc(100% + 32px); height: calc(100% + 32px);
     }
 
-    /* Увеличенная рамка звезды */
-    .avatar-frame-overlay.frame-shape-star {
-      top: -10px; left: -10px; width: calc(100% + 20px); height: calc(100% + 20px);
+    /* Увеличенная рамка звезды: внутренние точки шире круглого аватара */
+    .avatar-frame-overlay.shape-star {
+      top: -14px; left: -14px; width: calc(100% + 28px); height: calc(100% + 28px);
     }
-    .profile-card .avatar-frame-overlay.frame-shape-star,
-    .preview-big-frame .avatar-frame-overlay.frame-shape-star {
-      top: -18px; left: -18px; width: calc(100% + 36px); height: calc(100% + 36px);
+    .profile-card .avatar-frame-overlay.shape-star,
+    .preview-big-frame .avatar-frame-overlay.shape-star {
+      top: -28px; left: -28px; width: calc(100% + 56px); height: calc(100% + 56px);
     }
 
-    .frame-shape-circle { border-radius: 50% !important; }
-    .frame-shape-square { border-radius: 8px !important; }
-    .frame-shape-hexagon {
+    /* Внутренний полигональный слой, обрезающий картинку/цвет */
+    .frame-inner-shape {
+      width: 100%; height: 100%; background-size: cover; background-position: center;
+    }
+    .shape-circle .frame-inner-shape { border-radius: 50% !important; }
+    .shape-square .frame-inner-shape { border-radius: 8px !important; }
+    .shape-hexagon .frame-inner-shape {
       clip-path: polygon(50% 0%, 93% 25%, 93% 75%, 50% 100%, 7% 75%, 7% 25%) !important;
     }
-    .frame-shape-star {
-      clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%) !important;
+    /* Звезда с широкими внутренними лучами, не закрывающимися кругом */
+    .shape-star .frame-inner-shape {
+      clip-path: polygon(50% 0%, 64% 33%, 100% 35%, 72% 58%, 82% 98%, 50% 74%, 18% 98%, 28% 58%, 0% 35%, 36% 33%) !important;
     }
 
-    @keyframes glowPulse {
+    /* Комбинируемые анимации */
+    @keyframes glowEffect {
       0% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)) drop-shadow(0 0 1px var(--frame-color, #00ffff)); }
-      50% { filter: drop-shadow(0 0 10px var(--frame-color, #00ffff)) drop-shadow(0 0 4px var(--frame-color, #00ffff)); }
+      50% { filter: drop-shadow(0 0 14px var(--frame-color, #00ffff)) drop-shadow(0 0 5px var(--frame-color, #00ffff)); }
       100% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)) drop-shadow(0 0 1px var(--frame-color, #00ffff)); }
     }
-    @keyframes rainbowRotate {
+    @keyframes rainbowEffect {
       0% { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
-    .anim-glow { animation: glowPulse 2s infinite ease-in-out; }
-    .anim-rainbow { animation: rainbowRotate 3s linear infinite; }
+    @keyframes rotateSpin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .fx-glow { animation: glowEffect 2s infinite ease-in-out; }
+    .fx-rainbow .frame-inner-shape { animation: rainbowEffect 3s linear infinite; }
+    .fx-spin { animation: rotateSpin 6s linear infinite; }
+    /* Одновременное свечение и вращение */
+    .fx-glow.fx-spin { animation: rotateSpin 6s linear infinite, glowEffect 2s infinite ease-in-out; }
+
+    .avatar-spin { animation: rotateSpin 6s linear infinite; }
 
     .profile-card {
       display: flex; align-items: center; gap: 14px; background: #f4f4f4;
@@ -214,9 +228,7 @@
       background: #f7f9fa; border-left: 3px solid #0055ea; padding: 6px 10px;
       margin: 6px 0; border-radius: 4px; font-size: 11px;
     }
-    .repost-badge {
-      font-size: 9px; color: #0055ea; font-weight: bold; margin-bottom: 4px;
-    }
+    .repost-badge { font-size: 9px; color: #0055ea; font-weight: bold; margin-bottom: 4px; }
     
     .post-track-box {
       display: flex; align-items: center; justify-content: space-between;
@@ -248,7 +260,6 @@
       margin-left: 4px; font-weight: bold;
     }
 
-    /* Капча UI */
     .captcha-box {
       background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
       border: 1px dashed #0288d1; border-radius: 4px; padding: 6px;
@@ -260,31 +271,18 @@
       display: inline-block; user-select: none; color: #01579b; font-style: italic;
     }
 
-    /* Drag and Drop в плейлистах */
     .track-list-item.draggable {
-      user-select: none;
-      transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
+      user-select: none; transition: transform 0.15s ease, background 0.15s ease, opacity 0.15s ease;
     }
     .drag-handle {
-      cursor: grab;
-      padding: 2px 6px;
-      color: #7f9db9;
-      font-size: 13px;
-      line-height: 1;
+      cursor: grab; padding: 2px 6px; color: #7f9db9; font-size: 13px; line-height: 1;
     }
-    .drag-handle:active {
-      cursor: grabbing;
-    }
+    .drag-handle:active { cursor: grabbing; }
     .track-list-item.dragging {
-      opacity: 0.45;
-      background: #d8efff !important;
-      border: 1px dashed #0055ea !important;
+      opacity: 0.45; background: #d8efff !important; border: 1px dashed #0055ea !important;
     }
-    .track-list-item.drag-over {
-      border-top: 2px solid #0055ea !important;
-    }
+    .track-list-item.drag-over { border-top: 2px solid #0055ea !important; }
 
-    /* Messenger UI */
     .messenger-container { display: flex; height: 560px; border: 1px solid #7f9db9; background: #fff; }
     .messenger-chats { width: 250px; border-right: 1px solid #7f9db9; overflow-y: auto; background: #f9f9f9; }
     .messenger-chat-item {
@@ -309,9 +307,7 @@
       cursor: pointer; user-select: none;
     }
     .participant-select-item:hover { background: #edf4ff; }
-    .participant-select-item.selected {
-      background: #e3f2fd; border-color: #0055ea;
-    }
+    .participant-select-item.selected { background: #e3f2fd; border-color: #0055ea; }
     .participant-status-badge {
       font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px;
     }
@@ -334,14 +330,11 @@
     .playlist-tab-btn {
       display: inline-flex; align-items: center; gap: 4px; padding: 3px 6px; font-size: 11px;
     }
-    .playlist-tab-btn.active {
-      font-weight: bold; background: #d8efff; border-color: #0055ea;
-    }
+    .playlist-tab-btn.active { font-weight: bold; background: #d8efff; border-color: #0055ea; }
     .btn-del-playlist {
       color: #a00; font-size: 10px; border: none; background: transparent; cursor: pointer; padding: 0 2px;
     }
 
-    /* Frutiger Aero Player Dock */
     .player-dock {
       background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(215,240,255,0.85) 48%, rgba(175,225,255,0.88) 52%, rgba(220,245,255,0.95) 100%);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
@@ -454,25 +447,43 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Настройки сообщества -->
+  <!-- Модальное окно: Настройки сообщества (Смена данных и управление ролями) -->
   <div class="modal-overlay" id="commSettingsModal" style="display:none;">
-    <div class="window" style="width: 420px; max-width: 95%;">
+    <div class="window" style="width: 480px; max-width: 95%;">
       <div class="title-bar">
         <div class="title-bar-text">⚙️ Настройки сообщества</div>
         <div class="title-bar-controls">
           <button aria-label="Close" onclick="document.getElementById('commSettingsModal').style.display='none'"></button>
         </div>
       </div>
-      <div class="window-body">
-        <label style="font-size:11px; display:block; margin-bottom:4px;">Название сообщества:</label>
-        <input type="text" id="editCommTitleInput" style="width:100%; margin-bottom:8px; font-size:11px;">
-        
-        <label style="font-size:11px; display:block; margin-bottom:4px;">Описание сообщества:</label>
-        <textarea id="editCommDescInput" rows="3" style="width:100%; margin-bottom:8px; font-size:11px; box-sizing:border-box;"></textarea>
-        
-        <label style="font-size:11px; display:block; margin-bottom:4px;">Сменить аватарку сообщества (из файлов):</label>
-        <input type="file" id="editCommAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-bottom:8px;">
-        <div id="editCommUploadStatus" style="font-size:10px; color:#555; margin-bottom:8px;"></div>
+      <div class="window-body" style="max-height: 520px; overflow-y: auto;">
+        <fieldset style="margin-bottom:8px;">
+          <legend>Основные данные</legend>
+          <label style="font-size:11px; display:block; margin-bottom:2px;">Название сообщества:</label>
+          <input type="text" id="editCommTitleInput" style="width:100%; margin-bottom:6px; font-size:11px;">
+          
+          <label style="font-size:11px; display:block; margin-bottom:2px;">Описание сообщества:</label>
+          <textarea id="editCommDescInput" rows="2" style="width:100%; margin-bottom:6px; font-size:11px; box-sizing:border-box;"></textarea>
+          
+          <label style="font-size:11px; display:block; margin-bottom:2px;">Сменить аватарку сообщества:</label>
+          <input type="file" id="editCommAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-bottom:4px;">
+          <div id="editCommUploadStatus" style="font-size:10px; color:#555;"></div>
+        </fieldset>
+
+        <fieldset style="margin-bottom:8px;">
+          <legend>Права и возможности ролей</legend>
+          <div style="font-size:10px; line-height:1.4; color:#333; background:#f9f9f9; padding:6px; border:1px solid #ddd; border-radius:4px;">
+            <b>👑 Создатель</b> — полный контроль: настройки сообщества, смена ролей, удаление любых постов, добавление музыки.<br>
+            <b>🛡️ Администратор</b> — публикация от лица сообщества, добавление/сортировка музыки, удаление чужих постов.<br>
+            <b>🔨 Модератор</b> — очистка стены и комментариев от нарушений и спама.<br>
+            <b>👤 Участник</b> — просмотр, комментирование и прослушивание треков.
+          </div>
+        </fieldset>
+
+        <fieldset style="margin-bottom:8px;">
+          <legend>Управление участниками и выдача ролей</legend>
+          <div id="commMembersManageList" style="max-height:150px; overflow-y:auto;">Загрузка участников...</div>
+        </fieldset>
 
         <div style="display:flex; justify-content:space-between;">
           <button onclick="document.getElementById('commSettingsModal').style.display='none'">Отмена</button>
@@ -609,7 +620,7 @@
             <div style="display:flex; align-items:center; gap:8px; margin-bottom:6px;">
               <div class="avatar-wrapper" id="sidebarAvatarContainer">
                 <img id="sideAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="avatar-mini" alt="avatar">
-                <div id="sidebarFrameOverlay" class="avatar-frame-overlay" style="display:none;"></div>
+                <div id="sidebarFrameOverlay" class="avatar-frame-overlay" style="display:none;"><div class="frame-inner-shape"></div></div>
               </div>
               <div id="sideUserName" style="font-size: 11px; font-weight:bold; color:#0b388f; word-break: break-all;">...</div>
             </div>
@@ -665,10 +676,10 @@
           <div id="sectionWorkshop" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>Мастерская оформления</legend>
-              <div style="display:flex; gap:8px; margin-bottom:8px;">
+              <div style="display:flex; gap:8px; margin-bottom:8px; flex-wrap:wrap;">
                 <button id="btnSwitchToThemeCreator" style="font-weight:bold;">Конструктор темы</button>
                 <button id="btnSwitchToFrameCreator">Конструктор рамочки</button>
-                <button id="btnResetAllStyles" style="margin-left:auto; color:#a00;">Сбросить оформление</button>
+                <button id="btnResetAllStyles" style="margin-left:auto; color:#a00;">Вернуться к исходной теме</button>
               </div>
 
               <!-- Конструктор темы -->
@@ -767,44 +778,48 @@
                 </div>
               </div>
 
-              <!-- Конструктор рамочки -->
+              <!-- Конструктор рамочки с комбинированием эффектов и вращением -->
               <div id="boxFrameCreator" style="display:none;">
                 <input type="hidden" id="editingFrameId" value="">
 
-                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр рамки ЗА круглой аватаркой (выступает наружу):</div>
-                <div class="preview-big-frame" style="display:flex; justify-content:center; align-items:center; padding:22px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
+                <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр рамки ЗА аватаркой (выступает наружу):</div>
+                <div class="preview-big-frame" style="display:flex; justify-content:center; align-items:center; padding:30px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
                   <div class="avatar-wrapper" style="width:68px; height:68px;">
-                    <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
-                    <div id="prevFrameOverlay" class="avatar-frame-overlay frame-shape-circle" style="border:4px solid #00e5ff;"></div>
+                    <img id="prevAvatarImgSample" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
+                    <div id="prevFrameOverlay" class="avatar-frame-overlay shape-circle"><div class="frame-inner-shape" style="background:#00e5ff;"></div></div>
                   </div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:8px;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:6px; font-size:11px; margin-bottom:8px;">
                   <div>
                     <label>Название рамочки:</label>
                     <input type="text" id="frameTitleInput" placeholder="Неоновое сияние" style="width:100%; font-size:11px;">
                   </div>
                   <div>
-                    <label>Форма рамки (картинка обрезается по ней):</label>
+                    <label>Форма рамки:</label>
                     <select id="frameShapeSelect" style="width:100%; font-size:11px;">
                       <option value="circle">Круглая рамка</option>
                       <option value="square">Квадратная рамка</option>
                       <option value="hexagon">Шестиугольная рамка</option>
-                      <option value="star">Звёздная рамка (увеличенная)</option>
+                      <option value="star">Звёздная рамка (выступает наружу)</option>
                     </select>
                   </div>
                   <div>
                     <label>Цвет фона / обводки рамки:</label>
                     <input type="color" id="frameColorInput" value="#00e5ff" style="width:100%; height:24px;">
                   </div>
-                  <div>
-                    <label>Анимация:</label>
-                    <select id="frameAnimSelect" style="width:100%; font-size:11px;">
-                      <option value="none">Без анимации</option>
-                      <option value="glow">Пульсирующее свечение</option>
-                      <option value="rainbow">Радужный перелив</option>
-                    </select>
+
+                  <!-- Сложение эффектов -->
+                  <div style="grid-column: 1 / -1; background:#f9fbfd; border:1px solid #c0d8f0; padding:6px; border-radius:4px;">
+                    <span style="font-weight:bold; display:block; margin-bottom:4px;">Эффекты анимации (можно включить сразу несколько):</span>
+                    <div style="display:flex; gap:12px; flex-wrap:wrap;">
+                      <label style="cursor:pointer;"><input type="checkbox" id="frameFxGlow"> ✨ Пульсирующее свечение</label>
+                      <label style="cursor:pointer;"><input type="checkbox" id="frameFxRainbow"> 🌈 Радужный перелив</label>
+                      <label style="cursor:pointer;"><input type="checkbox" id="frameFxSpin"> 🔄 Вращение рамки</label>
+                      <label style="cursor:pointer; color:#0b388f; font-weight:bold;"><input type="checkbox" id="frameFxAvatarSpin"> Вращать аватарку вместе с рамкой</label>
+                    </div>
                   </div>
+
                   <div style="grid-column: 1 / -1;">
                     <label>Текстура / картинка рамки (обрежется по выбранной фигуре):</label>
                     <div style="display:flex; gap:4px; align-items:center;">
@@ -934,16 +949,16 @@
                 </div>
               </div>
 
-              <!-- Вкладка Музыка Сообщества -->
+              <!-- Вкладка Музыка Сообщества (с возможностью сортировки и удаления) -->
               <fieldset style="margin-bottom: 12px;">
                 <legend>🎵 Музыка сообщества</legend>
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                   <button id="btnOpenCommAddMusic" style="font-size:10px;">+ Добавить трек в сообщество</button>
                 </div>
-                <div id="commTracksList" style="max-height: 180px; overflow-y: auto;">Загрузка треков группы...</div>
+                <div id="commTracksList" style="max-height: 200px; overflow-y: auto;">Загрузка треков группы...</div>
               </fieldset>
 
-              <!-- Стена сообщества с возможностью прикрепить музыку -->
+              <!-- Стена сообщества -->
               <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
                 <legend>Опубликовать запись от имени сообщества</legend>
                 <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость от лица сообщества..."></textarea>
@@ -989,7 +1004,7 @@
             <div class="profile-card">
               <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
                 <img id="profileAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
-                <div id="userProfileFrameOverlay" class="avatar-frame-overlay" style="display:none;"></div>
+                <div id="userProfileFrameOverlay" class="avatar-frame-overlay" style="display:none;"><div class="frame-inner-shape"></div></div>
               </div>
               <div style="flex:1; min-width: 160px;">
                 <div style="display:flex; justify-content:space-between; align-items:center;">
@@ -1018,7 +1033,6 @@
                 </div>
               </div>
 
-              <!-- Панель вкладок плейлистов -->
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 6px; flex-wrap: wrap;"></div>
               <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
@@ -1087,7 +1101,6 @@
     let allCommunitiesCache = [];
     let allTracksCache = [];
 
-    // Прикрепление треков
     let selectedPostTrack = null;
     let selectedCommPostTrack = null;
     let currentPickerTarget = 'feed';
@@ -1095,7 +1108,6 @@
     let activeRepostData = null;
     let selectedGroupFriends = new Set();
 
-    // Капча
     let currentCaptchaAnswer = 0;
 
     let playlistQueue = [];
@@ -1104,7 +1116,7 @@
     const audioPlayer = document.getElementById('globalAudioPlayer');
     const DEFAULT_AVATAR = 'https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png';
 
-    // Восстановление музыки
+    // Сохранение и восстановление музыки
     audioPlayer.addEventListener('timeupdate', () => {
       if (playlistQueue.length > 0 && currentTrackIndex >= 0) {
         localStorage.setItem('bubble_audio_state', JSON.stringify({
@@ -1166,7 +1178,6 @@
     }
     restoreAudioPlayback();
 
-    // Генерация капчи
     function generateNewCaptcha() {
       const n1 = Math.floor(Math.random() * 10) + 1;
       const n2 = Math.floor(Math.random() * 10) + 1;
@@ -1187,7 +1198,7 @@
       return true;
     }
 
-    // DOM UI
+    // DOM UI элементы
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
     const inputUsername = document.getElementById('inputUsername');
@@ -1245,7 +1256,6 @@
     const btnRemoveAttachedTrack = document.getElementById('btnRemoveAttachedTrack');
     const btnOpenPostMusicPicker = document.getElementById('btnOpenPostMusicPicker');
     
-    // Музыка в сообществе
     const commAttachedTrackPreview = document.getElementById('commAttachedTrackPreview');
     const commAttachedTrackTitle = document.getElementById('commAttachedTrackTitle');
     const btnRemoveCommAttachedTrack = document.getElementById('btnRemoveCommAttachedTrack');
@@ -1338,12 +1348,16 @@
     const frameTitleInput = document.getElementById('frameTitleInput');
     const frameShapeSelect = document.getElementById('frameShapeSelect');
     const frameColorInput = document.getElementById('frameColorInput');
-    const frameAnimSelect = document.getElementById('frameAnimSelect');
+    const frameFxGlow = document.getElementById('frameFxGlow');
+    const frameFxRainbow = document.getElementById('frameFxRainbow');
+    const frameFxSpin = document.getElementById('frameFxSpin');
+    const frameFxAvatarSpin = document.getElementById('frameFxAvatarSpin');
     const frameCustomUploadStatus = document.getElementById('frameCustomUploadStatus');
     const btnPublishFrame = document.getElementById('btnPublishFrame');
     const btnCancelEditFrame = document.getElementById('btnCancelEditFrame');
 
     const prevFrameOverlay = document.getElementById('prevFrameOverlay');
+    const prevAvatarImgSample = document.getElementById('prevAvatarImgSample');
     const creationsListContainer = document.getElementById('creationsListContainer');
     const btnResetAllStyles = document.getElementById('btnResetAllStyles');
     const dynamicCustomThemeStyle = document.getElementById('dynamicCustomThemeStyle');
@@ -1367,7 +1381,6 @@
     const groupAvatarUploadStatus = document.getElementById('groupAvatarUploadStatus');
     const groupAddMoreFriendsList = document.getElementById('groupAddMoreFriendsList');
 
-    // Настройки сообщества
     const commSettingsModal = document.getElementById('commSettingsModal');
     const editCommTitleInput = document.getElementById('editCommTitleInput');
     const editCommDescInput = document.getElementById('editCommDescInput');
@@ -1375,6 +1388,7 @@
     const editCommUploadStatus = document.getElementById('editCommUploadStatus');
     const btnSaveCommSettings = document.getElementById('btnSaveCommSettings');
     const btnOpenCommSettings = document.getElementById('btnOpenCommSettings');
+    const commMembersManageList = document.getElementById('commMembersManageList');
 
     const communityViewList = document.getElementById('communityViewList');
     const communityViewSingle = document.getElementById('communityViewSingle');
@@ -1799,7 +1813,15 @@
         commAttachedTrackTitle.innerText = `🎵 ${artist} — ${title}`;
         commAttachedTrackPreview.style.display = 'flex';
       } else if (currentPickerTarget === 'comm_add' && currentCommunityId) {
-        const { error } = await window.sbClient.from('community_tracks').insert([{ community_id: currentCommunityId, track_id: id }]);
+        const { data: currentTracks } = await window.sbClient
+          .from('community_tracks')
+          .select('position')
+          .eq('community_id', currentCommunityId)
+          .order('position', { ascending: false })
+          .limit(1);
+
+        const nextPos = (currentTracks && currentTracks[0]?.position) ? currentTracks[0].position + 1 : 1;
+        const { error } = await window.sbClient.from('community_tracks').insert([{ community_id: currentCommunityId, track_id: id, position: nextPos }]);
         if (error && error.code !== '23505') alert('Ошибка добавления трека: ' + error.message);
         else {
           alert('Трек добавлен в аудиозаписи сообщества!');
@@ -1927,24 +1949,34 @@
     function updateLiveFramePreview() {
       const shape = frameShapeSelect.value;
       const color = frameColorInput.value;
-      const anim = frameAnimSelect.value;
+      const isGlow = frameFxGlow.checked;
+      const isRainbow = frameFxRainbow.checked;
+      const isSpin = frameFxSpin.checked;
+      const isAvatarSpin = frameFxAvatarSpin.checked;
 
-      prevFrameOverlay.className = `avatar-frame-overlay frame-shape-${shape}`;
-      if (anim === 'glow') prevFrameOverlay.classList.add('anim-glow');
-      if (anim === 'rainbow') prevFrameOverlay.classList.add('anim-rainbow');
+      prevFrameOverlay.className = `avatar-frame-overlay shape-${shape}`;
+      if (isGlow) prevFrameOverlay.classList.add('fx-glow');
+      if (isRainbow) prevFrameOverlay.classList.add('fx-rainbow');
+      if (isSpin) prevFrameOverlay.classList.add('fx-spin');
       prevFrameOverlay.style.setProperty('--frame-color', color);
 
-      if (frameUploadedImgUrl) {
-        prevFrameOverlay.style.backgroundImage = `url('${frameUploadedImgUrl}')`;
-        prevFrameOverlay.style.border = 'none';
-      } else {
-        prevFrameOverlay.style.backgroundImage = 'none';
-        prevFrameOverlay.style.backgroundColor = color;
-        prevFrameOverlay.style.border = `4px solid ${color}`;
+      prevAvatarImgSample.classList.toggle('avatar-spin', isAvatarSpin);
+
+      const innerEl = prevFrameOverlay.querySelector('.frame-inner-shape');
+      if (innerEl) {
+        if (frameUploadedImgUrl) {
+          innerEl.style.backgroundImage = `url('${frameUploadedImgUrl}')`;
+          innerEl.style.backgroundColor = 'transparent';
+          innerEl.style.border = 'none';
+        } else {
+          innerEl.style.backgroundImage = 'none';
+          innerEl.style.backgroundColor = color;
+          innerEl.style.border = `4px solid ${color}`;
+        }
       }
     }
 
-    [frameShapeSelect, frameColorInput, frameAnimSelect].forEach(el => {
+    [frameShapeSelect, frameColorInput, frameFxGlow, frameFxRainbow, frameFxSpin, frameFxAvatarSpin].forEach(el => {
       el.addEventListener('input', updateLiveFramePreview);
     });
     updateLiveFramePreview();
@@ -2025,7 +2057,10 @@
       const config = {
         shape: frameShapeSelect.value,
         color: frameColorInput.value,
-        animation: frameAnimSelect.value,
+        fxGlow: frameFxGlow.checked,
+        fxRainbow: frameFxRainbow.checked,
+        fxSpin: frameFxSpin.checked,
+        fxAvatarSpin: frameFxAvatarSpin.checked,
         imgUrl: frameUploadedImgUrl || null
       };
 
@@ -2103,14 +2138,18 @@
             </div>
           `;
         } else {
-          const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
-          const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+          const fxClasses = [];
+          if (cfg.fxGlow) fxClasses.push('fx-glow');
+          if (cfg.fxRainbow) fxClasses.push('fx-rainbow');
+          if (cfg.fxSpin) fxClasses.push('fx-spin');
           const bgStyle = cfg.imgUrl ? `background-image: url('${cfg.imgUrl}');` : `background-color: ${cfg.color}; border: 4px solid ${cfg.color};`;
 
           previewHTML = `
             <div class="preview-big-frame" style="width:68px; height:68px; margin:6px auto; position:relative; display:flex; justify-content:center; align-items:center;">
-              <img src="${DEFAULT_AVATAR}" class="profile-avatar-big" style="width:50px; height:50px;" alt="avatar">
-              <div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; ${bgStyle}"></div>
+              <img src="${DEFAULT_AVATAR}" class="profile-avatar-big ${cfg.fxAvatarSpin ? 'avatar-spin' : ''}" style="width:50px; height:50px;" alt="avatar">
+              <div class="avatar-frame-overlay shape-${cfg.shape || 'circle'} ${fxClasses.join(' ')}" style="--frame-color:${cfg.color};">
+                <div class="frame-inner-shape" style="${bgStyle}"></div>
+              </div>
             </div>
           `;
         }
@@ -2170,7 +2209,10 @@
         frameTitleInput.value = title;
         frameShapeSelect.value = cfg.shape || 'circle';
         frameColorInput.value = cfg.color || '#00e5ff';
-        frameAnimSelect.value = cfg.animation || 'none';
+        frameFxGlow.checked = !!cfg.fxGlow;
+        frameFxRainbow.checked = !!cfg.fxRainbow;
+        frameFxSpin.checked = !!cfg.fxSpin;
+        frameFxAvatarSpin.checked = !!cfg.fxAvatarSpin;
         frameUploadedImgUrl = cfg.imgUrl || null;
         btnPublishFrame.innerText = 'Сохранить изменения';
         btnCancelEditFrame.style.display = 'inline-block';
@@ -2245,26 +2287,38 @@
     function applyFrameStyles(cfg) {
       if (!cfg) return;
       
-      function attachToWrapper(overlayEl) {
+      function attachToWrapper(overlayEl, avatarEl) {
         if (!overlayEl) return;
-        overlayEl.style.display = 'block';
-        overlayEl.className = `avatar-frame-overlay frame-shape-${cfg.shape || 'circle'}`;
-        if (cfg.animation === 'glow') overlayEl.classList.add('anim-glow');
-        if (cfg.animation === 'rainbow') overlayEl.classList.add('anim-rainbow');
+        overlayEl.style.display = 'flex';
+        
+        const fxClasses = [];
+        if (cfg.fxGlow) fxClasses.push('fx-glow');
+        if (cfg.fxRainbow) fxClasses.push('fx-rainbow');
+        if (cfg.fxSpin) fxClasses.push('fx-spin');
+
+        overlayEl.className = `avatar-frame-overlay shape-${cfg.shape || 'circle'} ${fxClasses.join(' ')}`;
         overlayEl.style.setProperty('--frame-color', cfg.color || '#00e5ff');
 
-        if (cfg.imgUrl) {
-          overlayEl.style.backgroundImage = `url('${cfg.imgUrl}')`;
-          overlayEl.style.border = 'none';
-        } else {
-          overlayEl.style.backgroundImage = 'none';
-          overlayEl.style.backgroundColor = cfg.color || '#00e5ff';
-          overlayEl.style.border = `4px solid ${cfg.color || '#00e5ff'}`;
+        if (avatarEl) {
+          avatarEl.classList.toggle('avatar-spin', !!cfg.fxAvatarSpin);
+        }
+
+        const inner = overlayEl.querySelector('.frame-inner-shape');
+        if (inner) {
+          if (cfg.imgUrl) {
+            inner.style.backgroundImage = `url('${cfg.imgUrl}')`;
+            inner.style.backgroundColor = 'transparent';
+            inner.style.border = 'none';
+          } else {
+            inner.style.backgroundImage = 'none';
+            inner.style.backgroundColor = cfg.color || '#00e5ff';
+            inner.style.border = `4px solid ${cfg.color || '#00e5ff'}`;
+          }
         }
       }
 
-      attachToWrapper(userProfileFrameOverlay);
-      attachToWrapper(sidebarFrameOverlay);
+      attachToWrapper(userProfileFrameOverlay, profileAvatar);
+      attachToWrapper(sidebarFrameOverlay, sideAvatar);
     }
 
     btnResetAllStyles.onclick = async () => {
@@ -2277,12 +2331,15 @@
       [userProfileFrameOverlay, sidebarFrameOverlay].forEach(el => {
         if (el) el.style.display = 'none';
       });
+      [profileAvatar, sideAvatar].forEach(el => {
+        if (el) el.classList.remove('avatar-spin');
+      });
 
       if (activeUser) {
         await window.sbClient.from('profiles').update({ custom_theme: null, custom_frame: null }).eq('id', activeUser.id);
         if (profilesMap[activeUser.id]) profilesMap[activeUser.id].custom_frame = null;
       }
-      alert('Оформление сброшено!');
+      alert('Оформление возвращено к исходной теме!');
     };
 
     async function loadUserThemeAndFrame() {
@@ -2349,15 +2406,21 @@
       let frameMarkup = '';
 
       if (cfg) {
-        const animClass = cfg.animation === 'glow' ? 'anim-glow' : (cfg.animation === 'rainbow' ? 'anim-rainbow' : '');
-        const shapeClass = `frame-shape-${cfg.shape || 'circle'}`;
+        const fxClasses = [];
+        if (cfg.fxGlow) fxClasses.push('fx-glow');
+        if (cfg.fxRainbow) fxClasses.push('fx-rainbow');
+        if (cfg.fxSpin) fxClasses.push('fx-spin');
         const bgStyle = cfg.imgUrl ? `background-image: url('${cfg.imgUrl}');` : `background-color: ${cfg.color}; border: 3px solid ${cfg.color};`;
-        frameMarkup = `<div class="avatar-frame-overlay ${shapeClass} ${animClass}" style="--frame-color:${cfg.color}; ${bgStyle}"></div>`;
+        frameMarkup = `
+          <div class="avatar-frame-overlay shape-${cfg.shape || 'circle'} ${fxClasses.join(' ')}" style="--frame-color:${cfg.color};">
+            <div class="frame-inner-shape" style="${bgStyle}"></div>
+          </div>
+        `;
       }
 
       return `
         <div class="avatar-wrapper" style="${isBig ? 'width:68px; height:68px;' : 'width:28px; height:28px;'}">
-          <img src="${prof.avatar_url}" class="${isBig ? 'profile-avatar-big' : 'avatar-mini'}" alt="avatar">
+          <img src="${prof.avatar_url}" class="${isBig ? 'profile-avatar-big' : 'avatar-mini'} ${cfg?.fxAvatarSpin ? 'avatar-spin' : ''}" alt="avatar">
           ${frameMarkup}
         </div>
       `;
@@ -2543,7 +2606,6 @@
           .match({ post_id: postId, user_id: activeUser.id });
 
         if (delError) {
-          console.error('Ошибка удаления лайка:', delError);
           userLikedPosts.add(postId);
           return;
         }
@@ -2559,7 +2621,6 @@
           .insert([{ post_id: postId, user_id: activeUser.id }]);
 
         if (insError) {
-          console.error('Ошибка вставки лайка:', insError);
           userLikedPosts.delete(postId);
           if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count - 1}</span>`;
           alert('Не удалось поставить лайк: ' + insError.message);
@@ -2800,6 +2861,52 @@
       editCommUploadStatus.innerText = '';
       editCommAvatarFile.value = '';
       commSettingsModal.style.display = 'flex';
+      loadCommunityMembersToManage();
+    };
+
+    async function loadCommunityMembersToManage() {
+      commMembersManageList.innerHTML = 'Загрузка участников...';
+      const { data: members } = await window.sbClient
+        .from('community_members')
+        .select('id, user_id, role')
+        .eq('community_id', currentCommunityId);
+
+      if (!members || members.length === 0) {
+        commMembersManageList.innerHTML = '<div style="color:#777;">Участников нет.</div>';
+        return;
+      }
+
+      const isCreator = currentCommunityRole === 'creator';
+
+      commMembersManageList.innerHTML = members.map(m => {
+        const p = profilesMap[m.user_id] || { username: 'Пользователь' };
+        const isSelf = activeUser && m.user_id === activeUser.id;
+        const isTargetCreator = m.role === 'creator';
+
+        return `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:4px; border-bottom:1px dotted #ccc;">
+            <span><b>${escapeHtml(p.username)}</b> ${isTargetCreator ? '👑' : ''}</span>
+            <div>
+              ${(isCreator && !isSelf) ? `
+                <select onchange="updateMemberRole(${m.id}, this.value)" style="font-size:10px;">
+                  <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>🛡️ Администратор</option>
+                  <option value="moderator" ${m.role === 'moderator' ? 'selected' : ''}>🔨 Модератор</option>
+                  <option value="member" ${m.role === 'member' ? 'selected' : ''}>👤 Участник</option>
+                </select>
+              ` : `<span style="font-size:10px; color:#555;">${m.role}</span>`}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.updateMemberRole = async function(memberRowId, newRole) {
+      const { error } = await window.sbClient.from('community_members').update({ role: newRole }).eq('id', memberRowId);
+      if (error) alert('Ошибка смены роли: ' + error.message);
+      else {
+        alert('Роль участника успешно обновлена!');
+        loadCommunityMembersToManage();
+      }
     };
 
     btnSaveCommSettings.onclick = async () => {
@@ -2836,29 +2943,80 @@
       }
     };
 
+    // Загрузка музыки сообщества с сортировкой и удалением
     async function loadCommunityTracks(commId) {
       commTracksList.innerHTML = 'Загрузка аудиозаписей...';
       try {
-        const { data } = await window.sbClient.from('community_tracks').select('track_id, tracks(*)').eq('community_id', commId);
-        const tracks = (data || []).map(d => d.tracks).filter(Boolean);
+        const { data } = await window.sbClient
+          .from('community_tracks')
+          .select('id, position, track_id, tracks(*)')
+          .eq('community_id', commId)
+          .order('position', { ascending: true });
 
-        if (tracks.length === 0) {
+        const tracksData = (data || []).filter(d => d.tracks);
+
+        if (tracksData.length === 0) {
           commTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В сообществе пока нет музыки.</div>';
           return;
         }
 
-        commTracksList.innerHTML = tracks.map((t, idx) => `
-          <div class="track-list-item">
-            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка сообщества')">
-              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+        const tracksQueue = tracksData.map(d => d.tracks);
+        const canManage = currentCommunityRole === 'creator' || currentCommunityRole === 'admin';
+
+        commTracksList.innerHTML = tracksData.map((item, idx) => {
+          const t = item.tracks;
+          const isFirst = idx === 0;
+          const isLast = idx === tracksData.length - 1;
+
+          return `
+            <div class="track-list-item">
+              <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracksQueue).replace(/"/g, '&quot;')}, ${idx}, 'Музыка сообщества')">
+                <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+              </div>
+              <div style="display:flex; gap:3px; align-items:center;">
+                ${canManage ? `
+                  <button onclick="moveTrackInCommunity(${commId}, ${item.id}, 'up')" ${isFirst ? 'disabled style="opacity:0.4;"' : ''} style="font-size:10px; padding:1px 5px;" title="Выше">▲</button>
+                  <button onclick="moveTrackInCommunity(${commId}, ${item.id}, 'down')" ${isLast ? 'disabled style="opacity:0.4;"' : ''} style="font-size:10px; padding:1px 5px;" title="Ниже">▼</button>
+                  <button onclick="removeTrackFromCommunity(${item.id}, ${commId})" title="Удалить из группы" style="font-size:10px; color:#a00;">×</button>
+                ` : ''}
+                <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>
+              </div>
             </div>
-            <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>
-          </div>
-        `).join('');
+          `;
+        }).join('');
       } catch(e) {
         commTracksList.innerHTML = '<div style="font-size:11px; color:#666;">Не удалось загрузить треки.</div>';
       }
     }
+
+    window.moveTrackInCommunity = async function(commId, rowId, direction) {
+      const { data: rows } = await window.sbClient
+        .from('community_tracks')
+        .select('id, position')
+        .eq('community_id', commId)
+        .order('position', { ascending: true });
+
+      if (!rows) return;
+      const idx = rows.findIndex(r => r.id === rowId);
+      if (idx === -1) return;
+
+      const targetIdx = direction === 'up' ? idx - 1 : idx + 1;
+      if (targetIdx < 0 || targetIdx >= rows.length) return;
+
+      const curr = rows[idx];
+      const targ = rows[targetIdx];
+
+      await window.sbClient.from('community_tracks').update({ position: targ.position || targetIdx + 1 }).eq('id', curr.id);
+      await window.sbClient.from('community_tracks').update({ position: curr.position || idx + 1 }).eq('id', targ.id);
+
+      loadCommunityTracks(commId);
+    };
+
+    window.removeTrackFromCommunity = async function(rowId, commId) {
+      if (!confirm('Удалить трек из аудиозаписей сообщества?')) return;
+      await window.sbClient.from('community_tracks').delete().eq('id', rowId);
+      loadCommunityTracks(commId);
+    };
 
     btnCommJoinDirect.onclick = async () => {
       if (!activeUser || !currentCommunityId) return;
@@ -3200,6 +3358,7 @@
         applyFrameStyles(prof.custom_frame);
       } else {
         userProfileFrameOverlay.style.display = 'none';
+        profileAvatar.classList.remove('avatar-spin');
       }
 
       const isMyProfile = activeUser && userId === activeUser.id;
@@ -3324,7 +3483,7 @@
         tracksData = (data || []).filter(d => d.tracks);
       } else {
         const { data } = await window.sbClient.from('user_tracks').select('track_id, tracks(*)').eq('user_id', userId);
-        tracksData = (data || []).filter(d => d.tracks).map(d => ({ tracks: d.tracks }));
+        tracksData = (data || []).map(d => d.tracks).filter(Boolean).map(t => ({ tracks: t }));
       }
 
       if (tracksData.length === 0) {
@@ -3370,7 +3529,6 @@
       }
     }
 
-    // Инициализация Drag and Drop для треков
     let draggedItem = null;
     function initPlaylistDragAndDrop(playlistId) {
       const container = document.getElementById('profileTracksList');
