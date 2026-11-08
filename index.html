@@ -76,7 +76,7 @@
 
     /* Frutiger Aero Header */
     .aero-title-bar {
-      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%);
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%) !important;
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255,255,255,0.8);
       box-shadow: 0 2px 8px rgba(0, 80, 180, 0.25), inset 0 1px 0 #ffffff;
@@ -252,7 +252,7 @@
     .msg-out { align-self: flex-end; background: #d0e7ff; border: 1px solid #7f9db9; }
     .messenger-inputbox { padding: 6px; border-top: 1px solid #aca899; display: flex; gap: 6px; background: #f4f4f4; }
 
-    /* Чеклист добавления в беседу со стильными индикаторами */
+    /* Чеклист добавления в беседу */
     .participant-select-item {
       display: flex; justify-content: space-between; align-items: center;
       padding: 5px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #aca899; border-radius: 4px;
@@ -405,7 +405,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Настройки беседы (смена аватарки и добавление участников) -->
+  <!-- Модальное окно: Настройки беседы -->
   <div class="modal-overlay" id="groupSettingsModal" style="display:none;">
     <div class="window" style="width: 400px; max-width: 95%;">
       <div class="title-bar">
@@ -439,7 +439,6 @@
   <!-- Окно браузера IE / Рабочий стол -->
   <div class="desktop">
     <div class="window ie-window">
-      <!-- Заголовок Frutiger Aero без кнопок управления окном -->
       <div class="aero-title-bar">
         <div class="aero-title-text">bubble</div>
       </div>
@@ -504,7 +503,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Работы сообщества (Конструктор темы с файлом фона, прозрачностью и размером текста) -->
+          <!-- Раздел: Работы сообщества -->
           <div id="sectionWorkshop" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>Мастерская оформления</legend>
@@ -697,7 +696,7 @@
             </div>
           </div>
 
-          <!-- Раздел: Друзья (БЕЗ КНОПКИ УДАЛИТЬ) -->
+          <!-- Раздел: Друзья -->
           <div id="sectionFriendsManager" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>Входящие заявки в друзья (<span id="countIncoming">0</span>)</legend>
@@ -810,7 +809,7 @@
             </fieldset>
           </div>
 
-          <!-- Профиль (Удаление из друзей только здесь) -->
+          <!-- Профиль -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
@@ -848,7 +847,7 @@
         </div>
       </div>
 
-      <!-- Frutiger Aero Аудиоплеер со смайликами кнопок -->
+      <!-- Frutiger Aero Аудиоплеер -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">Ничего не играет</div>
@@ -891,9 +890,10 @@
     let currentCommunityRole = null;
     let activeConversationId = null;
 
-    let userLikedPosts = new Set();
-    let userLikedComments = new Set();
-    let userLikedCreations = new Set();
+    // Восстановление лайков из локального кэша для исключения мигания белым цветом при загрузке
+    let userLikedPosts = new Set(JSON.parse(localStorage.getItem('bubble_user_liked_posts') || '[]'));
+    let userLikedComments = new Set(JSON.parse(localStorage.getItem('bubble_user_liked_comments') || '[]'));
+    let userLikedCreations = new Set(JSON.parse(localStorage.getItem('bubble_user_liked_creations') || '[]'));
     let userFriendIds = new Set();
     let pendingOutgoingIds = new Set();
     let pendingIncomingIds = new Set();
@@ -902,7 +902,6 @@
     let communitiesMap = {};
     let allCommunitiesCache = [];
 
-    // Множество выбранных друзей для создания группового чата
     let selectedGroupFriends = new Set();
 
     let playlistQueue = [];
@@ -1226,6 +1225,7 @@
         sideUserName.innerText = myProf ? myProf.username : getUserName(activeUser);
         sideAvatar.src = (myProf && myProf.avatar_url) ? myProf.avatar_url : DEFAULT_AVATAR;
 
+        // Строго дожидаемся загрузки лайков из БД перед отображением вкладок
         await loadUserLikes();
         await loadUserThemeAndFrame();
         await updateUnreadBadge();
@@ -1624,6 +1624,7 @@
       if (activeUser) {
         const { data: cLikes } = await window.sbClient.from('creation_likes').select('creation_id').eq('user_id', activeUser.id);
         userLikedCreations = new Set((cLikes || []).map(l => l.creation_id));
+        localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
       }
 
       const { data: creations, error } = await window.sbClient.from('community_creations').select('*').order('id', { ascending: false });
@@ -1848,6 +1849,7 @@
 
       const { data: cLikes } = await window.sbClient.from('creation_likes').select('creation_id').eq('user_id', activeUser.id);
       userLikedCreations = new Set((cLikes || []).map(l => l.creation_id));
+      localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
     }
 
     window.toggleCreationLike = async function(creationId, creatorId) {
@@ -1870,44 +1872,26 @@
         await window.sbClient.from('community_creations').update({ likes_count: count }).eq('id', creationId);
         await createNotification(creatorId, 'like_creation', 'оценил(а) вашу работу в мастерской!', null);
       }
+      localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ ====================
-    async function loadFeed(feedType = 'all') {
+    // ==================== ЛЕНТА И ПОСТЫ (НАДЕЖНОЕ КЭШИРОВАНИЕ ЛАЙКОВ) ====================
+    async function loadUserLikes() {
       if (!activeUser) return;
-      feedList.innerHTML = 'Загрузка записей...';
-      await loadAllProfiles();
-      await loadAllCommunitiesCache();
-      await loadFriends();
-
-      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
-
-      if (feedType === 'all') {
-        query = query.is('community_id', null);
-      } else if (feedType === 'friends') {
-        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
-        if (feedTargetIds.length === 0) {
-          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
-          return;
+      try {
+        const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
+        if (pLikes) {
+          userLikedPosts = new Set(pLikes.map(l => l.post_id));
+          localStorage.setItem('bubble_user_liked_posts', JSON.stringify(Array.from(userLikedPosts)));
         }
-        query = query.is('community_id', null).in('user_id', feedTargetIds);
-      } else if (feedType === 'communities') {
-        query = query.not('community_id', 'is', null);
+        const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
+        if (cLikes) {
+          userLikedComments = new Set(cLikes.map(l => l.comment_id));
+          localStorage.setItem('bubble_user_liked_comments', JSON.stringify(Array.from(userLikedComments)));
+        }
+      } catch (e) {
+        console.warn('loadUserLikes:', e);
       }
-
-      const { data: posts, error } = await query;
-      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
-
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
     }
 
     function renderAvatarWithFrame(userId, isBig = false) {
@@ -2019,13 +2003,60 @@
       `;
     }
 
+    async function loadFeed(feedType = 'all') {
+      if (!activeUser) return;
+      feedList.innerHTML = 'Загрузка записей...';
+      await loadAllProfiles();
+      await loadAllCommunitiesCache();
+      await loadFriends();
+      await loadUserLikes(); // Всегда проверяем статус лайков перед рендером ленты
+
+      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
+
+      if (feedType === 'all') {
+        query = query.is('community_id', null);
+      } else if (feedType === 'friends') {
+        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
+        if (feedTargetIds.length === 0) {
+          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
+          return;
+        }
+        query = query.is('community_id', null).in('user_id', feedTargetIds);
+      } else if (feedType === 'communities') {
+        query = query.not('community_id', 'is', null);
+      }
+
+      const { data: posts, error } = await query;
+      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
+    }
+
     window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
       if (!activeUser) return;
       const countEl = document.getElementById(`like-count-${uniquePostKey}`);
       const btnEl = document.getElementById(`like-btn-${uniquePostKey}`);
       let count = parseInt(countEl?.innerText || '0') || 0;
 
-      if (userLikedPosts.has(postId)) {
+      // Двойная проверка: если в БД лайк уже есть, то действие - снять лайк
+      const { data: existingLike } = await window.sbClient
+        .from('post_likes')
+        .select('id')
+        .match({ post_id: postId, user_id: activeUser.id })
+        .maybeSingle();
+
+      const currentlyLiked = !!existingLike || userLikedPosts.has(postId);
+
+      if (currentlyLiked) {
         userLikedPosts.delete(postId);
         count = Math.max(0, count - 1);
         if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count}</span>`;
@@ -2039,6 +2070,7 @@
         await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
         await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
       }
+      localStorage.setItem('bubble_user_liked_posts', JSON.stringify(Array.from(userLikedPosts)));
     };
 
     window.toggleCommentLike = async function(commentId, commentAuthorId, postId) {
@@ -2047,7 +2079,15 @@
       const btnEl = document.getElementById(`clike-btn-${commentId}`);
       let count = parseInt(countEl?.innerText || '0') || 0;
 
-      if (userLikedComments.has(commentId)) {
+      const { data: existingLike } = await window.sbClient
+        .from('comment_likes')
+        .select('id')
+        .match({ comment_id: commentId, user_id: activeUser.id })
+        .maybeSingle();
+
+      const currentlyLiked = !!existingLike || userLikedComments.has(commentId);
+
+      if (currentlyLiked) {
         userLikedComments.delete(commentId);
         count = Math.max(0, count - 1);
         if (btnEl) btnEl.innerHTML = `🤍 <span id="clike-count-${commentId}">${count}</span>`;
@@ -2061,6 +2101,7 @@
         await window.sbClient.from('comments').update({ likes_count: count }).eq('id', commentId);
         await createNotification(commentAuthorId, 'like_comment', 'поставил(а) ❤️ вашему комментарию', postId);
       }
+      localStorage.setItem('bubble_user_liked_comments', JSON.stringify(Array.from(userLikedComments)));
     };
 
     window.sendComment = async function(postId, postAuthorId, uniquePostKey) {
@@ -2261,6 +2302,7 @@
 
     async function loadCommunityPosts(commId) {
       commPostsList.innerHTML = 'Загрузка...';
+      await loadUserLikes(); // Актуализируем лайки перед рендером стены сообщества
       const { data: posts } = await window.sbClient.from('posts').select('*').eq('community_id', commId).order('id', { ascending: false });
       if (!posts || posts.length === 0) {
         commPostsList.innerHTML = '<p>В сообществе пока нет записей.</p>';
@@ -2428,7 +2470,6 @@
       openConversation(convId);
     };
 
-    // Создание группового чата с индикатором добавления
     btnOpenCreateGroupModal.onclick = () => {
       groupChatTitle.value = '';
       selectedGroupFriends.clear();
@@ -2479,7 +2520,6 @@
       openConversation(newConv.id);
     };
 
-    // Настройки беседы: аватарка и добавление новых друзей
     btnOpenGroupSettings.onclick = async () => {
       if (!activeConversationId) return;
       groupAvatarUploadStatus.innerText = '';
@@ -2546,6 +2586,7 @@
     async function openUserProfile(userId) {
       await loadAllProfiles();
       await loadFriends();
+      await loadUserLikes(); // Актуализируем лайки перед отрисовкой профиля
       const prof = profilesMap[userId] || { username: 'Пользователь', avatar_url: DEFAULT_AVATAR };
 
       profileNick.innerText = prof.username;
@@ -2600,7 +2641,6 @@
         `).join('');
     }
 
-    // Удаление из друзей происходит ИСКЛЮЧИТЕЛЬНО в профиле
     btnFriendAction.onclick = async () => {
       if (!activeUser || !viewingUserId) return;
       if (userFriendIds.has(viewingUserId)) {
@@ -2684,7 +2724,7 @@
       }
     };
 
-    // ==================== УВЕДОМЛЕНИЯ И ДРУЗЬЯ (БЕЗ КНОПКИ УДАЛИТЬ) ====================
+    // ==================== УВЕДОМЛЕНИЯ И ДРУЗЬЯ ====================
     async function loadNotifications() {
       if (!activeUser) return;
       const { data: notifs } = await window.sbClient.from('notifications').select('*').eq('user_id', activeUser.id).order('id', { ascending: false });
@@ -2745,9 +2785,9 @@
 
       listIncomingReqs.innerHTML = pendingIncomingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет входящих заявок.</div>' :
         Array.from(pendingIncomingIds).map(uId => `
-          <div class="participant-select-item">
-            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
-              ${renderAvatarWithFrame(uId, false)}
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
             <div>
@@ -2757,23 +2797,22 @@
           </div>
         `).join('');
 
-      // Кнопка удалить убрана отсюда — остался только переход в профиль
       listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         Array.from(userFriendIds).map(uId => `
-          <div class="participant-select-item" onclick="goToProfile('${uId}')" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:6px;">
-              ${renderAvatarWithFrame(uId, false)}
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')" style="cursor:pointer;">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
-            <span style="font-size:10px; color:#0b388f;">Открыть профиль →</span>
+            <span style="font-size:10px; color:#0b388f; cursor:pointer;" onclick="goToProfile('${uId}')">Открыть профиль →</span>
           </div>
         `).join('');
 
       listOutgoingReqs.innerHTML = pendingOutgoingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет отправленных заявок.</div>' :
         Array.from(pendingOutgoingIds).map(uId => `
-          <div class="participant-select-item">
-            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
-              ${renderAvatarWithFrame(uId, false)}
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
               <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
             </div>
             <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить заявку</button></div>
@@ -2790,7 +2829,6 @@
       }
       loadFriendsManager();
     };
-
     window.cancelOutgoingRequest = async (fId) => {
       await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: fId, status: 'pending' });
       loadFriendsManager();
