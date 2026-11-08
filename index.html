@@ -14,11 +14,28 @@
         const cfg = JSON.parse(cachedTheme);
         let css = '';
         if (cfg.font) css += `body, button, input, select, textarea { font-family: ${cfg.font} !important; }\n`;
-        if (cfg.mainBgColor) css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; }\n`;
-        if (cfg.sidebarColor) css += `.sidebar { background: ${cfg.sidebarColor} !important; }\n`;
-        if (cfg.cardColor) css += `.post-box, .profile-card, .community-card, .creation-card, .messenger-container, .messenger-chats, .messenger-body { background-color: ${cfg.cardColor} !important; }\n`;
-        if (cfg.btnBgColor || cfg.btnTextColor) css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d8efff'} !important; color: ${cfg.btnTextColor || '#0b388f'} !important; }\n`;
-        if (cfg.textColor) css += `body, .post-box, .profile-card, .post-author, legend, .aero-title-text { color: ${cfg.textColor} !important; }\n`;
+        if (cfg.fontSize) css += `body, .post-box, .comment-item, .sidebar-btn, input, select, button, textarea { font-size: ${cfg.fontSize}px !important; }\n`;
+        if (cfg.headerColor) css += `.aero-title-bar { background: ${cfg.headerColor} !important; }\n`;
+        if (cfg.playerColor) css += `.player-dock { background: ${cfg.playerColor} !important; }\n`;
+        
+        const pOp = cfg.panelOpacity !== undefined ? cfg.panelOpacity : 1;
+        if (cfg.mainBgColor) {
+          css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; opacity: ${pOp}; }\n`;
+        }
+        if (cfg.sidebarColor) {
+          css += `.sidebar { background: ${cfg.sidebarColor} !important; opacity: ${pOp}; }\n`;
+        }
+        if (cfg.cardColor) {
+          css += `.post-box, .profile-card, .community-card, .creation-card, .messenger-container, .messenger-chats, .messenger-body { background-color: ${cfg.cardColor} !important; }\n`;
+        }
+        
+        const bOp = cfg.btnOpacity !== undefined ? cfg.btnOpacity : 1;
+        if (cfg.btnBgColor || cfg.btnTextColor || cfg.btnOpacity !== undefined) {
+          css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d8efff'} !important; color: ${cfg.btnTextColor || '#0b388f'} !important; opacity: ${bOp}; }\n`;
+        }
+        if (cfg.textColor) {
+          css += `body, .post-box, .profile-card, .post-author, legend, .aero-title-text { color: ${cfg.textColor} !important; }\n`;
+        }
         document.getElementById('dynamicCustomThemeStyle').innerHTML = css;
         if (cfg.bgUrl) {
           document.addEventListener('DOMContentLoaded', () => {
@@ -59,15 +76,15 @@
 
     /* Frutiger Aero Header */
     .aero-title-bar {
-      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%) !important;
+      background: linear-gradient(180deg, rgba(255,255,255,0.95) 0%, rgba(180,225,255,0.85) 45%, rgba(110,190,250,0.85) 50%, rgba(160,220,255,0.95) 100%);
       backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
       border-bottom: 1px solid rgba(255,255,255,0.8);
       box-shadow: 0 2px 8px rgba(0, 80, 180, 0.25), inset 0 1px 0 #ffffff;
-      padding: 4px 8px; display: flex; justify-content: space-between; align-items: center;
+      padding: 6px 12px; display: flex; align-items: center;
     }
     .aero-title-text {
       font-family: 'Segoe UI', 'Trebuchet MS', sans-serif;
-      font-size: 13px; font-weight: bold; color: #003366;
+      font-size: 14px; font-weight: bold; color: #003366;
       text-shadow: 0 1px 2px rgba(255,255,255,0.9);
       letter-spacing: 0.5px;
     }
@@ -134,7 +151,7 @@
     .author-info:hover .post-author { text-decoration: underline; }
     .post-author { font-weight: bold; color: #0b388f; }
 
-    /* Обертка аватарки с отступами, чтобы выступающая рамка не вылезала за блоки */
+    /* Обертка аватарки */
     .avatar-wrapper {
       position: relative; display: inline-flex; align-items: center; justify-content: center;
       flex-shrink: 0; margin: 5px;
@@ -147,8 +164,8 @@
       width: 68px; height: 68px; border-radius: 50% !important; object-fit: cover;
       border: 2px solid #0055ea; background: #fff; position: relative; z-index: 2;
     }
-
-    /* Рамка находится СЗАДИ аватарки (z-index: 1), шире аватара и обрезается по форме */
+    
+    /* Рамка шире аватара и обрезается по заданной фигуре */
     .avatar-frame-overlay {
       position: absolute; pointer-events: none; z-index: 1; box-sizing: border-box;
       top: -6px; left: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
@@ -159,7 +176,6 @@
       top: -12px; left: -12px; width: calc(100% + 24px); height: calc(100% + 24px);
     }
 
-    /* Формы рамок (картинка внутри тоже обрезается ровно по фигуре) */
     .frame-shape-circle { border-radius: 50% !important; }
     .frame-shape-square { border-radius: 8px !important; }
     .frame-shape-hexagon {
@@ -169,7 +185,6 @@
       clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%) !important;
     }
 
-    /* Анимации */
     @keyframes glowPulse {
       0% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
       50% { filter: drop-shadow(0 0 8px var(--frame-color, #00ffff)); }
@@ -264,6 +279,9 @@
       background: linear-gradient(180deg, #ffffff 0%, #d8efff 50%, #aedeff 100%);
       border: 1px solid #6ca8dd; border-radius: 4px; padding: 3px 8px; font-size: 11px; cursor: pointer;
       box-shadow: inset 0 1px 0 #ffffff, 0 1px 2px rgba(0,0,0,0.1);
+    }
+    .player-controls button:hover {
+      background: linear-gradient(180deg, #ffffff 0%, #eef7ff 50%, #c4e8ff 100%);
     }
     .player-info { display: flex; flex-direction: column; flex: 1; min-width: 140px; }
     .player-title { font-weight: bold; color: #003366; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 250px; }
@@ -374,13 +392,9 @@
   <!-- Окно браузера IE / Рабочий стол -->
   <div class="desktop">
     <div class="window ie-window">
+      <!-- Заголовок Frutiger Aero без кнопок управления окном -->
       <div class="aero-title-bar">
         <div class="aero-title-text">bubble</div>
-        <div class="title-bar-controls">
-          <button aria-label="Minimize"></button>
-          <button aria-label="Maximize"></button>
-          <button aria-label="Close"></button>
-        </div>
       </div>
 
       <div class="address-bar">
@@ -443,7 +457,7 @@
             </fieldset>
           </div>
 
-          <!-- Раздел: Работы сообщества -->
+          <!-- Раздел: Работы сообщества (Конструктор темы с файлом фона, прозрачностью и размером текста) -->
           <div id="sectionWorkshop" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>Мастерская оформления</legend>
@@ -459,18 +473,22 @@
                 
                 <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр темы в реальном времени:</div>
                 <div class="live-theme-preview" id="liveThemePreviewBox">
-                  <div id="prevSidebarPane" style="padding:6px; border-radius:4px; border:1px solid rgba(0,0,0,0.15);">
-                    <button id="prevBtnSample" style="font-size:10px; padding:3px 6px; border-radius:3px;">Кнопка</button>
-                  </div>
-                  <div style="flex:1;">
-                    <div id="prevPostSample" style="border:1px solid #ccc; padding:6px; border-radius:4px;">
-                      <div id="prevAuthorSample" style="font-weight:bold; font-size:11px;">Автор поста</div>
-                      <div id="prevTextSample" style="font-size:11px;">Цвет текста, фона окна и карточек меняется мгновенно.</div>
+                  <div id="prevHeaderPane" style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; margin-bottom:4px; display:inline-block;">bubble</div>
+                  <div style="display:flex; gap:8px; align-items:center; width:100%;">
+                    <div id="prevSidebarPane" style="padding:6px; border-radius:4px; border:1px solid rgba(0,0,0,0.15);">
+                      <button id="prevBtnSample" style="font-size:10px; padding:3px 6px; border-radius:3px;">Кнопка</button>
+                    </div>
+                    <div style="flex:1;">
+                      <div id="prevPostSample" style="border:1px solid #ccc; padding:6px; border-radius:4px;">
+                        <div id="prevAuthorSample" style="font-weight:bold; font-size:11px;">Автор поста</div>
+                        <div id="prevTextSample" style="font-size:11px;">Размер шрифта, фон, прозрачность и цвета настраиваются на лету.</div>
+                      </div>
                     </div>
                   </div>
+                  <div id="prevPlayerPane" style="padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; margin-top:4px; display:inline-block;">Плеер: 🔊 Звук</div>
                 </div>
 
-                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:6px; font-size:11px; margin-bottom:8px;">
+                <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:8px; font-size:11px; margin-bottom:8px;">
                   <div>
                     <label>Название темы:</label>
                     <input type="text" id="themeTitleInput" placeholder="Aero Dream" style="width:100%; font-size:11px;">
@@ -484,6 +502,26 @@
                       <option value="'Trebuchet MS', sans-serif">Trebuchet MS</option>
                       <option value="'Courier New', monospace">Courier New</option>
                     </select>
+                  </div>
+                  <div>
+                    <label>Размер текста (<span id="themeFontSizeVal">11</span>px):</label>
+                    <input type="range" id="themeFontSizeInput" min="10" max="20" value="11" style="width:100%;">
+                  </div>
+                  <div>
+                    <label>Прозрачность панелей (<span id="themePanelOpacityVal">100</span>%):</label>
+                    <input type="range" id="themePanelOpacityInput" min="10" max="100" value="100" style="width:100%;">
+                  </div>
+                  <div>
+                    <label>Прозрачность кнопок (<span id="themeBtnOpacityVal">100</span>%):</label>
+                    <input type="range" id="themeBtnOpacityInput" min="10" max="100" value="100" style="width:100%;">
+                  </div>
+                  <div>
+                    <label>Цвет верхней шапки (Header):</label>
+                    <input type="color" id="themeHeaderColor" value="#b4e1ff" style="width:100%; height:24px;">
+                  </div>
+                  <div>
+                    <label>Цвет нижнего плеера (Dock):</label>
+                    <input type="color" id="themePlayerColor" value="#d7f0ff" style="width:100%; height:24px;">
                   </div>
                   <div>
                     <label>Цвет основного фона окна:</label>
@@ -510,11 +548,12 @@
                     <input type="color" id="themeTextColor" value="#003366" style="width:100%; height:24px;">
                   </div>
                   <div style="grid-column: 1 / -1;">
-                    <label>URL фоновой картинки сайта:</label>
-                    <div style="display:flex; gap:4px;">
-                      <input type="text" id="themeBgUrl" placeholder="https://example.com/background.jpg" style="flex:1; font-size:11px;">
-                      <button type="button" id="btnClearThemeBgUrl" style="font-size:10px; color:#a00;">Очистить</button>
+                    <label>Фон сайта из файлов ПК / устройства:</label>
+                    <div style="display:flex; gap:4px; align-items:center;">
+                      <input type="file" id="themeBgFileInput" accept="image/*" style="flex:1; font-size:11px;">
+                      <button type="button" id="btnClearThemeBgFile" style="display:none; font-size:10px; color:#a00;">✖ Отмена</button>
                     </div>
+                    <div id="themeBgUploadStatus" style="font-size:10px; color:#555;"></div>
                   </div>
                 </div>
 
@@ -761,18 +800,18 @@
         </div>
       </div>
 
-      <!-- Frutiger Aero Аудиоплеер -->
+      <!-- Frutiger Aero Аудиоплеер со смайликами кнопок -->
       <div class="player-dock">
         <div class="player-info">
           <div class="player-title" id="currentTrackDisplay">Ничего не играет</div>
           <div style="font-size: 9px; color: #557799;" id="currentPlaylistDisplay">Список воспроизведения пуст</div>
         </div>
         <div class="player-controls">
-          <button id="btnPrevTrack">⏮</button>
-          <button id="btnPlayPause" style="font-weight: bold;">▶</button>
-          <button id="btnNextTrack">⏭</button>
-          <button id="btnLoopTrack">Трек</button>
-          <button id="btnLoopAll">Все</button>
+          <button id="btnPrevTrack" title="Предыдущий">⏮</button>
+          <button id="btnPlayPause" style="font-weight: bold;" title="Воспроизведение/Пауза">▶</button>
+          <button id="btnNextTrack" title="Следующий">⏭</button>
+          <button id="btnLoopTrack" title="Зациклить песню">🔂 Трек</button>
+          <button id="btnLoopAll" title="Зациклить плейлист">🔁 Все</button>
         </div>
         <audio id="globalAudioPlayer" preload="none"></audio>
       </div>
@@ -867,17 +906,20 @@
     const notificationsList = document.getElementById('notificationsList');
     const btnMarkAllRead = document.getElementById('btnMarkAllRead');
 
-    // Кнопки отмены/очистки файлов
+    // Кнопки отмены файлов
     const postImageFile = document.getElementById('postImageFile');
     const btnClearPostImage = document.getElementById('btnClearPostImage');
     const globalAudioFile = document.getElementById('globalAudioFile');
     const btnClearAudioFile = document.getElementById('btnClearAudioFile');
     const commPostImage = document.getElementById('commPostImage');
     const btnClearCommPostImage = document.getElementById('btnClearCommPostImage');
-    const themeBgUrl = document.getElementById('themeBgUrl');
-    const btnClearThemeBgUrl = document.getElementById('btnClearThemeBgUrl');
+    const themeBgFileInput = document.getElementById('themeBgFileInput');
+    const btnClearThemeBgFile = document.getElementById('btnClearThemeBgFile');
+    const themeBgUploadStatus = document.getElementById('themeBgUploadStatus');
     const frameCustomFile = document.getElementById('frameCustomFile');
     const btnClearFrameCustomFile = document.getElementById('btnClearFrameCustomFile');
+
+    let themeUploadedBgUrl = null;
 
     function bindFileClear(inputEl, btnEl, onClearCallback) {
       inputEl.addEventListener('change', () => {
@@ -893,16 +935,16 @@
     bindFileClear(postImageFile, btnClearPostImage);
     bindFileClear(globalAudioFile, btnClearAudioFile);
     bindFileClear(commPostImage, btnClearCommPostImage);
+    bindFileClear(themeBgFileInput, btnClearThemeBgFile, () => {
+      themeUploadedBgUrl = null;
+      themeBgUploadStatus.innerText = '';
+      updateLiveThemePreview();
+    });
     bindFileClear(frameCustomFile, btnClearFrameCustomFile, () => {
       frameUploadedImgUrl = null;
       document.getElementById('frameCustomUploadStatus').innerText = '';
       updateLiveFramePreview();
     });
-
-    btnClearThemeBgUrl.onclick = () => {
-      themeBgUrl.value = '';
-      updateLiveThemePreview();
-    };
 
     // Мастерская DOM
     const btnSwitchToThemeCreator = document.getElementById('btnSwitchToThemeCreator');
@@ -914,6 +956,15 @@
 
     const themeTitleInput = document.getElementById('themeTitleInput');
     const themeFontSelect = document.getElementById('themeFontSelect');
+    const themeFontSizeInput = document.getElementById('themeFontSizeInput');
+    const themeFontSizeVal = document.getElementById('themeFontSizeVal');
+    const themePanelOpacityInput = document.getElementById('themePanelOpacityInput');
+    const themePanelOpacityVal = document.getElementById('themePanelOpacityVal');
+    const themeBtnOpacityInput = document.getElementById('themeBtnOpacityInput');
+    const themeBtnOpacityVal = document.getElementById('themeBtnOpacityVal');
+
+    const themeHeaderColor = document.getElementById('themeHeaderColor');
+    const themePlayerColor = document.getElementById('themePlayerColor');
     const themeMainBgColor = document.getElementById('themeMainBgColor');
     const themeSidebarColor = document.getElementById('themeSidebarColor');
     const themeCardColor = document.getElementById('themeCardColor');
@@ -923,13 +974,17 @@
     const btnPublishTheme = document.getElementById('btnPublishTheme');
     const btnCancelEditTheme = document.getElementById('btnCancelEditTheme');
 
+    // Живой предпросмотр темы
     const liveThemePreviewBox = document.getElementById('liveThemePreviewBox');
+    const prevHeaderPane = document.getElementById('prevHeaderPane');
+    const prevPlayerPane = document.getElementById('prevPlayerPane');
     const prevSidebarPane = document.getElementById('prevSidebarPane');
     const prevBtnSample = document.getElementById('prevBtnSample');
     const prevPostSample = document.getElementById('prevPostSample');
     const prevAuthorSample = document.getElementById('prevAuthorSample');
     const prevTextSample = document.getElementById('prevTextSample');
 
+    // Рамочки DOM
     const frameTitleInput = document.getElementById('frameTitleInput');
     const frameShapeSelect = document.getElementById('frameShapeSelect');
     const frameColorInput = document.getElementById('frameColorInput');
@@ -1318,20 +1373,55 @@
     };
 
     function updateLiveThemePreview() {
+      const fs = themeFontSizeInput.value;
+      const pOp = themePanelOpacityInput.value / 100;
+      const bOp = themeBtnOpacityInput.value / 100;
+      themeFontSizeVal.innerText = fs;
+      themePanelOpacityVal.innerText = themePanelOpacityInput.value;
+      themeBtnOpacityVal.innerText = themeBtnOpacityInput.value;
+
       liveThemePreviewBox.style.fontFamily = themeFontSelect.value;
+      liveThemePreviewBox.style.fontSize = fs + 'px';
       liveThemePreviewBox.style.backgroundColor = themeMainBgColor.value;
+      liveThemePreviewBox.style.opacity = pOp;
+
+      prevHeaderPane.style.backgroundColor = themeHeaderColor.value;
+      prevPlayerPane.style.backgroundColor = themePlayerColor.value;
       prevSidebarPane.style.backgroundColor = themeSidebarColor.value;
       prevPostSample.style.backgroundColor = themeCardColor.value;
       prevBtnSample.style.backgroundColor = themeBtnBgColor.value;
       prevBtnSample.style.color = themeBtnTextColor.value;
+      prevBtnSample.style.opacity = bOp;
       prevAuthorSample.style.color = themeTextColor.value;
       prevTextSample.style.color = themeTextColor.value;
     }
 
-    [themeFontSelect, themeMainBgColor, themeSidebarColor, themeCardColor, themeBtnBgColor, themeBtnTextColor, themeTextColor].forEach(el => {
+    [themeFontSelect, themeFontSizeInput, themePanelOpacityInput, themeBtnOpacityInput, themeHeaderColor, themePlayerColor, themeMainBgColor, themeSidebarColor, themeCardColor, themeBtnBgColor, themeBtnTextColor, themeTextColor].forEach(el => {
       el.addEventListener('input', updateLiveThemePreview);
     });
     updateLiveThemePreview();
+
+    // Загрузка фонового изображения темы из файлов устройства
+    themeBgFileInput.addEventListener('change', async () => {
+      const file = themeBgFileInput.files[0];
+      if (!file || !activeUser) return;
+
+      themeBgUploadStatus.innerText = 'Загрузка фонового изображения...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `themebg_${activeUser.id}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+      if (uploadError) {
+        themeBgUploadStatus.innerText = '';
+        return alert('Ошибка загрузки фона: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
+      themeUploadedBgUrl = publicUrl;
+      themeBgUploadStatus.innerText = 'Фон загружен и выбран!';
+      btnClearThemeBgFile.style.display = 'inline-block';
+      updateLiveThemePreview();
+    });
 
     let frameUploadedImgUrl = null;
     function updateLiveFramePreview() {
@@ -1385,13 +1475,18 @@
       const title = themeTitleInput.value.trim() || 'Моя тема Bubble';
       const config = {
         font: themeFontSelect.value,
+        fontSize: parseInt(themeFontSizeInput.value) || 11,
+        panelOpacity: parseFloat(themePanelOpacityInput.value / 100),
+        btnOpacity: parseFloat(themeBtnOpacityInput.value / 100),
+        headerColor: themeHeaderColor.value,
+        playerColor: themePlayerColor.value,
         mainBgColor: themeMainBgColor.value,
         sidebarColor: themeSidebarColor.value,
         cardColor: themeCardColor.value,
         btnBgColor: themeBtnBgColor.value,
         btnTextColor: themeBtnTextColor.value,
         textColor: themeTextColor.value,
-        bgUrl: themeBgUrl.value.trim()
+        bgUrl: themeUploadedBgUrl || null
       };
 
       const editId = editingThemeId.value;
@@ -1408,7 +1503,11 @@
         alert('Тема успешно опубликована!');
       }
 
-      themeTitleInput.value = ''; themeBgUrl.value = '';
+      themeTitleInput.value = '';
+      themeUploadedBgUrl = null;
+      themeBgFileInput.value = '';
+      btnClearThemeBgFile.style.display = 'none';
+      themeBgUploadStatus.innerText = '';
       loadCreationsList();
     };
 
@@ -1417,6 +1516,7 @@
       btnPublishTheme.innerText = 'Опубликовать тему';
       btnCancelEditTheme.style.display = 'none';
       themeTitleInput.value = '';
+      themeUploadedBgUrl = null;
     };
 
     btnPublishFrame.onclick = async () => {
@@ -1488,13 +1588,14 @@
         if (isTheme) {
           previewHTML = `
             <div style="background:${cfg.cardColor || '#fff'}; border:1px solid #7f9db9; padding:6px; font-family:${cfg.font}; color:${cfg.textColor}; margin:6px 0; border-radius:4px; font-size:10px;">
-              <b>Шрифт:</b> ${cfg.font}<br>
+              <b>Шрифт:</b> ${cfg.font} (${cfg.fontSize || 11}px)<br>
               <div style="display:flex; gap:4px; margin-top:4px;">
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.headerColor || '#b4e1ff'}; border:1px solid #000;" title="Шапка"></span>
+                <span style="display:inline-block; width:12px; height:12px; background:${cfg.playerColor || '#d7f0ff'}; border:1px solid #000;" title="Плеер"></span>
                 <span style="display:inline-block; width:12px; height:12px; background:${cfg.mainBgColor || '#fff'}; border:1px solid #000;" title="Цвет окна"></span>
                 <span style="display:inline-block; width:12px; height:12px; background:${cfg.sidebarColor || '#b9e1fa'}; border:1px solid #000;" title="Панель"></span>
                 <span style="display:inline-block; width:12px; height:12px; background:${cfg.cardColor || '#fbfbfb'}; border:1px solid #000;" title="Карточка"></span>
                 <span style="display:inline-block; width:12px; height:12px; background:${cfg.btnBgColor || '#d8efff'}; border:1px solid #000;" title="Кнопка"></span>
-                <span style="display:inline-block; width:12px; height:12px; background:${cfg.textColor || '#003366'}; border:1px solid #000;" title="Текст"></span>
               </div>
             </div>
           `;
@@ -1543,13 +1644,20 @@
         editingThemeId.value = id;
         themeTitleInput.value = title;
         themeFontSelect.value = cfg.font || 'Tahoma, sans-serif';
+        themeFontSizeInput.value = cfg.fontSize || 11;
+        themePanelOpacityInput.value = (cfg.panelOpacity !== undefined ? cfg.panelOpacity : 1) * 100;
+        themeBtnOpacityInput.value = (cfg.btnOpacity !== undefined ? cfg.btnOpacity : 1) * 100;
+
+        themeHeaderColor.value = cfg.headerColor || '#b4e1ff';
+        themePlayerColor.value = cfg.playerColor || '#d7f0ff';
         themeMainBgColor.value = cfg.mainBgColor || '#ffffff';
         themeSidebarColor.value = cfg.sidebarColor || '#b9e1fa';
         themeCardColor.value = cfg.cardColor || '#fbfbfb';
         themeBtnBgColor.value = cfg.btnBgColor || '#d8efff';
         themeBtnTextColor.value = cfg.btnTextColor || '#0b388f';
         themeTextColor.value = cfg.textColor || '#003366';
-        themeBgUrl.value = cfg.bgUrl || '';
+        themeUploadedBgUrl = cfg.bgUrl || null;
+
         btnPublishTheme.innerText = 'Сохранить изменения';
         btnCancelEditTheme.style.display = 'inline-block';
         updateLiveThemePreview();
@@ -1600,17 +1708,30 @@
       if (cfg.font) {
         css += `body, button, input, select, textarea { font-family: ${cfg.font} !important; }\n`;
       }
+      if (cfg.fontSize) {
+        css += `body, .post-box, .comment-item, .sidebar-btn, input, select, button, textarea { font-size: ${cfg.fontSize}px !important; }\n`;
+      }
+      if (cfg.headerColor) {
+        css += `.aero-title-bar { background: ${cfg.headerColor} !important; }\n`;
+      }
+      if (cfg.playerColor) {
+        css += `.player-dock { background: ${cfg.playerColor} !important; }\n`;
+      }
+
+      const pOp = cfg.panelOpacity !== undefined ? cfg.panelOpacity : 1;
       if (cfg.mainBgColor) {
-        css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; }\n`;
+        css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; opacity: ${pOp}; }\n`;
       }
       if (cfg.sidebarColor) {
-        css += `.sidebar { background: ${cfg.sidebarColor} !important; }\n`;
+        css += `.sidebar { background: ${cfg.sidebarColor} !important; opacity: ${pOp}; }\n`;
       }
       if (cfg.cardColor) {
         css += `.post-box, .profile-card, .community-card, .creation-card, .messenger-container, .messenger-chats, .messenger-body { background-color: ${cfg.cardColor} !important; }\n`;
       }
-      if (cfg.btnBgColor || cfg.btnTextColor) {
-        css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d8efff'} !important; color: ${cfg.btnTextColor || '#0b388f'} !important; }\n`;
+
+      const bOp = cfg.btnOpacity !== undefined ? cfg.btnOpacity : 1;
+      if (cfg.btnBgColor || cfg.btnTextColor || cfg.btnOpacity !== undefined) {
+        css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d8efff'} !important; color: ${cfg.btnTextColor || '#0b388f'} !important; opacity: ${bOp}; }\n`;
       }
       if (cfg.textColor) {
         css += `body, .post-box, .profile-card, .post-author, legend, .aero-title-text { color: ${cfg.textColor} !important; }\n`;
@@ -1705,7 +1826,6 @@
       userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
     }
 
-    // Хелпер создания аватара с рамкой в ленте и комментариях
     function renderAvatarWithFrame(userId, isBig = false) {
       const prof = profilesMap[userId] || { avatar_url: DEFAULT_AVATAR, username: 'Аноним' };
       const cfg = prof.custom_frame;
@@ -1813,6 +1933,43 @@
           </div>
         </div>
       `;
+    }
+
+    async function loadFeed(feedType = 'all') {
+      if (!activeUser) return;
+      feedList.innerHTML = 'Загрузка записей...';
+      await loadAllProfiles();
+      await loadAllCommunitiesCache();
+      await loadFriends();
+
+      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
+
+      if (feedType === 'all') {
+        query = query.is('community_id', null);
+      } else if (feedType === 'friends') {
+        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
+        if (feedTargetIds.length === 0) {
+          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
+          return;
+        }
+        query = query.is('community_id', null).in('user_id', feedTargetIds);
+      } else if (feedType === 'communities') {
+        query = query.not('community_id', 'is', null);
+      }
+
+      const { data: posts, error } = await query;
+      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
     }
 
     window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
@@ -2261,7 +2418,6 @@
       profileAvatar.src = prof.avatar_url || DEFAULT_AVATAR;
       urlInput.value = `https://bubble.net/user/${prof.username}`;
 
-      // Надеваем рамочку на открытый профиль
       if (prof.custom_frame) {
         applyFrameStyles(prof.custom_frame);
       } else {
