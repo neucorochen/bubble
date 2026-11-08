@@ -1,4 +1,4 @@
-window.SUPABASE_URL = "https://gcebeebtccfzmpflztee.supabase.co/rest/v1/";
+window.SUPABASE_URL = "https://gcebeebtccfzmpflztee.supabase.co/rest/v1";
 window.SUPABASE_ANON_KEY = "sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X";
 window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
 
