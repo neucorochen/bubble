@@ -252,6 +252,22 @@
     .msg-out { align-self: flex-end; background: #d0e7ff; border: 1px solid #7f9db9; }
     .messenger-inputbox { padding: 6px; border-top: 1px solid #aca899; display: flex; gap: 6px; background: #f4f4f4; }
 
+    /* Чеклист добавления в беседу со стильными индикаторами */
+    .participant-select-item {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 5px 8px; margin-bottom: 4px; background: #fff; border: 1px solid #aca899; border-radius: 4px;
+      cursor: pointer; user-select: none;
+    }
+    .participant-select-item:hover { background: #edf4ff; }
+    .participant-select-item.selected {
+      background: #e3f2fd; border-color: #0055ea;
+    }
+    .participant-status-badge {
+      font-size: 10px; font-weight: bold; padding: 2px 6px; border-radius: 3px;
+    }
+    .badge-not-added { background: #eee; color: #555; }
+    .badge-added { background: #28a745; color: #fff; }
+
     .community-card {
       display: flex; align-items: center; justify-content: space-between; padding: 8px;
       background: #fff; border: 1px solid #7f9db9; margin-bottom: 6px;
@@ -301,7 +317,7 @@
     }
     .live-theme-preview {
       border: 1px solid #7f9db9; padding: 8px; margin-bottom: 10px; border-radius: 6px;
-      display: flex; gap: 10px; align-items: center; transition: all 0.2s ease;
+      display: flex; flex-direction: column; gap: 6px; transition: all 0.2s ease;
     }
 
     .xp-balloon {
@@ -369,7 +385,7 @@
 
   <!-- Модальное окно: Создание группового чата -->
   <div class="modal-overlay" id="createGroupModal" style="display:none;">
-    <div class="window" style="width: 360px; max-width: 95%;">
+    <div class="window" style="width: 380px; max-width: 95%;">
       <div class="title-bar">
         <div class="title-bar-text">Создать групповой чат</div>
         <div class="title-bar-controls">
@@ -379,11 +395,42 @@
       <div class="window-body">
         <label style="font-size:11px; display:block; margin-bottom:4px;">Название беседы:</label>
         <input type="text" id="groupChatTitle" placeholder="Моя беседа" style="width:100%; margin-bottom:8px; font-size:11px;">
-        <div style="font-size:11px; margin-bottom:4px;">Выберите участников из списка друзей:</div>
-        <div id="groupFriendsChecklist" style="max-height: 140px; overflow-y: auto; border:1px solid #7f9db9; padding:4px; margin-bottom:8px; font-size:11px;"></div>
+        <div style="font-size:11px; margin-bottom:4px; font-weight:bold;">Кликните по другу, чтобы добавить в беседу:</div>
+        <div id="groupFriendsChecklist" style="max-height: 150px; overflow-y: auto; border:1px solid #7f9db9; padding:4px; margin-bottom:8px; font-size:11px;"></div>
         <div style="text-align: right; display:flex; justify-content:space-between;">
           <button onclick="document.getElementById('createGroupModal').style.display='none'">Отмена</button>
           <button id="btnSubmitCreateGroup" style="font-weight:bold;">Создать чат</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Настройки беседы (смена аватарки и добавление участников) -->
+  <div class="modal-overlay" id="groupSettingsModal" style="display:none;">
+    <div class="window" style="width: 400px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">⚙️ Настройки беседы</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('groupSettingsModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <fieldset style="margin-bottom:10px;">
+          <legend>Аватарка беседы</legend>
+          <label style="font-size:11px; cursor:pointer; display:block; margin-bottom:4px;">
+            Выбрать фото из файлов устройства:
+            <input type="file" id="groupAvatarFileInput" accept="image/*" style="font-size:10px; width:100%; margin-top:4px;">
+          </label>
+          <div id="groupAvatarUploadStatus" style="font-size:10px; color:#555;"></div>
+        </fieldset>
+
+        <fieldset style="margin-bottom:10px;">
+          <legend>Добавить друзей в беседу</legend>
+          <div id="groupAddMoreFriendsList" style="max-height:140px; overflow-y:auto; padding:2px; font-size:11px;">Загрузка...</div>
+        </fieldset>
+
+        <div style="text-align: right;">
+          <button onclick="document.getElementById('groupSettingsModal').style.display='none'">Закрыть</button>
         </div>
       </div>
     </div>
@@ -473,7 +520,7 @@
                 
                 <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр темы в реальном времени:</div>
                 <div class="live-theme-preview" id="liveThemePreviewBox">
-                  <div id="prevHeaderPane" style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; margin-bottom:4px; display:inline-block;">bubble</div>
+                  <div id="prevHeaderPane" style="padding:4px 8px; border-radius:4px; font-weight:bold; font-size:11px; width:fit-content;">bubble</div>
                   <div style="display:flex; gap:8px; align-items:center; width:100%;">
                     <div id="prevSidebarPane" style="padding:6px; border-radius:4px; border:1px solid rgba(0,0,0,0.15);">
                       <button id="prevBtnSample" style="font-size:10px; padding:3px 6px; border-radius:3px;">Кнопка</button>
@@ -485,7 +532,7 @@
                       </div>
                     </div>
                   </div>
-                  <div id="prevPlayerPane" style="padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; margin-top:4px; display:inline-block;">Плеер: 🔊 Звук</div>
+                  <div id="prevPlayerPane" style="padding:4px 8px; border-radius:4px; font-size:10px; font-weight:bold; width:fit-content;">Плеер: 🔊 Звук</div>
                 </div>
 
                 <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap:8px; font-size:11px; margin-bottom:8px;">
@@ -637,6 +684,7 @@
               <div class="messenger-body">
                 <div class="messenger-header" id="chatHeaderBar" style="display:none;">
                   <span id="activeChatTitle">Выберите диалог</span>
+                  <button id="btnOpenGroupSettings" style="display:none; font-size:10px;">⚙️ Настройки беседы</button>
                 </div>
                 <div class="messenger-messages" id="chatMessagesList">
                   <div style="font-size:11px; color:#777; margin:auto;">Выберите беседу слева для начала общения</div>
@@ -649,7 +697,7 @@
             </div>
           </div>
 
-          <!-- Раздел: Друзья -->
+          <!-- Раздел: Друзья (БЕЗ КНОПКИ УДАЛИТЬ) -->
           <div id="sectionFriendsManager" style="display:none;">
             <fieldset style="margin-bottom: 12px;">
               <legend>Входящие заявки в друзья (<span id="countIncoming">0</span>)</legend>
@@ -762,7 +810,7 @@
             </fieldset>
           </div>
 
-          <!-- Профиль -->
+          <!-- Профиль (Удаление из друзей только здесь) -->
           <div id="sectionProfile" style="display:none;">
             <div class="profile-card">
               <div class="avatar-wrapper" id="profileAvatarContainer" style="width:68px; height:68px;">
@@ -853,6 +901,9 @@
     let profilesMap = {};
     let communitiesMap = {};
     let allCommunitiesCache = [];
+
+    // Множество выбранных друзей для создания группового чата
+    let selectedGroupFriends = new Set();
 
     let playlistQueue = [];
     let currentTrackIndex = -1;
@@ -974,7 +1025,6 @@
     const btnPublishTheme = document.getElementById('btnPublishTheme');
     const btnCancelEditTheme = document.getElementById('btnCancelEditTheme');
 
-    // Живой предпросмотр темы
     const liveThemePreviewBox = document.getElementById('liveThemePreviewBox');
     const prevHeaderPane = document.getElementById('prevHeaderPane');
     const prevPlayerPane = document.getElementById('prevPlayerPane');
@@ -984,7 +1034,6 @@
     const prevAuthorSample = document.getElementById('prevAuthorSample');
     const prevTextSample = document.getElementById('prevTextSample');
 
-    // Рамочки DOM
     const frameTitleInput = document.getElementById('frameTitleInput');
     const frameShapeSelect = document.getElementById('frameShapeSelect');
     const frameColorInput = document.getElementById('frameColorInput');
@@ -1003,6 +1052,7 @@
     const chatsListContainer = document.getElementById('chatsListContainer');
     const chatHeaderBar = document.getElementById('chatHeaderBar');
     const activeChatTitle = document.getElementById('activeChatTitle');
+    const btnOpenGroupSettings = document.getElementById('btnOpenGroupSettings');
     const chatMessagesList = document.getElementById('chatMessagesList');
     const chatInputBar = document.getElementById('chatInputBar');
     const chatMsgInput = document.getElementById('chatMsgInput');
@@ -1012,6 +1062,12 @@
     const groupChatTitle = document.getElementById('groupChatTitle');
     const groupFriendsChecklist = document.getElementById('groupFriendsChecklist');
     const btnSubmitCreateGroup = document.getElementById('btnSubmitCreateGroup');
+
+    // Настройки беседы DOM
+    const groupSettingsModal = document.getElementById('groupSettingsModal');
+    const groupAvatarFileInput = document.getElementById('groupAvatarFileInput');
+    const groupAvatarUploadStatus = document.getElementById('groupAvatarUploadStatus');
+    const groupAddMoreFriendsList = document.getElementById('groupAddMoreFriendsList');
 
     // Сообщества DOM
     const communityViewList = document.getElementById('communityViewList');
@@ -1401,7 +1457,6 @@
     });
     updateLiveThemePreview();
 
-    // Загрузка фонового изображения темы из файлов устройства
     themeBgFileInput.addEventListener('change', async () => {
       const file = themeBgFileInput.files[0];
       if (!file || !activeUser) return;
@@ -1817,13 +1872,42 @@
       }
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ (С ОТОБРАЖЕНИЕМ РАМКИ) ====================
-    async function loadUserLikes() {
+    // ==================== ЛЕНТА И ПОСТЫ ====================
+    async function loadFeed(feedType = 'all') {
       if (!activeUser) return;
-      const { data: pLikes } = await window.sbClient.from('post_likes').select('post_id').eq('user_id', activeUser.id);
-      userLikedPosts = new Set((pLikes || []).map(l => l.post_id));
-      const { data: cLikes } = await window.sbClient.from('comment_likes').select('comment_id').eq('user_id', activeUser.id);
-      userLikedComments = new Set((cLikes || []).map(l => l.comment_id));
+      feedList.innerHTML = 'Загрузка записей...';
+      await loadAllProfiles();
+      await loadAllCommunitiesCache();
+      await loadFriends();
+
+      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
+
+      if (feedType === 'all') {
+        query = query.is('community_id', null);
+      } else if (feedType === 'friends') {
+        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
+        if (feedTargetIds.length === 0) {
+          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
+          return;
+        }
+        query = query.is('community_id', null).in('user_id', feedTargetIds);
+      } else if (feedType === 'communities') {
+        query = query.not('community_id', 'is', null);
+      }
+
+      const { data: posts, error } = await query;
+      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
+      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
+
+      const postIds = posts.map(p => p.id);
+      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
+      const commentsByPost = {};
+      (comments || []).forEach(c => {
+        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
+        commentsByPost[c.post_id].push(c);
+      });
+
+      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
     }
 
     function renderAvatarWithFrame(userId, isBig = false) {
@@ -1933,43 +2017,6 @@
           </div>
         </div>
       `;
-    }
-
-    async function loadFeed(feedType = 'all') {
-      if (!activeUser) return;
-      feedList.innerHTML = 'Загрузка записей...';
-      await loadAllProfiles();
-      await loadAllCommunitiesCache();
-      await loadFriends();
-
-      let query = window.sbClient.from('posts').select('*').order('id', { ascending: false }).limit(30);
-
-      if (feedType === 'all') {
-        query = query.is('community_id', null);
-      } else if (feedType === 'friends') {
-        const feedTargetIds = Array.from(new Set([...userFriendIds, ...pendingOutgoingIds]));
-        if (feedTargetIds.length === 0) {
-          feedList.innerHTML = '<p>В ленте друзей пока нет записей. Отправьте заявку пользователю!</p>';
-          return;
-        }
-        query = query.is('community_id', null).in('user_id', feedTargetIds);
-      } else if (feedType === 'communities') {
-        query = query.not('community_id', 'is', null);
-      }
-
-      const { data: posts, error } = await query;
-      if (error) return feedList.innerHTML = '<p style="color:red">Ошибка: ' + error.message + '</p>';
-      if (!posts || posts.length === 0) return feedList.innerHTML = '<p>Записей пока нет.</p>';
-
-      const postIds = posts.map(p => p.id);
-      const { data: comments } = await window.sbClient.from('comments').select('*').in('post_id', postIds).order('id', { ascending: true });
-      const commentsByPost = {};
-      (comments || []).forEach(c => {
-        if (!commentsByPost[c.post_id]) commentsByPost[c.post_id] = [];
-        commentsByPost[c.post_id].push(c);
-      });
-
-      feedList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, feedType)).join('');
     }
 
     window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
@@ -2231,7 +2278,7 @@
       commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
     }
 
-    // ==================== МЕССЕНДЖЕР ====================
+    // ==================== МЕССЕНДЖЕР И ГРУППОВЫЕ НАСТРОЙКИ ====================
     async function loadConversationsList() {
       if (!activeUser) return;
       chatsListContainer.innerHTML = 'Загрузка...';
@@ -2250,7 +2297,7 @@
 
       chatsListContainer.innerHTML = (convs || []).map(c => {
         let title = c.title || 'Беседа';
-        let avatar = DEFAULT_AVATAR;
+        let avatar = c.avatar_url || DEFAULT_AVATAR;
 
         if (c.type === 'direct') {
           const partnerPart = (allParts || []).find(p => p.conversation_id === c.id && p.user_id !== activeUser.id);
@@ -2285,6 +2332,7 @@
 
       const { data: conv } = await window.sbClient.from('conversations').select('*').eq('id', convId).single();
       let title = conv.title || 'Беседа';
+      btnOpenGroupSettings.style.display = conv.type === 'group' ? 'inline-block' : 'none';
 
       if (conv.type === 'direct') {
         const { data: parts } = await window.sbClient.from('conversation_participants').select('user_id').eq('conversation_id', convId);
@@ -2380,20 +2428,43 @@
       openConversation(convId);
     };
 
+    // Создание группового чата с индикатором добавления
     btnOpenCreateGroupModal.onclick = () => {
       groupChatTitle.value = '';
-      groupFriendsChecklist.innerHTML = Array.from(userFriendIds).map(fId => `
-        <label style="display:block; margin-bottom:2px;">
-          <input type="checkbox" value="${fId}"> ${escapeHtml(profilesMap[fId]?.username || 'Друг')}
-        </label>
-      `).join('') || 'У вас пока нет друзей для добавления.';
+      selectedGroupFriends.clear();
+      renderGroupCreationFriends();
       createGroupModal.style.display = 'flex';
+    };
+
+    function renderGroupCreationFriends() {
+      const fArr = Array.from(userFriendIds);
+      if (fArr.length === 0) {
+        groupFriendsChecklist.innerHTML = '<div style="color:#777;">У вас пока нет подтверждённых друзей.</div>';
+        return;
+      }
+      groupFriendsChecklist.innerHTML = fArr.map(fId => {
+        const isAdded = selectedGroupFriends.has(fId);
+        const name = profilesMap[fId]?.username || 'Друг';
+        return `
+          <div class="participant-select-item ${isAdded ? 'selected' : ''}" onclick="toggleGroupFriendSelection('${fId}')">
+            <span><b>${escapeHtml(name)}</b></span>
+            <span class="participant-status-badge ${isAdded ? 'badge-added' : 'badge-not-added'}">
+              ${isAdded ? '✓ Добавлен' : '➕ Добавить'}
+            </span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.toggleGroupFriendSelection = (fId) => {
+      if (selectedGroupFriends.has(fId)) selectedGroupFriends.delete(fId);
+      else selectedGroupFriends.add(fId);
+      renderGroupCreationFriends();
     };
 
     btnSubmitCreateGroup.onclick = async () => {
       const title = groupChatTitle.value.trim() || 'Беседа';
-      const checkedBoxes = groupFriendsChecklist.querySelectorAll('input[type="checkbox"]:checked');
-      const selectedUserIds = Array.from(checkedBoxes).map(b => b.value);
+      const selectedUserIds = Array.from(selectedGroupFriends);
 
       const { data: newConv } = await window.sbClient.from('conversations').insert([{
         type: 'group', title
@@ -2407,6 +2478,69 @@
       switchTab('messenger');
       openConversation(newConv.id);
     };
+
+    // Настройки беседы: аватарка и добавление новых друзей
+    btnOpenGroupSettings.onclick = async () => {
+      if (!activeConversationId) return;
+      groupAvatarUploadStatus.innerText = '';
+      groupSettingsModal.style.display = 'flex';
+      loadGroupAddFriendsList();
+    };
+
+    async function loadGroupAddFriendsList() {
+      groupAddMoreFriendsList.innerHTML = 'Загрузка друзей...';
+      const { data: parts } = await window.sbClient
+        .from('conversation_participants').select('user_id').eq('conversation_id', activeConversationId);
+      const existingUserIds = new Set((parts || []).map(p => p.user_id));
+
+      const friendsToAdd = Array.from(userFriendIds).filter(fId => !existingUserIds.has(fId));
+      if (friendsToAdd.length === 0) {
+        groupAddMoreFriendsList.innerHTML = '<div style="color:#777; padding:4px;">Все ваши друзья уже состоят в этой беседе!</div>';
+        return;
+      }
+
+      groupAddMoreFriendsList.innerHTML = friendsToAdd.map(fId => {
+        const name = profilesMap[fId]?.username || 'Друг';
+        return `
+          <div class="participant-select-item" onclick="addUserToCurrentGroup('${fId}', this)">
+            <span><b>${escapeHtml(name)}</b></span>
+            <span class="participant-status-badge badge-not-added">➕ Добавить в чат</span>
+          </div>
+        `;
+      }).join('');
+    }
+
+    window.addUserToCurrentGroup = async (fId, el) => {
+      if (!activeConversationId) return;
+      await window.sbClient.from('conversation_participants').insert([{
+        conversation_id: activeConversationId, user_id: fId
+      }]);
+      el.classList.add('selected');
+      el.querySelector('.participant-status-badge').className = 'participant-status-badge badge-added';
+      el.querySelector('.participant-status-badge').innerText = '✓ Добавлен!';
+      setTimeout(() => loadGroupAddFriendsList(), 800);
+    };
+
+    groupAvatarFileInput.addEventListener('change', async () => {
+      const file = groupAvatarFileInput.files[0];
+      if (!file || !activeConversationId) return;
+
+      groupAvatarUploadStatus.innerText = 'Загрузка аватарки беседы...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `group_${activeConversationId}_${Date.now()}.${fileExt}`;
+
+      const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+      if (uploadError) {
+        groupAvatarUploadStatus.innerText = '';
+        return alert('Ошибка загрузки: ' + uploadError.message);
+      }
+
+      const { data: { publicUrl } } = window.sbClient.storage.from('post_images').getPublicUrl(fileName);
+      await window.sbClient.from('conversations').update({ avatar_url: publicUrl }).eq('id', activeConversationId);
+
+      groupAvatarUploadStatus.innerText = 'Аватарка беседы успешно обновлена!';
+      loadConversationsList();
+    });
 
     // ==================== ПРОФИЛЬ ====================
     async function openUserProfile(userId) {
@@ -2466,10 +2600,11 @@
         `).join('');
     }
 
+    // Удаление из друзей происходит ИСКЛЮЧИТЕЛЬНО в профиле
     btnFriendAction.onclick = async () => {
       if (!activeUser || !viewingUserId) return;
       if (userFriendIds.has(viewingUserId)) {
-        if (!confirm('Удалить из друзей?')) return;
+        if (!confirm('Удалить пользователя из друзей?')) return;
         await window.sbClient.from('friends').delete().or(`and(user_id.eq.${activeUser.id},friend_id.eq.${viewingUserId}),and(user_id.eq.${viewingUserId},friend_id.eq.${activeUser.id})`);
       } else if (pendingOutgoingIds.has(viewingUserId)) {
         await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: viewingUserId, status: 'pending' });
@@ -2549,7 +2684,7 @@
       }
     };
 
-    // ==================== УВЕДОМЛЕНИЯ И ДРУЗЬЯ ====================
+    // ==================== УВЕДОМЛЕНИЯ И ДРУЗЬЯ (БЕЗ КНОПКИ УДАЛИТЬ) ====================
     async function loadNotifications() {
       if (!activeUser) return;
       const { data: notifs } = await window.sbClient.from('notifications').select('*').eq('user_id', activeUser.id).order('id', { ascending: false });
@@ -2607,10 +2742,11 @@
       countIncoming.innerText = pendingIncomingIds.size;
       countAccepted.innerText = userFriendIds.size;
       countOutgoing.innerText = pendingOutgoingIds.size;
+
       listIncomingReqs.innerHTML = pendingIncomingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет входящих заявок.</div>' :
         Array.from(pendingIncomingIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+          <div class="participant-select-item">
+            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
               ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
@@ -2621,25 +2757,26 @@
           </div>
         `).join('');
 
+      // Кнопка удалить убрана отсюда — остался только переход в профиль
       listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         Array.from(userFriendIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+          <div class="participant-select-item" onclick="goToProfile('${uId}')" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:6px;">
               ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
-            <div><button onclick="removeFriendFromManager('${uId}')" style="color:#a00; font-size:10px;">Удалить</button></div>
+            <span style="font-size:10px; color:#0b388f;">Открыть профиль →</span>
           </div>
         `).join('');
 
       listOutgoingReqs.innerHTML = pendingOutgoingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет отправленных заявок.</div>' :
         Array.from(pendingOutgoingIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+          <div class="participant-select-item">
+            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
               ${renderAvatarWithFrame(uId, false)}
               <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
             </div>
-            <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить</button></div>
+            <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить заявку</button></div>
           </div>
         `).join('');
     }
@@ -2653,13 +2790,9 @@
       }
       loadFriendsManager();
     };
+
     window.cancelOutgoingRequest = async (fId) => {
       await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: fId, status: 'pending' });
-      loadFriendsManager();
-    };
-    window.removeFriendFromManager = async (fId) => {
-      if (!confirm('Удалить пользователя из друзей?')) return;
-      await window.sbClient.from('friends').delete().or(`and(user_id.eq.${activeUser.id},friend_id.eq.${fId}),and(user_id.eq.${fId},friend_id.eq.${activeUser.id})`);
       loadFriendsManager();
     };
 
