@@ -1,3 +1,7 @@
+// ==========================================
+// BUBBLE — APP.JS (Авторизация, Ядро, Навигация, Лента, Друзья, Маскот)
+// ==========================================
+
 window.SUPABASE_URL = "https://gcebeebtccfzmpflztee.supabase.co";
 window.SUPABASE_ANON_KEY = "sb_publishable_dtbIcBYG7yK2hbB-8a8tGw_9ceJUZ0X";
 window.sbClient = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
@@ -45,6 +49,19 @@ function getUsername(user) {
   if (!user) return 'Аноним';
   return user.user_metadata?.username || (user.email ? user.email.split('@')[0] : 'Пользователь');
 }
+
+// Надежная функция выхода из системы
+window.logoutUser = async function() {
+  try {
+    localStorage.clear();
+    sessionStorage.clear();
+    await window.sbClient.auth.signOut();
+  } catch (err) {
+    console.warn("SignOut error:", err);
+  } finally {
+    window.location.href = 'login.html';
+  }
+};
 
 async function ensureProfile(user) {
   if (!user) return;
@@ -139,32 +156,6 @@ window.sbClient.auth.getSession().then(({ data: { session } }) => {
 window.sbClient.auth.onAuthStateChange((event, session) => {
   if (event === 'SIGNED_OUT' || !session) window.location.replace('login.html');
   else if (event === 'SIGNED_IN') updateSessionState(session, true);
-});
-
-document.addEventListener('DOMContentLoaded', () => {
-  const btnLogout = document.getElementById('btnLogout');
-  if (btnLogout) {
-    btnLogout.addEventListener('click', async () => {
-      localStorage.clear();
-      await window.sbClient.auth.signOut();
-      window.location.replace('login.html');
-    });
-  }
-
-  const btnToggleSidebar = document.getElementById('btnToggleSidebar');
-  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
-  if (btnToggleSidebar) btnToggleSidebar.addEventListener('click', () => toggleMobileMenu());
-  if (sidebarBackdrop) sidebarBackdrop.addEventListener('click', () => toggleMobileMenu(true));
-
-  bindNavigation();
-  initMascotModule();
-  initFeedModule();
-  initFriendsManagerModule();
-
-  setInterval(() => {
-    const clk = document.getElementById('clock');
-    if (clk) clk.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  }, 1000);
 });
 
 function toggleMobileMenu(forceClose = false) {
@@ -349,6 +340,10 @@ function bindNavigation() {
   if (btnBackMascot) btnBackMascot.onclick = () => switchTab('feed');
   const btnReload = document.getElementById('btnGoReload');
   if (btnReload) btnReload.onclick = () => switchTab(currentTab, viewingUserId);
+
+  // Кнопка выхода
+  const btnLogout = document.getElementById('btnLogout');
+  if (btnLogout) btnLogout.onclick = window.logoutUser;
 }
 
 window.goToProfile = function(uid) { switchTab('profile', uid); };
@@ -544,7 +539,7 @@ function renderPostItem(p, commentsByPost, context = 'feed', canModerate = false
         <button onclick="toggleCommentsVisibility('${uniquePostKey}')" style="font-size:11px;">
           💬 Комментарии (<span id="comments-count-${uniquePostKey}">${postComments.length}</span>)
         </button>
-        <button onclick="openRepostModal('post', ${p.id}, '${escapeHtml(p.author).replace(/'/g, "\\'")}', '${escapeHtml(p.content).replace(/'/g, "\\'")}')" style="font-size: 11px;">
+        <button onclick="openRepostModal('post', ${p.id}, '${escapeHtml(p.author).replace(/'/g, "\\'")}', '${escapeHtml(p.content).replace(/'/g, "\\"')}')" style="font-size: 11px;">
           Поделиться
         </button>
       </div>
@@ -747,6 +742,18 @@ function initFeedModule() {
       loadFeed(currentTab === 'friends_feed' ? 'friends' : (currentTab === 'communities_feed' ? 'communities' : 'all'));
     };
   }
+
+  // Очистка прикрепленного фото к посту
+  const btnClearImg = document.getElementById('btnClearPostImage');
+  if (postImageFile && btnClearImg) {
+    postImageFile.addEventListener('change', () => {
+      btnClearImg.style.display = postImageFile.files.length ? 'inline-block' : 'none';
+    });
+    btnClearImg.onclick = () => {
+      postImageFile.value = '';
+      btnClearImg.style.display = 'none';
+    };
+  }
 }
 
 // УВЕДОМЛЕНИЯ И ДРУЗЬЯ
@@ -874,3 +881,27 @@ window.cancelOutgoingRequest = async function(fid) {
   await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: fid, status: 'pending' });
   loadFriendsManager();
 };
+
+// Запуск инициализации при загрузке документа
+function initApp() {
+  const btnToggleSidebar = document.getElementById('btnToggleSidebar');
+  const sidebarBackdrop = document.getElementById('sidebarBackdrop');
+  if (btnToggleSidebar) btnToggleSidebar.onclick = () => toggleMobileMenu();
+  if (sidebarBackdrop) sidebarBackdrop.onclick = () => toggleMobileMenu(true);
+
+  bindNavigation();
+  initMascotModule();
+  initFeedModule();
+  initFriendsManagerModule();
+
+  setInterval(() => {
+    const clk = document.getElementById('clock');
+    if (clk) clk.innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }, 1000);
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initApp);
+} else {
+  initApp();
+}
