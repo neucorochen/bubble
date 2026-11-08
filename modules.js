@@ -295,7 +295,7 @@ window.addTrackToMyLibrary = async function(trackId) {
   else alert("Трек добавлен в ваш профиль!");
 };
 
-// --- МАСТЕРСКАЯ ОФОРМЛЕНИЯ (ПОЛНЫЙ ИСПРАВЛЕННЫЙ ПРЕДПРОСМОТР) ---
+// --- МАСТЕРСКАЯ ОФОРМЛЕНИЯ ---
 let themeUploadedImgUrl = null;
 let frameUploadedImgUrl = null;
 
@@ -494,7 +494,6 @@ function initThemeAndFrameWorkshop() {
   updateLiveFramePreview();
 }
 
-// Живой предпросмотр темы (ОТРИСОВЫВАЕТ ВСЕ ЭЛЕМЕНТЫ ПРЕДПРОСМОТРА)
 function updateLiveThemePreview() {
   const fs = document.getElementById('themeFontSizeInput')?.value || 11;
   const panelOp = (parseFloat(document.getElementById('themePanelOpacityInput')?.value || 100) / 100);
@@ -557,7 +556,6 @@ function updateLiveThemePreview() {
   if (pText) pText.style.color = textCol;
 }
 
-// Живой предпросмотр рамочки
 function updateLiveFramePreview() {
   const shape = document.getElementById('frameShapeSelect')?.value || 'circle';
   const color = document.getElementById('frameColorInput')?.value || '#0055ea';
@@ -640,28 +638,19 @@ function applyThemeStyles(cfg) {
     document.body.style.backgroundSize = 'cover';
   }
   let css = '';
-  if (cfg.font) css += `body, button, input, select, textarea { font-family: ${cfg.font} !important; }
-`;
-  if (cfg.fontSize) css += `body, .post-box, .comment-item, .sidebar-btn, input, select, button, textarea { font-size: ${cfg.fontSize}px !important; }
-`;
-  if (cfg.headerColor) css += `.aero-title-bar { background: ${cfg.headerColor} !important; }
-`;
-  if (cfg.playerColor) css += `.player-dock { background: ${cfg.playerColor} !important; }
-`;
+  if (cfg.font) css += `body, button, input, select, textarea { font-family: ${cfg.font} !important; }\n`;
+  if (cfg.fontSize) css += `body, .post-box, .comment-item, .sidebar-btn, input, select, button, textarea { font-size: ${cfg.fontSize}px !important; }\n`;
+  if (cfg.headerColor) css += `.aero-title-bar { background: ${cfg.headerColor} !important; }\n`;
+  if (cfg.playerColor) css += `.player-dock { background: ${cfg.playerColor} !important; }\n`;
   const pop = cfg.panelOpacity !== undefined ? cfg.panelOpacity : 1;
-  if (cfg.mainBgColor) css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; opacity: ${pop}; }
-`;
-  if (cfg.sidebarColor) css += `.sidebar { background: ${cfg.sidebarColor} !important; opacity: ${pop}; }
-`;
-  if (cfg.cardColor) css += `.post-box, .profile-card, .community-card, .creation-card, .messenger-container, .messenger-chats, .messenger-body { background-color: ${cfg.cardColor} !important; }
-`;
+  if (cfg.mainBgColor) css += `.main-view, .window-body-layout, fieldset { background-color: ${cfg.mainBgColor} !important; opacity: ${pop}; }\n`;
+  if (cfg.sidebarColor) css += `.sidebar { background: ${cfg.sidebarColor} !important; opacity: ${pop}; }\n`;
+  if (cfg.cardColor) css += `.post-box, .profile-card, .community-card, .creation-card, .messenger-container, .messenger-chats, .messenger-body { background-color: ${cfg.cardColor} !important; }\n`;
   const bop = cfg.btnOpacity !== undefined ? cfg.btnOpacity : 1;
   if (cfg.btnBgColor || cfg.btnTextColor) {
-    css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d5e8ff'} !important; color: ${cfg.btnTextColor || '#003366'} !important; opacity: ${bop}; }
-`;
+    css += `button, .sidebar-btn { background: ${cfg.btnBgColor || '#d5e8ff'} !important; color: ${cfg.btnTextColor || '#003366'} !important; opacity: ${bop}; }\n`;
   }
-  if (cfg.textColor) css += `body, .post-box, .profile-card, .post-author, legend, .aero-title-text { color: ${cfg.textColor} !important; }
-`;
+  if (cfg.textColor) css += `body, .post-box, .profile-card, .post-author, legend, .aero-title-text { color: ${cfg.textColor} !important; }\n`;
   const styleEl = document.getElementById('dynamicCustomThemeStyle');
   if (styleEl) styleEl.innerHTML = css;
 }
@@ -702,7 +691,7 @@ async function loadUserThemeAndFrame() {
   } catch(e){}
 }
 
-// --- СООБЩЕСТВА (С ПОЛНОЙ ЗАГРУЗКОЙ ПОСТОВ, АВАТАРКИ, МУЗЫКИ И КНОПКОЙ ПОКИНУТЬ) ---
+// --- СООБЩЕСТВА (С ПОЛНОЙ ЗАГРУЗКОЙ ПОСТОВ, АВАТАРКИ, МУЗЫКИ, НАСТРОЙКАМИ И ВЫХОДОМ) ---
 function initCommunitiesModule() {
   const btnCreate = document.getElementById('btnCreateCommunity');
   if (btnCreate) {
@@ -724,7 +713,7 @@ function initCommunitiesModule() {
     };
   }
 
-  // Публикация поста от имени сообщества
+  // Публикация поста от лица сообщества
   const btnCreateCommPost = document.getElementById('btnCreateCommPost');
   if (btnCreateCommPost) {
     btnCreateCommPost.onclick = async () => {
@@ -782,7 +771,7 @@ function initCommunitiesModule() {
   if (btnLeave) {
     btnLeave.onclick = async () => {
       if (!activeUser || !currentCommunityId) return;
-      if (currentCommunityRole === 'creator') return alert("Создатель не может покинуть сообщество!");
+      if (currentCommunityRole === 'creator') return alert("Создатель не может покинуть своё сообщество!");
       if (!confirm("Вы действительно хотите покинуть сообщество?")) return;
       await window.sbClient.from('community_members').delete().match({
         community_id: currentCommunityId, user_id: activeUser.id
@@ -790,7 +779,143 @@ function initCommunitiesModule() {
       openCommunity(currentCommunityId);
     };
   }
+
+  // Кнопка "Чат группы"
+  const btnOpenChat = document.getElementById('btnOpenCommChat');
+  if (btnOpenChat) {
+    btnOpenChat.onclick = async () => {
+      if (!activeUser || !currentCommunityId) return;
+      const { data: existing } = await window.sbClient
+        .from('conversations')
+        .select('id')
+        .eq('type', 'community')
+        .eq('community_id', currentCommunityId)
+        .maybeSingle();
+
+      let convId = existing?.id;
+      if (!convId) {
+        const { data: newConv } = await window.sbClient
+          .from('conversations')
+          .insert([{ type: 'community', community_id: currentCommunityId }])
+          .select()
+          .single();
+        convId = newConv.id;
+      }
+      await window.sbClient
+        .from('conversation_participants')
+        .upsert([{ conversation_id: convId, user_id: activeUser.id }], { onConflict: 'conversation_id,user_id' });
+      switchTab('messenger');
+      openConversation(convId);
+    };
+  }
+
+  // Кнопка "Настройки сообщества"
+  const btnOpenSettings = document.getElementById('btnOpenCommSettings');
+  if (btnOpenSettings) {
+    btnOpenSettings.onclick = () => {
+      const comm = communitiesMap[currentCommunityId];
+      if (!comm) return;
+      const modal = document.getElementById('commSettingsModal');
+      const titleInput = document.getElementById('editCommTitleInput');
+      const descInput = document.getElementById('editCommDescInput');
+      if (titleInput) titleInput.value = comm.title || '';
+      if (descInput) descInput.value = comm.description || '';
+      if (modal) modal.style.display = 'flex';
+      loadCommunityMembersToManage();
+    };
+  }
+
+  // Кнопка "Сохранить изменения" в настройках сообщества
+  const btnSaveCommSettings = document.getElementById('btnSaveCommSettings');
+  if (btnSaveCommSettings) {
+    btnSaveCommSettings.onclick = async () => {
+      if (!currentCommunityId || !activeUser) return;
+      btnSaveCommSettings.disabled = true;
+      const title = document.getElementById('editCommTitleInput')?.value.trim();
+      const desc = document.getElementById('editCommDescInput')?.value.trim();
+      const file = document.getElementById('editCommAvatarFile')?.files[0];
+      let avatarUrl = communitiesMap[currentCommunityId]?.avatar_url || null;
+
+      if (file) {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `comm_avatar_${currentCommunityId}_${Date.now()}.${fileExt}`;
+        const { error: upErr } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (!upErr) avatarUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
+      }
+
+      await window.sbClient.from('communities').update({
+        title, description: desc, avatar_url: avatarUrl
+      }).eq('id', currentCommunityId);
+
+      btnSaveCommSettings.disabled = false;
+      document.getElementById('commSettingsModal').style.display = 'none';
+      alert("Настройки сообщества сохранены!");
+      await loadAllCommunitiesCache();
+      openCommunity(currentCommunityId);
+    };
+  }
+
+  // Кнопка "Добавить трек в сообщество"
+  const btnAddMusic = document.getElementById('btnOpenCommAddMusic');
+  if (btnAddMusic) {
+    btnAddMusic.onclick = () => openMusicPicker('comm_add');
+  }
+
+  const btnOpenCommPicker = document.getElementById('btnOpenCommPostMusicPicker');
+  if (btnOpenCommPicker) {
+    btnOpenCommPicker.onclick = () => openMusicPicker('comm_post');
+  }
+
+  const btnRemCommTrack = document.getElementById('btnRemoveCommAttachedTrack');
+  if (btnRemCommTrack) {
+    btnRemCommTrack.onclick = () => {
+      selectedCommPostTrack = null;
+      document.getElementById('commAttachedTrackPreview').style.display = 'none';
+    };
+  }
 }
+
+async function loadCommunityMembersToManage() {
+  const container = document.getElementById('commMembersManageList');
+  if (!container || !currentCommunityId) return;
+  container.innerHTML = 'Загрузка участников...';
+
+  const { data: members } = await window.sbClient
+    .from('community_members')
+    .select('id, user_id, role')
+    .eq('community_id', currentCommunityId);
+
+  if (!members || !members.length) {
+    container.innerHTML = '<div style="color:#777;">Участников нет.</div>';
+    return;
+  }
+
+  const isCreator = currentCommunityRole === 'creator';
+  container.innerHTML = members.map(m => {
+    const prof = profilesMap[m.user_id] || { username: 'Пользователь' };
+    const isTargetCreator = m.role === 'creator';
+    return `
+      <div style="display:flex; justify-content:space-between; align-items:center; padding:4px; border-bottom:1px dotted #ccc;">
+        <span><b>${escapeHtml(prof.username)}</b> ${isTargetCreator ? '👑 (Создатель)' : ''}</span>
+        ${(isCreator && !isTargetCreator) ? `
+          <select onchange="updateMemberRole(${m.id}, this.value)" style="font-size:10px;">
+            <option value="admin" ${m.role === 'admin' ? 'selected' : ''}>Администратор</option>
+            <option value="moderator" ${m.role === 'moderator' ? 'selected' : ''}>Модератор</option>
+            <option value="member" ${m.role === 'member' ? 'selected' : ''}>Участник</option>
+          </select>
+        ` : `<span>${m.role}</span>`}
+      </div>`;
+  }).join('');
+}
+
+window.updateMemberRole = async function(memberRowId, newRole) {
+  const { error } = await window.sbClient.from('community_members').update({ role: newRole }).eq('id', memberRowId);
+  if (error) alert("Ошибка смены роли: " + error.message);
+  else {
+    alert("Роль успешно обновлена!");
+    loadCommunityMembersToManage();
+  }
+};
 
 function showCommunitiesList() {
   const vList = document.getElementById('communityViewList');
@@ -836,7 +961,6 @@ window.openCommunity = async function(commId) {
   const avatarEl = document.getElementById('commAvatar');
   if (avatarEl) avatarEl.src = comm.avatar_url || DEFAULT_AVATAR;
 
-  // Определение роли пользователя в сообществе
   currentCommunityRole = null;
   const btnJoin = document.getElementById('btnCommJoinDirect');
   const btnLeave = document.getElementById('btnCommLeaveDirect');
@@ -929,7 +1053,7 @@ async function loadCommunityPosts(commId) {
   container.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
 }
 
-// --- ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ (АВАТАРКА, РАМОЧКА, ДРУЗЬЯ, МУЗЫКА И ПОСТЫ) ---
+// --- ПРОФИЛЬ ПОЛЬЗОВАТЕЛЯ ---
 async function openUserProfile(userId) {
   await loadAllProfiles();
   await loadFriends();
@@ -1068,7 +1192,7 @@ async function loadProfilePosts(userId) {
   container.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `profile-${userId}`, isMyProfile)).join('');
 }
 
-// --- МЕССЕНДЖЕР (ДИАЛОГИ И БЕСЕДЫ) ---
+// --- МЕССЕНДЖЕР: ИСПРАВЛЕННОЕ ОТОБРАЖЕНИЕ СОБЕСЕДНИКА И БЕСЕД ---
 function initMessengerModule() {
   const btnSend = document.getElementById('btnSendChatMessage');
   const input = document.getElementById('chatMsgInput');
@@ -1086,7 +1210,132 @@ function initMessengerModule() {
     btnSend.onclick = send;
     input.onkeydown = (e) => { if (e.key === 'Enter') send(); };
   }
+
+  // Кнопка "Создать беседу"
+  const btnOpenCreateGroup = document.getElementById('btnOpenCreateGroupModal');
+  if (btnOpenCreateGroup) {
+    btnOpenCreateGroup.onclick = () => {
+      document.getElementById('groupChatTitle').value = '';
+      selectedGroupFriends.clear();
+      renderGroupCreationFriends();
+      document.getElementById('createGroupModal').style.display = 'flex';
+    };
+  }
+
+  // Кнопка подтверждения создания беседы
+  const btnSubmitGroup = document.getElementById('btnSubmitCreateGroup');
+  if (btnSubmitGroup) {
+    btnSubmitGroup.onclick = async () => {
+      if (!activeUser) return;
+      const title = document.getElementById('groupChatTitle')?.value.trim() || 'Беседа';
+      const selectedIds = Array.from(selectedGroupFriends);
+      const { data: newConv } = await window.sbClient.from('conversations').insert([{
+        type: 'group', title
+      }]).select().single();
+
+      if (newConv) {
+        const participants = [{ conversation_id: newConv.id, user_id: activeUser.id }];
+        selectedIds.forEach(uid => participants.push({ conversation_id: newConv.id, user_id: uid }));
+        await window.sbClient.from('conversation_participants').insert(participants);
+        document.getElementById('createGroupModal').style.display = 'none';
+        switchTab('messenger');
+        openConversation(newConv.id);
+      }
+    };
+  }
+
+  // Кнопка настроек беседы
+  const btnOpenGroupSettings = document.getElementById('btnOpenGroupSettings');
+  if (btnOpenGroupSettings) {
+    btnOpenGroupSettings.onclick = () => {
+      if (!activeConversationId) return;
+      const statusEl = document.getElementById('groupAvatarUploadStatus');
+      if (statusEl) statusEl.innerText = '';
+      document.getElementById('groupSettingsModal').style.display = 'flex';
+      loadGroupAddFriendsList();
+    };
+  }
+
+  // Смена аватарки беседы
+  const groupAvatarFileInput = document.getElementById('groupAvatarFileInput');
+  if (groupAvatarFileInput) {
+    groupAvatarFileInput.addEventListener('change', async () => {
+      const file = groupAvatarFileInput.files[0];
+      if (!file || !activeConversationId) return;
+      const statusEl = document.getElementById('groupAvatarUploadStatus');
+      if (statusEl) statusEl.innerText = 'Загрузка аватарки беседы...';
+      const fileExt = file.name.split('.').pop();
+      const fileName = `group_${activeConversationId}_${Date.now()}.${fileExt}`;
+      const { error: upErr } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+      if (upErr) {
+        if (statusEl) statusEl.innerText = '';
+        return alert("Ошибка: " + upErr.message);
+      }
+      const pubUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
+      await window.sbClient.from('conversations').update({ avatar_url: pubUrl }).eq('id', activeConversationId);
+      if (statusEl) statusEl.innerText = 'Аватарка успешно обновлена!';
+      loadConversationsList();
+    });
+  }
 }
+
+function renderGroupCreationFriends() {
+  const container = document.getElementById('groupFriendsChecklist');
+  if (!container) return;
+  const fArr = Array.from(userFriendIds);
+  if (!fArr.length) {
+    container.innerHTML = '<div style="color:#777;">У вас пока нет подтверждённых друзей.</div>';
+    return;
+  }
+  container.innerHTML = fArr.map(fid => {
+    const isAdded = selectedGroupFriends.has(fid);
+    const name = profilesMap[fid]?.username || 'Друг';
+    return `
+      <div class="participant-select-item ${isAdded ? 'selected' : ''}" onclick="toggleGroupFriendSelection('${fid}')">
+        <span><b>${escapeHtml(name)}</b></span>
+        <span class="participant-status-badge ${isAdded ? 'badge-added' : 'badge-not-added'}">
+          ${isAdded ? 'Добавлен' : '+ Добавить'}
+        </span>
+      </div>`;
+  }).join('');
+}
+
+window.toggleGroupFriendSelection = function(fid) {
+  if (selectedGroupFriends.has(fid)) selectedGroupFriends.delete(fid);
+  else selectedGroupFriends.add(fid);
+  renderGroupCreationFriends();
+};
+
+async function loadGroupAddFriendsList() {
+  const container = document.getElementById('groupAddMoreFriendsList');
+  if (!container || !activeConversationId) return;
+  container.innerHTML = 'Загрузка списка друзей...';
+
+  const { data: parts } = await window.sbClient.from('conversation_participants').select('user_id').eq('conversation_id', activeConversationId);
+  const existingIds = new Set((parts || []).map(p => p.user_id));
+  const friendsToAdd = Array.from(userFriendIds).filter(fid => !existingIds.has(fid));
+
+  if (!friendsToAdd.length) {
+    container.innerHTML = '<div style="color:#777; padding:4px;">Все ваши друзья уже добавлены в эту беседу.</div>';
+    return;
+  }
+
+  container.innerHTML = friendsToAdd.map(fid => `
+    <div class="participant-select-item" onclick="addUserToCurrentGroup('${fid}')">
+      <span><b>${escapeHtml(profilesMap[fid]?.username || 'Друг')}</b></span>
+      <span class="participant-status-badge badge-not-added">+ Добавить</span>
+    </div>
+  `).join('');
+}
+
+window.addUserToCurrentGroup = async function(fid) {
+  if (!activeConversationId) return;
+  await window.sbClient.from('conversation_participants').insert([{
+    conversation_id: activeConversationId, user_id: fid
+  }]);
+  loadGroupAddFriendsList();
+  loadConversationsList();
+};
 
 async function getOrCreateDirectChat(targetUserId) {
   if (!activeUser || !targetUserId || activeUser.id === targetUserId) return;
@@ -1121,31 +1370,88 @@ async function getOrCreateDirectChat(targetUserId) {
   }
 }
 
+// Загрузка списка диалогов с правильным определением имени собеседника
 async function loadConversationsList() {
   if (!activeUser) return;
   const list = document.getElementById('chatsListContainer');
   if (!list) return;
-  list.innerHTML = 'Загрузка...';
+  list.innerHTML = 'Загрузка диалогов...';
+
   const { data: parts } = await window.sbClient.from('conversation_participants').select('conversation_id').eq('user_id', activeUser.id);
   const convIds = (parts || []).map(p => p.conversation_id);
-  if (!convIds.length) { list.innerHTML = '<div style="font-size:11px; padding:10px; color:#777;">Нет диалогов</div>'; return; }
+  if (!convIds.length) {
+    list.innerHTML = '<div style="font-size:11px; padding:10px; color:#777;">Нет диалогов. Напишите другу!</div>';
+    return;
+  }
 
   const { data: convs } = await window.sbClient.from('conversations').select('*').in('id', convIds).order('id', { ascending: false });
-  list.innerHTML = (convs || []).map(c => `
-    <div class="messenger-chat-item ${activeConversationId === c.id ? 'active' : ''}" onclick="openConversation(${c.id})">
-      <b>${escapeHtml(c.title || 'Диалог')}</b>
-    </div>`).join('');
+  const { data: allParts } = await window.sbClient.from('conversation_participants').select('conversation_id, user_id').in('conversation_id', convIds);
+
+  list.innerHTML = (convs || []).map(c => {
+    let title = c.title || 'Беседа';
+    let avatar = c.avatar_url || DEFAULT_AVATAR;
+
+    if (c.type === 'direct') {
+      const partner = (allParts || []).find(p => p.conversation_id === c.id && p.user_id !== activeUser.id);
+      const partnerId = partner ? partner.user_id : null;
+      if (partnerId && profilesMap[partnerId]) {
+        title = profilesMap[partnerId].username;
+        avatar = profilesMap[partnerId].avatar_url || DEFAULT_AVATAR;
+      } else {
+        title = 'Личный чат';
+      }
+    } else if (c.type === 'community' && c.community_id) {
+      const comm = communitiesMap[c.community_id];
+      if (comm) {
+        title = `Чат: ${comm.title}`;
+        avatar = comm.avatar_url || DEFAULT_AVATAR;
+      }
+    }
+
+    return `
+      <div class="messenger-chat-item ${activeConversationId === c.id ? 'active' : ''}" onclick="openConversation(${c.id})">
+        <img src="${avatar}" class="avatar-mini" alt="chat avatar">
+        <div style="flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+          <b>${escapeHtml(title)}</b>
+        </div>
+      </div>`;
+  }).join('');
 }
 
+// Открытие диалога и вывод имени собеседника в шапку чата
 async function openConversation(convId) {
   activeConversationId = convId;
   const bar = document.getElementById('chatHeaderBar');
   const inputBar = document.getElementById('chatInputBar');
   const msgsList = document.getElementById('chatMessagesList');
+  const titleEl = document.getElementById('activeChatTitle');
+  const btnGroupSettings = document.getElementById('btnOpenGroupSettings');
+
   if (bar) bar.style.display = 'flex';
   if (inputBar) inputBar.style.display = 'flex';
   if (msgsList) msgsList.innerHTML = 'Загрузка сообщений...';
 
+  // Получаем информацию о беседе
+  const { data: conv } = await window.sbClient.from('conversations').select('*').eq('id', convId).single();
+  const { data: parts } = await window.sbClient.from('conversation_participants').select('user_id').eq('conversation_id', convId);
+
+  let title = conv?.title || 'Чат';
+  if (conv?.type === 'direct') {
+    const partnerId = parts?.map(p => p.user_id).find(uid => uid !== activeUser.id);
+    if (partnerId && profilesMap[partnerId]) {
+      title = profilesMap[partnerId].username;
+    } else {
+      title = 'Личный чат';
+    }
+  } else if (conv?.type === 'community' && conv.community_id) {
+    const comm = communitiesMap[conv.community_id];
+    title = comm ? `Чат группы ${comm.title}` : 'Чат сообщества';
+  }
+
+  if (titleEl) titleEl.innerText = title;
+  if (btnGroupSettings) btnGroupSettings.style.display = (conv?.type === 'group') ? 'inline-block' : 'none';
+
+  // Загружаем сообщения
   const { data: msgs } = await window.sbClient.from('messages').select('*').eq('conversation_id', convId).order('id', { ascending: true });
   if (msgsList) {
     msgsList.innerHTML = '';
@@ -1157,15 +1463,21 @@ function appendMessageToDOM(msg) {
   const list = document.getElementById('chatMessagesList');
   if (!list) return;
   const isMine = activeUser && msg.sender_id === activeUser.id;
+  const senderProf = profilesMap[msg.sender_id];
+  const senderNick = senderProf ? senderProf.username : 'Пользователь';
+
   const el = document.createElement('div');
   el.className = `msg-bubble ${isMine ? 'msg-out' : 'msg-in'}`;
-  el.innerHTML = `<div>${escapeHtml(msg.content)}</div>`;
+  el.innerHTML = `
+    <div style="font-weight:bold; font-size:9px; color:#555; margin-bottom:2px;">${escapeHtml(senderNick)}</div>
+    <div>${escapeHtml(msg.content)}</div>
+  `;
   list.appendChild(el);
   list.scrollTop = list.scrollHeight;
 }
 
-// При загрузке страницы инициализируем плеерные кнопки и конструкторы
-document.addEventListener('DOMContentLoaded', () => {
+// Запуск инициализации модулей
+function initModules() {
   if (btnPlayPause) {
     btnPlayPause.onclick = () => {
       if (!audioPlayer.src) return;
@@ -1201,7 +1513,6 @@ document.addEventListener('DOMContentLoaded', () => {
     btnLoopTrack?.classList.remove('loop-active');
   };
 
-  // Создание плейлиста в профиле
   const btnCreatePlaylist = document.getElementById('btnCreatePlaylist');
   if (btnCreatePlaylist) {
     btnCreatePlaylist.onclick = async () => {
@@ -1216,4 +1527,10 @@ document.addEventListener('DOMContentLoaded', () => {
   initThemeAndFrameWorkshop();
   initMessengerModule();
   initCommunitiesModule();
-});
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initModules);
+} else {
+  initModules();
+}
