@@ -60,7 +60,7 @@
       display: flex; justify-content: center; align-items: center;
       z-index: 2000; padding: 12px;
     }
-    .auth-window { width: 350px; max-width: 100%; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
+    .auth-window { width: 360px; max-width: 100%; box-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
     .ie-window {
       width: 1020px; max-width: 98vw; height: 750px; max-height: 92vh;
       display: flex; flex-direction: column; position: relative;
@@ -142,9 +142,10 @@
     .author-info:hover .post-author { text-decoration: underline; }
     .post-author { font-weight: bold; color: #0b388f; }
 
+    /* Обертка аватарки */
     .avatar-wrapper {
       position: relative; display: inline-flex; align-items: center; justify-content: center;
-      flex-shrink: 0; margin: 5px;
+      flex-shrink: 0; margin: 6px;
     }
     .avatar-mini {
       width: 28px; height: 28px; border-radius: 50% !important; object-fit: cover;
@@ -155,6 +156,7 @@
       border: 2px solid #0055ea; background: #fff; position: relative; z-index: 2;
     }
     
+    /* Рамка шире аватара и обрезается по заданной фигуре */
     .avatar-frame-overlay {
       position: absolute; pointer-events: none; z-index: 1; box-sizing: border-box;
       top: -6px; left: -6px; width: calc(100% + 12px); height: calc(100% + 12px);
@@ -163,6 +165,15 @@
     .profile-card .avatar-frame-overlay,
     .preview-big-frame .avatar-frame-overlay {
       top: -12px; left: -12px; width: calc(100% + 24px); height: calc(100% + 24px);
+    }
+
+    /* Увеличенная рамка звезды */
+    .avatar-frame-overlay.frame-shape-star {
+      top: -10px; left: -10px; width: calc(100% + 20px); height: calc(100% + 20px);
+    }
+    .profile-card .avatar-frame-overlay.frame-shape-star,
+    .preview-big-frame .avatar-frame-overlay.frame-shape-star {
+      top: -18px; left: -18px; width: calc(100% + 36px); height: calc(100% + 36px);
     }
 
     .frame-shape-circle { border-radius: 50% !important; }
@@ -174,16 +185,17 @@
       clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%) !important;
     }
 
+    /* Свечение и вращение, работающие даже с clip-path через filter */
     @keyframes glowPulse {
-      0% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
-      50% { filter: drop-shadow(0 0 8px var(--frame-color, #00ffff)); }
-      100% { filter: drop-shadow(0 0 2px var(--frame-color, #00ffff)); }
+      0% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)) drop-shadow(0 0 1px var(--frame-color, #00ffff)); }
+      50% { filter: drop-shadow(0 0 10px var(--frame-color, #00ffff)) drop-shadow(0 0 4px var(--frame-color, #00ffff)); }
+      100% { filter: drop-shadow(0 0 3px var(--frame-color, #00ffff)) drop-shadow(0 0 1px var(--frame-color, #00ffff)); }
     }
     @keyframes rainbowRotate {
       0% { filter: hue-rotate(0deg); }
       100% { filter: hue-rotate(360deg); }
     }
-    .anim-glow { animation: glowPulse 2s infinite; }
+    .anim-glow { animation: glowPulse 2s infinite ease-in-out; }
     .anim-rainbow { animation: rainbowRotate 3s linear infinite; }
 
     .profile-card {
@@ -235,6 +247,18 @@
     .badge {
       background: #d90000; color: white; font-size: 10px; padding: 1px 5px; border-radius: 9px;
       margin-left: 4px; font-weight: bold;
+    }
+
+    /* Капча UI */
+    .captcha-box {
+      background: linear-gradient(135deg, #e1f5fe 0%, #b3e5fc 100%);
+      border: 1px dashed #0288d1; border-radius: 4px; padding: 6px;
+      margin: 8px 0; display: flex; flex-direction: column; gap: 4px;
+    }
+    .captcha-visual {
+      font-family: 'Courier New', monospace; font-size: 16px; font-weight: bold;
+      letter-spacing: 4px; background: #fff; padding: 4px 8px; border: 1px solid #90caf9;
+      display: inline-block; user-select: none; color: #01579b; font-style: italic;
     }
 
     /* Messenger UI */
@@ -369,7 +393,7 @@
 </head>
 <body>
 
-  <!-- Авторизация -->
+  <!-- Авторизация с Капчей -->
   <div class="modal-overlay" id="authModal">
     <div class="window auth-window">
       <div class="title-bar"><div class="title-bar-text">bubble — Вход / Регистрация</div></div>
@@ -382,15 +406,56 @@
           <label style="display:block; font-size:11px;">Электронная почта:</label>
           <input type="email" id="inputEmail" placeholder="user@mail.com" style="width: 100%;">
         </div>
-        <div style="margin-bottom: 10px;">
+        <div style="margin-bottom: 6px;">
           <label style="display:block; font-size:11px;">Пароль (от 6 символов):</label>
           <input type="password" id="inputPass" placeholder="******" style="width: 100%;">
         </div>
-        <div style="display: flex; justify-content: space-between;">
+
+        <!-- Капча -->
+        <div class="captcha-box">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:11px; font-weight:bold;">Проверка безопасности:</span>
+            <button type="button" id="btnRefreshCaptcha" style="font-size:10px;">🔄 Новая</button>
+          </div>
+          <div style="display:flex; align-items:center; gap:6px;">
+            <div id="captchaQuestion" class="captcha-visual">7 + 5 = ?</div>
+            <input type="number" id="captchaAnswerInput" placeholder="Ответ" style="width:70px; font-size:12px;">
+          </div>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top:8px;">
           <button id="btnActionLogin" type="button" style="font-weight: bold;">Войти</button>
           <button id="btnActionRegister" type="button">Регистрация</button>
         </div>
         <div id="authStatus" style="color:red; font-size:11px; margin-top:8px; min-height: 14px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Модальное окно: Настройки сообщества (Смена названия, описания и аватарки) -->
+  <div class="modal-overlay" id="commSettingsModal" style="display:none;">
+    <div class="window" style="width: 420px; max-width: 95%;">
+      <div class="title-bar">
+        <div class="title-bar-text">⚙️ Настройки сообщества</div>
+        <div class="title-bar-controls">
+          <button aria-label="Close" onclick="document.getElementById('commSettingsModal').style.display='none'"></button>
+        </div>
+      </div>
+      <div class="window-body">
+        <label style="font-size:11px; display:block; margin-bottom:4px;">Название сообщества:</label>
+        <input type="text" id="editCommTitleInput" style="width:100%; margin-bottom:8px; font-size:11px;">
+        
+        <label style="font-size:11px; display:block; margin-bottom:4px;">Описание сообщества:</label>
+        <textarea id="editCommDescInput" rows="3" style="width:100%; margin-bottom:8px; font-size:11px; box-sizing:border-box;"></textarea>
+        
+        <label style="font-size:11px; display:block; margin-bottom:4px;">Сменить аватарку сообщества (из файлов):</label>
+        <input type="file" id="editCommAvatarFile" accept="image/*" style="font-size:10px; width:100%; margin-bottom:8px;">
+        <div id="editCommUploadStatus" style="font-size:10px; color:#555; margin-bottom:8px;"></div>
+
+        <div style="display:flex; justify-content:space-between;">
+          <button onclick="document.getElementById('commSettingsModal').style.display='none'">Отмена</button>
+          <button id="btnSaveCommSettings" style="font-weight:bold;">Сохранить изменения</button>
+        </div>
       </div>
     </div>
   </div>
@@ -424,7 +489,7 @@
     </div>
   </div>
 
-  <!-- Модальное окно: Выбор музыки для прикрепления к посту -->
+  <!-- Модальное окно: Выбор музыки для поста -->
   <div class="modal-overlay" id="postMusicPickerModal" style="display:none;">
     <div class="window" style="width: 420px; max-width: 95%;">
       <div class="title-bar">
@@ -685,7 +750,7 @@
                 <input type="hidden" id="editingFrameId" value="">
 
                 <div style="font-size:11px; font-weight:bold; margin-bottom:4px;">Предпросмотр рамки ЗА круглой аватаркой (выступает наружу):</div>
-                <div class="preview-big-frame" style="display:flex; justify-content:center; align-items:center; padding:18px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
+                <div class="preview-big-frame" style="display:flex; justify-content:center; align-items:center; padding:22px; background:#f4f4f4; border:1px solid #ccc; margin-bottom:8px; border-radius:4px;">
                   <div class="avatar-wrapper" style="width:68px; height:68px;">
                     <img src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="avatar">
                     <div id="prevFrameOverlay" class="avatar-frame-overlay frame-shape-circle" style="border:4px solid #00e5ff;"></div>
@@ -703,7 +768,7 @@
                       <option value="circle">Круглая рамка</option>
                       <option value="square">Квадратная рамка</option>
                       <option value="hexagon">Шестиугольная рамка</option>
-                      <option value="star">Звёздная рамка</option>
+                      <option value="star">Звёздная рамка (увеличенная)</option>
                     </select>
                   </div>
                   <div>
@@ -834,11 +899,12 @@
               <div class="profile-card">
                 <img id="commAvatar" src="https://upload.wikimedia.org/wikipedia/commons/7/7c/Profile_avatar_placeholder_large.png" class="profile-avatar-big" alt="comm avatar">
                 <div style="flex:1;">
-                  <div style="display:flex; justify-content:space-between; align-items:center;">
+                  <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:4px;">
                     <div style="font-size:16px; font-weight:bold; color:#0b388f;" id="commTitle">...</div>
                     <div style="display:flex; gap:4px;">
                       <button id="btnCommJoinDirect" style="font-size:11px;">Вступить</button>
                       <button id="btnOpenCommChat" style="font-size:11px;">Чат группы</button>
+                      <button id="btnOpenCommSettings" style="font-size:11px; display:none;">⚙️ Настройки</button>
                     </div>
                   </div>
                   <div style="font-size:11px; color:#555; margin-top:4px;" id="commDesc">...</div>
@@ -846,17 +912,33 @@
                 </div>
               </div>
 
-              <!-- Стена сообщества -->
+              <!-- Вкладка Музыка Сообщества -->
+              <fieldset style="margin-bottom: 12px;">
+                <legend>🎵 Музыка сообщества</legend>
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                  <button id="btnOpenCommAddMusic" style="font-size:10px;">+ Добавить трек в сообщество</button>
+                </div>
+                <div id="commTracksList" style="max-height: 180px; overflow-y: auto;">Загрузка треков группы...</div>
+              </fieldset>
+
+              <!-- Стена сообщества с возможностью прикрепить музыку -->
               <fieldset style="margin-bottom: 12px;" id="commCreatePostBox">
                 <legend>Опубликовать запись от имени сообщества</legend>
                 <textarea id="commPostContent" rows="3" style="width: 100%; box-sizing: border-box;" placeholder="Напишите новость от лица сообщества..."></textarea>
+                
+                <div id="commAttachedTrackPreview" class="post-track-box" style="display:none;">
+                  <span id="commAttachedTrackTitle">🎵 Название трека</span>
+                  <button type="button" id="btnRemoveCommAttachedTrack" style="font-size:9px; color:#a00;">✖ Открепить</button>
+                </div>
+
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 6px; flex-wrap: wrap; gap: 6px;">
-                  <div style="display:flex; align-items:center; gap:6px;">
+                  <div style="display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
                     <label style="font-size: 11px; cursor: pointer;">
                       Фото:
                       <input type="file" id="commPostImage" accept="image/*" style="font-size: 11px;">
                     </label>
-                    <button type="button" id="btnClearCommPostImage" style="display:none; font-size:10px; color:#a00;">✖ Отмена</button>
+                    <button type="button" id="btnClearCommPostImage" style="display:none; font-size:10px; color:#a00;">✖</button>
+                    <button type="button" id="btnOpenCommPostMusicPicker" style="font-size:11px;">🎵 Прикрепить музыку</button>
                   </div>
                   <button id="btnCreateCommPost" type="button" style="font-weight: bold;">Опубликовать от группы</button>
                 </div>
@@ -982,10 +1064,16 @@
     let allCommunitiesCache = [];
     let allTracksCache = [];
 
+    // Прикрепление треков
     let selectedPostTrack = null;
+    let selectedCommPostTrack = null;
+    let currentPickerTarget = 'feed'; // 'feed', 'comm_post', 'comm_add'
     let pickerMode = 'my';
     let activeRepostData = null;
     let selectedGroupFriends = new Set();
+
+    // Капча
+    let currentCaptchaAnswer = 0;
 
     let playlistQueue = [];
     let currentTrackIndex = -1;
@@ -1055,6 +1143,27 @@
     }
     restoreAudioPlayback();
 
+    // Генерация капчи
+    function generateNewCaptcha() {
+      const n1 = Math.floor(Math.random() * 10) + 1;
+      const n2 = Math.floor(Math.random() * 10) + 1;
+      currentCaptchaAnswer = n1 + n2;
+      document.getElementById('captchaQuestion').innerText = `${n1} + ${n2} = ?`;
+      document.getElementById('captchaAnswerInput').value = '';
+    }
+    document.getElementById('btnRefreshCaptcha').addEventListener('click', generateNewCaptcha);
+    generateNewCaptcha();
+
+    function verifyCaptcha() {
+      const val = parseInt(document.getElementById('captchaAnswerInput').value.trim());
+      if (isNaN(val) || val !== currentCaptchaAnswer) {
+        document.getElementById('authStatus').innerText = 'Ошибка капчи! Решите пример заново.';
+        generateNewCaptcha();
+        return false;
+      }
+      return true;
+    }
+
     // DOM UI
     const authModal = document.getElementById('authModal');
     const authStatus = document.getElementById('authStatus');
@@ -1112,6 +1221,15 @@
     const postAttachedTrackTitle = document.getElementById('postAttachedTrackTitle');
     const btnRemoveAttachedTrack = document.getElementById('btnRemoveAttachedTrack');
     const btnOpenPostMusicPicker = document.getElementById('btnOpenPostMusicPicker');
+    
+    // Музыка в сообществе
+    const commAttachedTrackPreview = document.getElementById('commAttachedTrackPreview');
+    const commAttachedTrackTitle = document.getElementById('commAttachedTrackTitle');
+    const btnRemoveCommAttachedTrack = document.getElementById('btnRemoveCommAttachedTrack');
+    const btnOpenCommPostMusicPicker = document.getElementById('btnOpenCommPostMusicPicker');
+    const btnOpenCommAddMusic = document.getElementById('btnOpenCommAddMusic');
+    const commTracksList = document.getElementById('commTracksList');
+
     const postMusicPickerModal = document.getElementById('postMusicPickerModal');
     const btnPickerMyTracks = document.getElementById('btnPickerMyTracks');
     const btnPickerGlobalTracks = document.getElementById('btnPickerGlobalTracks');
@@ -1225,6 +1343,15 @@
     const groupAvatarFileInput = document.getElementById('groupAvatarFileInput');
     const groupAvatarUploadStatus = document.getElementById('groupAvatarUploadStatus');
     const groupAddMoreFriendsList = document.getElementById('groupAddMoreFriendsList');
+
+    // Настройки сообщества
+    const commSettingsModal = document.getElementById('commSettingsModal');
+    const editCommTitleInput = document.getElementById('editCommTitleInput');
+    const editCommDescInput = document.getElementById('editCommDescInput');
+    const editCommAvatarFile = document.getElementById('editCommAvatarFile');
+    const editCommUploadStatus = document.getElementById('editCommUploadStatus');
+    const btnSaveCommSettings = document.getElementById('btnSaveCommSettings');
+    const btnOpenCommSettings = document.getElementById('btnOpenCommSettings');
 
     const communityViewList = document.getElementById('communityViewList');
     const communityViewSingle = document.getElementById('communityViewSingle');
@@ -1407,6 +1534,7 @@
     });
 
     document.getElementById('btnActionRegister').addEventListener('click', async () => {
+      if (!verifyCaptcha()) return;
       const username = inputUsername.value.trim();
       const email = inputEmail.value.trim();
       const password = inputPass.value.trim();
@@ -1418,6 +1546,7 @@
     });
 
     document.getElementById('btnActionLogin').addEventListener('click', async () => {
+      if (!verifyCaptcha()) return;
       const email = inputEmail.value.trim();
       const password = inputPass.value.trim();
       if (!email || !password) return authStatus.innerText = 'Введите почту и пароль!';
@@ -1572,15 +1701,20 @@
     document.getElementById('btnGoReload').onclick = () => switchTab(currentTab, viewingUserId);
     window.goToProfile = (uId) => switchTab('profile', uId);
 
-    // ==================== ВЫБОР МУЗЫКИ ДЛЯ ПОСТА ====================
-    btnOpenPostMusicPicker.onclick = () => {
+    // ==================== ВЫБОР МУЗЫКИ ====================
+    function openMusicPicker(target) {
+      currentPickerTarget = target;
       pickerMode = 'my';
       btnPickerMyTracks.style.fontWeight = 'bold';
       btnPickerGlobalTracks.style.fontWeight = 'normal';
       pickerSearchInput.value = '';
       loadPickerTracks();
       postMusicPickerModal.style.display = 'flex';
-    };
+    }
+
+    btnOpenPostMusicPicker.onclick = () => openMusicPicker('feed');
+    btnOpenCommPostMusicPicker.onclick = () => openMusicPicker('comm_post');
+    btnOpenCommAddMusic.onclick = () => openMusicPicker('comm_add');
 
     btnPickerMyTracks.onclick = () => {
       pickerMode = 'my';
@@ -1627,15 +1761,28 @@
       pickerTracksList.innerHTML = tracks.map(t => `
         <div class="track-list-item">
           <div><b>${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}</div>
-          <button onclick="attachTrackToPost(${t.id}, '${escapeHtml(t.artist).replace(/'/g, "\\'")}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')" style="font-size:10px; font-weight:bold;">Выбрать</button>
+          <button onclick="selectPickerTrack(${t.id}, '${escapeHtml(t.artist).replace(/'/g, "\\'")}', '${escapeHtml(t.title).replace(/'/g, "\\'")}')" style="font-size:10px; font-weight:bold;">Выбрать</button>
         </div>
       `).join('');
     }
 
-    window.attachTrackToPost = (id, artist, title) => {
-      selectedPostTrack = { id, artist, title };
-      postAttachedTrackTitle.innerText = `🎵 ${artist} — ${title}`;
-      postAttachedTrackPreview.style.display = 'flex';
+    window.selectPickerTrack = async (id, artist, title) => {
+      if (currentPickerTarget === 'feed') {
+        selectedPostTrack = { id, artist, title };
+        postAttachedTrackTitle.innerText = `🎵 ${artist} — ${title}`;
+        postAttachedTrackPreview.style.display = 'flex';
+      } else if (currentPickerTarget === 'comm_post') {
+        selectedCommPostTrack = { id, artist, title };
+        commAttachedTrackTitle.innerText = `🎵 ${artist} — ${title}`;
+        commAttachedTrackPreview.style.display = 'flex';
+      } else if (currentPickerTarget === 'comm_add' && currentCommunityId) {
+        const { error } = await window.sbClient.from('community_tracks').insert([{ community_id: currentCommunityId, track_id: id }]);
+        if (error && error.code !== '23505') alert('Ошибка добавления трека: ' + error.message);
+        else {
+          alert('Трек добавлен в аудиозаписи сообщества!');
+          loadCommunityTracks(currentCommunityId);
+        }
+      }
       postMusicPickerModal.style.display = 'none';
     };
 
@@ -1644,7 +1791,12 @@
       postAttachedTrackPreview.style.display = 'none';
     };
 
-    // ==================== РЕПОСТЫ В КРАСИВОМ ОКНЕ ====================
+    btnRemoveCommAttachedTrack.onclick = () => {
+      selectedCommPostTrack = null;
+      commAttachedTrackPreview.style.display = 'none';
+    };
+
+    // ==================== РЕПОСТЫ ====================
     window.openRepostModal = function(type, id, author, content) {
       if (!activeUser) return;
       activeRepostData = { type, id, author, content };
@@ -2149,7 +2301,7 @@
       localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ (ИСПРАВЛЕННЫЕ ЛАЙКИ) ====================
+    // ==================== ЛЕНТА И ПОСТЫ ====================
     async function loadUserLikes() {
       if (!activeUser) return;
       try {
@@ -2368,7 +2520,6 @@
           .match({ post_id: postId, user_id: activeUser.id });
 
         if (delError) {
-          console.error('Ошибка удаления лайка:', delError);
           userLikedPosts.add(postId);
           return;
         }
@@ -2384,7 +2535,6 @@
           .insert([{ post_id: postId, user_id: activeUser.id }]);
 
         if (insError) {
-          console.error('Ошибка вставки лайка:', insError);
           userLikedPosts.delete(postId);
           if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count - 1}</span>`;
           alert('Не удалось поставить лайк: ' + insError.message);
@@ -2563,9 +2713,26 @@
       showCommunitiesList();
     };
 
-    async function openCommunity(commId) {
+    // Надежное открытие сообщества из любой точки интерфейса
+    window.openCommunity = async function(commId) {
       currentCommunityId = commId;
       localStorage.setItem('bubble_current_comm_id', commId);
+      
+      // Переключаем вкладку на "Сообщества"
+      currentTab = 'communities';
+      localStorage.setItem('bubble_active_tab', 'communities');
+      [btnTabFeed, btnTabFriendsFeed, btnTabCommunitiesFeed, btnTabWorkshop, btnTabMessenger, btnTabFriendsManager, btnTabMusic, btnTabCommunities, btnTabNotifications, btnTabProfile].forEach(b => b.classList.remove('active'));
+      btnTabCommunities.classList.add('active');
+
+      sectionFeed.style.display = 'none';
+      sectionWorkshop.style.display = 'none';
+      sectionMessenger.style.display = 'none';
+      sectionFriendsManager.style.display = 'none';
+      sectionMusic.style.display = 'none';
+      sectionCommunities.style.display = 'block';
+      sectionNotifications.style.display = 'none';
+      sectionProfile.style.display = 'none';
+
       communityViewList.style.display = 'none';
       communityViewSingle.style.display = 'block';
       urlInput.value = `https://bubble.net/community/${commId}`;
@@ -2584,18 +2751,92 @@
         if (member) currentCommunityRole = member.role;
       }
 
+      const isLeader = currentCommunityRole === 'creator' || currentCommunityRole === 'admin';
+      btnOpenCommSettings.style.display = isLeader ? 'inline-block' : 'none';
+
       if (!currentCommunityRole) {
         btnCommJoinDirect.style.display = 'inline-block';
         commUserRole.innerText = 'Вы не состоите в сообществе';
         commCreatePostBox.style.display = 'none';
       } else {
         btnCommJoinDirect.style.display = 'none';
-        const roleNames = { creator: 'Создатель', admin: 'Администратор', moderator: 'Модератор', member: 'Участник' };
+        const roleNames = { creator: 'Создатель 👑', admin: 'Администратор 🛡️', moderator: 'Модератор 🔨', member: 'Участник 👤' };
         commUserRole.innerText = 'Ваша роль: ' + (roleNames[currentCommunityRole] || 'Участник');
-        commCreatePostBox.style.display = (currentCommunityRole === 'creator' || currentCommunityRole === 'admin') ? 'block' : 'none';
+        commCreatePostBox.style.display = isLeader ? 'block' : 'none';
       }
 
+      loadCommunityTracks(commId);
       loadCommunityPosts(commId);
+    };
+
+    // Настройки сообщества (Смена аватарки, названия и описания)
+    btnOpenCommSettings.onclick = () => {
+      const comm = communitiesMap[currentCommunityId];
+      if (!comm) return;
+      editCommTitleInput.value = comm.title || '';
+      editCommDescInput.value = comm.description || '';
+      editCommUploadStatus.innerText = '';
+      editCommAvatarFile.value = '';
+      commSettingsModal.style.display = 'flex';
+    };
+
+    btnSaveCommSettings.onclick = async () => {
+      if (!currentCommunityId) return;
+      btnSaveCommSettings.disabled = true;
+      const title = editCommTitleInput.value.trim();
+      const desc = editCommDescInput.value.trim();
+      const file = editCommAvatarFile.files[0];
+
+      let avatarUrl = communitiesMap[currentCommunityId]?.avatar_url;
+
+      if (file) {
+        editCommUploadStatus.innerText = 'Загрузка новой аватарки...';
+        const fileExt = file.name.split('.').pop();
+        const fileName = `comm_${currentCommunityId}_${Date.now()}.${fileExt}`;
+        const { error: uploadError } = await window.sbClient.storage.from('post_images').upload(fileName, file);
+        if (!uploadError) {
+          avatarUrl = window.sbClient.storage.from('post_images').getPublicUrl(fileName).data.publicUrl;
+        }
+      }
+
+      const { error } = await window.sbClient.from('communities').update({
+        title, description: desc, avatar_url: avatarUrl
+      }).eq('id', currentCommunityId);
+
+      btnSaveCommSettings.disabled = false;
+      commSettingsModal.style.display = 'none';
+
+      if (error) alert('Ошибка сохранения настроек: ' + error.message);
+      else {
+        alert('Настройки сообщества обновлены!');
+        await loadAllCommunitiesCache();
+        openCommunity(currentCommunityId);
+      }
+    };
+
+    // Загрузка музыки сообщества
+    async function loadCommunityTracks(commId) {
+      commTracksList.innerHTML = 'Загрузка аудиозаписей...';
+      try {
+        const { data } = await window.sbClient.from('community_tracks').select('track_id, tracks(*)').eq('community_id', commId);
+        const tracks = (data || []).map(d => d.tracks).filter(Boolean);
+
+        if (tracks.length === 0) {
+          commTracksList.innerHTML = '<div style="font-size:11px; color:#666; padding:4px;">В сообществе пока нет музыки.</div>';
+          return;
+        }
+
+        commTracksList.innerHTML = tracks.map((t, idx) => `
+          <div class="track-list-item">
+            <div style="flex:1; cursor:pointer;" onclick="playQueue(${JSON.stringify(tracks).replace(/"/g, '&quot;')}, ${idx}, 'Музыка сообщества')">
+              <b>▶ ${escapeHtml(t.artist)}</b> — ${escapeHtml(t.title)}
+            </div>
+            <button onclick="addTrackToMyLibrary(${t.id})" style="font-size:10px;">+ к себе</button>
+          </div>
+        `).join('');
+      } catch(e) {
+        commTracksList.innerHTML = '<div style="font-size:11px; color:#666;">Не удалось загрузить треки.</div>';
+      }
     }
 
     btnCommJoinDirect.onclick = async () => {
@@ -2606,11 +2847,12 @@
       openCommunity(currentCommunityId);
     };
 
+    // Публикация от имени сообщества (с прикрепленным треком)
     btnCreateCommPost.onclick = async () => {
       if (!activeUser || !currentCommunityId) return;
       const text = commPostContent.value.trim();
       const file = commPostImage.files[0];
-      if (!text && !file) return alert('Введите текст или прикрепите фото!');
+      if (!text && !file && !selectedCommPostTrack) return alert('Введите текст, прикрепите фото или выберите песню!');
 
       btnCreateCommPost.disabled = true;
       let imageUrl = null;
@@ -2623,12 +2865,20 @@
 
       const comm = communitiesMap[currentCommunityId] || {};
       await window.sbClient.from('posts').insert([{
-        author: comm.title || 'Сообщество', content: text,
-        user_id: activeUser.id, community_id: currentCommunityId, image_url: imageUrl, likes_count: 0
+        author: comm.title || 'Сообщество',
+        content: text,
+        user_id: activeUser.id,
+        community_id: currentCommunityId,
+        image_url: imageUrl,
+        track_id: selectedCommPostTrack ? selectedCommPostTrack.id : null,
+        likes_count: 0
       }]);
 
       btnCreateCommPost.disabled = false;
-      commPostContent.value = ''; commPostImage.value = '';
+      commPostContent.value = '';
+      commPostImage.value = '';
+      selectedCommPostTrack = null;
+      commAttachedTrackPreview.style.display = 'none';
       btnClearCommPostImage.style.display = 'none';
       loadCommunityPosts(currentCommunityId);
     };
@@ -2653,7 +2903,7 @@
       commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
     }
 
-    // ==================== МЕССЕНДЖЕР И ГРУППОВЫЕ НАСТРОЙКИ ====================
+    // ==================== МЕССЕНДЖЕР ====================
     async function loadConversationsList() {
       if (!activeUser) return;
       chatsListContainer.innerHTML = 'Загрузка...';
@@ -3249,9 +3499,9 @@
 
       listIncomingReqs.innerHTML = pendingIncomingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет входящих заявок.</div>' :
         Array.from(pendingIncomingIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+          <div class="participant-select-item">
+            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
+              ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
             <div>
@@ -3263,20 +3513,20 @@
 
       listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         Array.from(userFriendIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')" style="cursor:pointer;">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+          <div class="participant-select-item" onclick="goToProfile('${uId}')" style="cursor:pointer;">
+            <div style="display:flex; align-items:center; gap:6px;">
+              ${renderAvatarWithFrame(uId, false)}
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
-            <span style="font-size:10px; color:#0b388f; cursor:pointer;" onclick="goToProfile('${uId}')">Открыть профиль →</span>
+            <span style="font-size:10px; color:#0b388f;">Открыть профиль →</span>
           </div>
         `).join('');
 
       listOutgoingReqs.innerHTML = pendingOutgoingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет отправленных заявок.</div>' :
         Array.from(pendingOutgoingIds).map(uId => `
-          <div class="friend-row-card">
-            <div class="friend-row-info" onclick="goToProfile('${uId}')">
-              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
+          <div class="participant-select-item">
+            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
+              ${renderAvatarWithFrame(uId, false)}
               <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
             </div>
             <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить заявку</button></div>
@@ -3293,6 +3543,7 @@
       }
       loadFriendsManager();
     };
+
     window.cancelOutgoingRequest = async (fId) => {
       await window.sbClient.from('friends').delete().match({ user_id: activeUser.id, friend_id: fId, status: 'pending' });
       loadFriendsManager();
