@@ -914,7 +914,6 @@
                 </div>
               </div>
 
-              <!-- Панель вкладок плейлистов -->
               <div id="playlistSelectContainer" style="margin-bottom: 8px; font-size: 11px; display: flex; gap: 6px; flex-wrap: wrap;"></div>
               <div id="profileTracksList" style="max-height: 240px; overflow-y: auto;">Загрузка аудиозаписей...</div>
             </fieldset>
@@ -1369,7 +1368,6 @@
       }
     }
 
-    // Защищенный запуск сессии: ни один сбой запроса не останавливает интерфейс
     async function updateSessionState(session, isInitial = false) {
       activeUser = session ? session.user : null;
       if (activeUser) {
@@ -1647,7 +1645,7 @@
     };
 
     // ==================== РЕПОСТЫ В КРАСИВОМ ОКНЕ ====================
-    window.repostItem = function(type, id, author, content) {
+    window.openRepostModal = function(type, id, author, content) {
       if (!activeUser) return;
       activeRepostData = { type, id, author, content };
       repostTargetBadge.innerText = `🔁 Репост ${type === 'comment' ? 'комментария' : 'записи'}`;
@@ -2071,6 +2069,7 @@
 
     function applyFrameStyles(cfg) {
       if (!cfg) return;
+      
       function attachToWrapper(overlayEl) {
         if (!overlayEl) return;
         overlayEl.style.display = 'block';
@@ -2150,7 +2149,7 @@
       localStorage.setItem('bubble_user_liked_creations', JSON.stringify(Array.from(userLikedCreations)));
     };
 
-    // ==================== ЛЕНТА И ПОСТЫ ====================
+    // ==================== ЛЕНТА И ПОСТЫ (ИСПРАВЛЕННЫЕ ЛАЙКИ) ====================
     async function loadUserLikes() {
       if (!activeUser) return;
       try {
@@ -2344,7 +2343,8 @@
     }
 
     window.togglePostLike = async function(postId, postAuthorId, uniquePostKey) {
-      if (!activeUser) return;
+      if (!activeUser) return alert('Войдите в аккаунт, чтобы ставить лайки!');
+      
       const countEl = document.getElementById(`like-count-${uniquePostKey}`);
       const btnEl = document.getElementById(`like-btn-${uniquePostKey}`);
       let count = parseInt(countEl?.innerText || '0') || 0;
@@ -2361,13 +2361,36 @@
         userLikedPosts.delete(postId);
         count = Math.max(0, count - 1);
         if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count}</span>`;
-        await window.sbClient.from('post_likes').delete().match({ post_id: postId, user_id: activeUser.id });
+        
+        const { error: delError } = await window.sbClient
+          .from('post_likes')
+          .delete()
+          .match({ post_id: postId, user_id: activeUser.id });
+
+        if (delError) {
+          console.error('Ошибка удаления лайка:', delError);
+          userLikedPosts.add(postId);
+          return;
+        }
+
         await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
       } else {
         userLikedPosts.add(postId);
         count += 1;
         if (btnEl) btnEl.innerHTML = `❤️ <span id="like-count-${uniquePostKey}">${count}</span>`;
-        await window.sbClient.from('post_likes').insert([{ post_id: postId, user_id: activeUser.id }]);
+        
+        const { error: insError } = await window.sbClient
+          .from('post_likes')
+          .insert([{ post_id: postId, user_id: activeUser.id }]);
+
+        if (insError) {
+          console.error('Ошибка вставки лайка:', insError);
+          userLikedPosts.delete(postId);
+          if (btnEl) btnEl.innerHTML = `🤍 <span id="like-count-${uniquePostKey}">${count - 1}</span>`;
+          alert('Не удалось поставить лайк: ' + insError.message);
+          return;
+        }
+
         await window.sbClient.from('posts').update({ likes_count: count }).eq('id', postId);
         await createNotification(postAuthorId, 'like_post', 'поставил(а) ❤️ вашему посту', postId);
       }
@@ -2630,7 +2653,7 @@
       commPostsList.innerHTML = posts.map(p => renderPostItem(p, commentsByPost, `comm-${commId}`, canModerate)).join('');
     }
 
-    // ==================== МЕССЕНДЖЕР ====================
+    // ==================== МЕССЕНДЖЕР И ГРУППОВЫЕ НАСТРОЙКИ ====================
     async function loadConversationsList() {
       if (!activeUser) return;
       chatsListContainer.innerHTML = 'Загрузка...';
@@ -3226,9 +3249,9 @@
 
       listIncomingReqs.innerHTML = pendingIncomingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет входящих заявок.</div>' :
         Array.from(pendingIncomingIds).map(uId => `
-          <div class="participant-select-item">
-            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
-              ${renderAvatarWithFrame(uId, false)}
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
             <div>
@@ -3240,20 +3263,20 @@
 
       listAcceptedFriends.innerHTML = userFriendIds.size === 0 ? '<div style="font-size:11px; color:#666;">Список друзей пуст.</div>' :
         Array.from(userFriendIds).map(uId => `
-          <div class="participant-select-item" onclick="goToProfile('${uId}')" style="cursor:pointer;">
-            <div style="display:flex; align-items:center; gap:6px;">
-              ${renderAvatarWithFrame(uId, false)}
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')" style="cursor:pointer;">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
               <b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b>
             </div>
-            <span style="font-size:10px; color:#0b388f;">Открыть профиль →</span>
+            <span style="font-size:10px; color:#0b388f; cursor:pointer;" onclick="goToProfile('${uId}')">Открыть профиль →</span>
           </div>
         `).join('');
 
       listOutgoingReqs.innerHTML = pendingOutgoingIds.size === 0 ? '<div style="font-size:11px; color:#666;">Нет отправленных заявок.</div>' :
         Array.from(pendingOutgoingIds).map(uId => `
-          <div class="participant-select-item">
-            <div style="display:flex; align-items:center; gap:6px;" onclick="goToProfile('${uId}')">
-              ${renderAvatarWithFrame(uId, false)}
+          <div class="friend-row-card">
+            <div class="friend-row-info" onclick="goToProfile('${uId}')">
+              <img src="${profilesMap[uId]?.avatar_url || DEFAULT_AVATAR}" class="avatar-mini" alt="avatar">
               <span><b>${escapeHtml(profilesMap[uId]?.username || 'Пользователь')}</b> (ожидание)</span>
             </div>
             <div><button onclick="cancelOutgoingRequest('${uId}')" style="font-size:10px;">Отменить заявку</button></div>
