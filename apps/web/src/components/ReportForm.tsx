@@ -5,11 +5,11 @@ import type { ReportReason } from "@commune/shared";
 import { useReportPost } from "../hooks/useModeration";
 
 export const REASON_LABELS: Record<ReportReason, string> = {
-  spam: "Spam",
-  harassment: "Harassment or bullying",
-  hate: "Hate speech",
-  violence: "Violence or threats",
-  other: "Something else",
+  spam: "Спам",
+  harassment: "Оскорбления или травля",
+  hate: "Разжигание ненависти",
+  violence: "Насилие или угрозы",
+  other: "Другое",
 };
 
 /** Small inline form shown under a post when someone clicks "Report". */
@@ -21,9 +21,9 @@ export default function ReportForm({ postId, onClose }: { postId: string; onClos
   if (report.isSuccess) {
     return (
       <div className="report-form">
-        <p className="muted">Thanks. A moderator will review this post.</p>
+        <p className="muted">Спасибо. Модератор рассмотрит жалобу.</p>
         <button type="button" className="btn btn-ghost" onClick={onClose}>
-          Close
+          Закрыть
         </button>
       </div>
     );
@@ -37,7 +37,7 @@ export default function ReportForm({ postId, onClose }: { postId: string; onClos
   return (
     <form className="report-form" onSubmit={submit}>
       <label>
-        Why are you reporting this?
+        Почему вы жалуетесь на запись?
         <select value={reason} onChange={(e) => setReason(e.target.value as ReportReason)}>
           {REPORT_REASONS.map((r) => (
             <option key={r} value={r}>
@@ -49,17 +49,17 @@ export default function ReportForm({ postId, onClose }: { postId: string; onClos
       <textarea
         value={details}
         onChange={(e) => setDetails(e.target.value)}
-        placeholder="Add details (optional)"
+        placeholder="Дополнительные сведения (необязательно)"
         maxLength={300}
         rows={2}
       />
       {report.isError && <p className="error">{report.error.message}</p>}
       <div className="row">
         <button type="button" className="btn btn-ghost" onClick={onClose}>
-          Cancel
+          Отмена
         </button>
         <button className="btn" disabled={report.isPending}>
-          {report.isPending ? "Sending…" : "Send report"}
+          {report.isPending ? "Отправка…" : "Отправить жалобу"}
         </button>
       </div>
     </form>

@@ -8,11 +8,12 @@ export default function NewsPanel({ limit = 4 }: { limit?: number }) {
   const news = useNews("top");
 
   return (
-    <section className="card news-panel" aria-label="Latest news">
+    <section className="card news-panel" aria-label="Последние новости">
       <div className="news-head">
-        <strong>What's happening</strong>
-        <span className="live-dot" title="Updates automatically">
-          Live
+        <strong>Что происходит</strong>
+        <span className="live-dot" title="Обновляется автоматически">
+
+          Сейчас
         </span>
       </div>
 
@@ -20,9 +21,11 @@ export default function NewsPanel({ limit = 4 }: { limit?: number }) {
 
       {news.isError && (
         <p className="muted small">
-          News is unavailable right now.{" "}
+
+          Новости сейчас недоступны.{" "}
           <button className="link-btn" onClick={() => void news.refetch()}>
-            Try again
+
+            Попробовать снова
           </button>
         </p>
       )}
@@ -36,14 +39,15 @@ export default function NewsPanel({ limit = 4 }: { limit?: number }) {
           rel="noopener noreferrer nofollow"
         >
           <span className="muted small">
-            {n.source} · {timeAgo(n.publishedAt)} ago
+            {n.source} · {timeAgo(n.publishedAt)}
           </span>
           <span className="news-title">{n.title}</span>
         </a>
       ))}
 
       <Link to="/news" className="news-more">
-        Show more
+
+        Показать ещё
       </Link>
     </section>
   );

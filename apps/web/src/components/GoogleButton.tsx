@@ -28,7 +28,7 @@ function loadGoogleScript(): Promise<void> {
     script.onload = () => resolve();
     script.onerror = () => {
       scriptPromise = null; // allow a retry later
-      reject(new Error("Could not load Google sign-in"));
+      reject(new Error("Не удалось загрузить вход через Google"));
     };
     document.head.appendChild(script);
   });

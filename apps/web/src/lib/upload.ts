@@ -35,8 +35,8 @@ function sendToCloud(
         reject(err instanceof Error ? err : new Error("Unexpected storage response"));
       }
     };
-    xhr.onerror = () => reject(new Error("Network error"));
-    xhr.ontimeout = () => reject(new Error("Upload timed out"));
+    xhr.onerror = () => reject(new Error("Ошибка сети"));
+    xhr.ontimeout = () => reject(new Error("Время загрузки истекло"));
     xhr.send(form);
   });
 }

@@ -1,0 +1,18 @@
+export const navigationImages: Partial<Record<IconName, string>> = { user: "/icons/navigation/profile.png", home: "/icons/navigation/feed.png", search: "/icons/navigation/search.png", mail: "/icons/navigation/messages.png", users: "/icons/navigation/communities.png", bell: "/icons/navigation/notifications.png" };
+import type { IconName } from "../components/Icon";
+
+export type NavigationItem = { id: string; label: string; guestLabel?: string; to: (username: string) => string; icon: IconName; audience: "member" | "guest"; surfaces: readonly ("desktop" | "drawer" | "bottom" | "header")[]; end?: boolean };
+export const navigation: readonly NavigationItem[] = [
+  { id: "profile", label: "Профиль", to: (username) => `/u/${username}`, icon: "user", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
+  { id: "feed", label: "Лента", to: () => "/", icon: "home", audience: "member", surfaces: ["desktop", "drawer", "bottom"], end: true },
+  { id: "search", label: "Поиск", to: () => "/search", icon: "search", audience: "member", surfaces: ["desktop", "drawer", "bottom", "header"] },
+  { id: "messages", label: "Сообщения", to: () => "/messages", icon: "mail", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
+  { id: "communities", label: "Группы", to: () => "/communities", icon: "users", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
+  { id: "notifications", label: "События", to: () => "/notifications", icon: "bell", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
+  { id: "explore", label: "Обзор", to: () => "/explore", icon: "compass", audience: "guest", surfaces: ["header", "drawer"] },
+  { id: "register", label: "Зарегистрироваться", guestLabel: "Создать аккаунт", to: () => "/register", icon: "user", audience: "guest", surfaces: ["header", "drawer"] },
+  { id: "login", label: "Войти", to: () => "/login", icon: "user", audience: "guest", surfaces: ["header", "drawer"] },
+];
+export function navigationFor(audience: NavigationItem["audience"], surface: NavigationItem["surfaces"][number]) {
+  return navigation.filter((item) => item.audience === audience && item.surfaces.includes(surface));
+}

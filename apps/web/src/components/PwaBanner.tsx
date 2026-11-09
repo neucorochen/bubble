@@ -30,29 +30,33 @@ export default function PwaBanner() {
   if (online && !updateReady && !showInstall) return null;
 
   return (
-    <div className="pwa-bars" role="region" aria-label="App status">
+    <div className="pwa-bars" role="region" aria-label="Состояние приложения">
       {!online && (
         <div className="pwa-bar pwa-offline" role="status">
-          You're offline. Some things won't load until you're back.
+
+          Нет подключения к интернету. Некоторые данные загрузятся после восстановления связи.
         </div>
       )}
       {updateReady && (
         <div className="pwa-bar" role="status">
-          <span>A new version of Commune is ready.</span>
+          <span>Доступна новая версия Bubble.</span>
           <button className="btn" onClick={applyUpdate}>
-            Reload
+
+            Обновить
           </button>
         </div>
       )}
       {showInstall && (
         <div className="pwa-bar">
-          <span>Install Commune for quick access from your home screen.</span>
+          <span>Установите Bubble для быстрого доступа с главного экрана.</span>
           <span className="row">
             <button className="btn" onClick={() => void promptInstall()}>
-              Install
+
+              Установить
             </button>
-            <button className="btn btn-ghost" onClick={dismissInstall} aria-label="Dismiss">
-              Not now
+            <button className="btn btn-ghost" onClick={dismissInstall} aria-label="Отклонить">
+
+              Не сейчас
             </button>
           </span>
         </div>

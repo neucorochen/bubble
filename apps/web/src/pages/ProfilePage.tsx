@@ -1,3 +1,4 @@
+import { pluralRu } from "../lib/plural";
 import { useRef, useState } from "react";
 import { ProfileSkeleton } from "../components/Skeleton";
 import type { ChangeEvent, FormEvent } from "react";
@@ -29,7 +30,7 @@ export default function ProfilePage() {
   const fileRef = useRef<HTMLInputElement>(null);
 
   if (profile.isLoading) return <ProfileSkeleton />;
-  if (profile.isError || !profile.data) return <p className="error center">User not found.</p>;
+  if (profile.isError || !profile.data) return <p className="error center">Пользователь не найден.</p>;
 
   const p = profile.data;
   const isMe = me?.id === p.id;
@@ -37,9 +38,9 @@ export default function ProfilePage() {
   const isAdmin = me?.role === "admin";
 
   const suspend = () => {
-    if (!window.confirm(`Suspend @${p.username}? They will be logged out and unable to post.`))
+    if (!window.confirm(`Заблокировать @${p.username}? Пользователь выйдет из аккаунта и не сможет публиковать записи.`))
       return;
-    const removePosts = window.confirm("Also delete all of their posts?");
+    const removePosts = window.confirm("Также удалить все записи пользователя?");
     ban.mutate(removePosts);
   };
 
@@ -80,13 +81,14 @@ export default function ProfilePage() {
               <h1 className="profile-name">
                 @{p.username} <PlusBadge plus={p.plus} />
               </h1>
-              <p className="muted">Joined {new Date(p.createdAt).toLocaleDateString()}</p>
+              <p className="muted">Дата регистрации: {new Date(p.createdAt).toLocaleDateString("ru-RU")}</p>
             </div>
           </div>
           {isMe ? (
             !editing && (
               <button className="btn btn-outline" onClick={startEditing}>
-                Edit profile
+
+                Редактировать профиль
               </button>
             )
           ) : (
@@ -95,14 +97,14 @@ export default function ProfilePage() {
                 className="btn btn-outline"
                 to={`/messages?to=${encodeURIComponent(p.username)}`}
               >
-                <Icon name="mail" size={18} /> Message
+                <Icon name="mail" size={18} />  Сообщение
               </Link>
               <button
                 className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
                 onClick={() => follow.mutate()}
                 disabled={follow.isPending}
               >
-                {p.followedByMe ? "Following" : "Follow"}
+                {p.followedByMe ? "Вы подписаны" : "Подписаться"}
               </button>
             </div>
           )}
@@ -127,9 +129,9 @@ export default function ProfilePage() {
             >
               {photoBusy
                 ? upload.progress
-                  ? `Uploading ${upload.progress}%`
-                  : "Saving photo…"
-                : "Change photo"}
+                  ? `Загрузка ${upload.progress}%`
+                  : "Сохранение фотографии…"
+                : "Изменить фото"}
             </button>
             {p.avatarUrl && (
               <button
@@ -138,7 +140,8 @@ export default function ProfilePage() {
                 onClick={() => update.mutate({ avatarUrl: null })}
                 disabled={photoBusy}
               >
-                Remove photo
+
+                Удалить фото
               </button>
             )}
           </div>
@@ -152,16 +155,17 @@ export default function ProfilePage() {
               onChange={(e) => setBio(e.target.value)}
               maxLength={160}
               rows={3}
-              placeholder="Tell the community about yourself"
+              placeholder="Расскажите сообществу о себе"
             />
             <div className="composer-footer">
               <span className="muted">{bio.length}/160</span>
               <span className="row">
                 <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>
-                  Done
+
+                  Готово
                 </button>
                 <button className="btn" disabled={update.isPending}>
-                  {update.isPending ? "Saving…" : "Save bio"}
+                  {update.isPending ? "Сохранение…" : "Сохранить описание"}
                 </button>
               </span>
             </div>
@@ -169,13 +173,13 @@ export default function ProfilePage() {
           </form>
         ) : (
           <p className="profile-bio">
-            {p.bio || (isMe ? "Add a bio so people know who you are." : "")}
+            {p.bio || (isMe ? "Добавьте описание, чтобы другие узнали о вас." : "")}
           </p>
         )}
 
         {follow.isError && <p className="error">{follow.error.message}</p>}
 
-        {p.banned && <p className="suspended">This account is suspended.</p>}
+        {p.banned && <p className="suspended">Этот аккаунт заблокирован.</p>}
         {isAdmin && !isMe && p.role !== "admin" && (
           <div className="row">
             {p.banned ? (
@@ -184,11 +188,13 @@ export default function ProfilePage() {
                 onClick={() => unban.mutate()}
                 disabled={unban.isPending}
               >
-                Lift suspension
+
+                Разблокировать
               </button>
             ) : (
               <button className="btn btn-danger" onClick={suspend} disabled={ban.isPending}>
-                Suspend user
+
+                Заблокировать пользователя
               </button>
             )}
           </div>
@@ -199,15 +205,15 @@ export default function ProfilePage() {
 
         <div className="profile-stats">
           <span>
-            <strong>{p.followerCount}</strong> <span className="muted">followers</span>
+            <strong>{p.followerCount}</strong> <span className="muted">{pluralRu(p.followerCount, "подписчик", "подписчика", "подписчиков")}</span>
           </span>
           <span>
-            <strong>{p.followingCount}</strong> <span className="muted">following</span>
+            <strong>{p.followingCount}</strong> <span className="muted">{pluralRu(p.followingCount, "подписка", "подписки", "подписок")}</span>
           </span>
         </div>
       </section>
 
-      <PostList query={posts} emptyMessage="No posts yet." />
+      <PostList query={posts} emptyMessage="Записей пока нет." />
     </>
   );
 }

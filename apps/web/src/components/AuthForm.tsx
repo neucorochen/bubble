@@ -24,7 +24,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
     const parsed =
       mode === "login" ? loginSchema.safeParse(fields) : registerSchema.safeParse(fields);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      setError("Проверьте введённые данные");
       return;
     }
     setBusy(true);
@@ -33,7 +33,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       else await register(registerSchema.parse(fields));
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Что-то пошло не так");
     } finally {
       setBusy(false);
     }
@@ -46,7 +46,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       await loginWithGoogle(credential);
       navigate("/", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Google sign-in failed");
+      setError(err instanceof Error ? err.message : "Не удалось войти через Google");
     } finally {
       setBusy(false);
     }
@@ -54,7 +54,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
 
   return (
     <form className="card auth" onSubmit={(e) => void submit(e)}>
-      <h1>{mode === "login" ? "Welcome back" : "Join Commune"}</h1>
+      <h1>{mode === "login" ? "С возвращением" : "Присоединяйтесь к Bubble"}</h1>
       {GOOGLE_CLIENT_ID && (
         <>
           <GoogleButton
@@ -62,22 +62,25 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
             text={mode === "login" ? "signin_with" : "signup_with"}
           />
           <p className="divider">
-            <span>or use your email</span>
+            <span>или используйте электронную почту</span>
           </p>
         </>
       )}
       {mode === "register" && (
         <label>
-          Username
+
+          Имя пользователя
           <input value={fields.username} onChange={set("username")} autoComplete="username" />
         </label>
       )}
       <label>
-        Email
+
+        Электронная почта
         <input type="email" value={fields.email} onChange={set("email")} autoComplete="email" />
       </label>
       <label>
-        Password
+
+        Пароль
         <input
           type="password"
           value={fields.password}
@@ -89,20 +92,22 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       {error && <p className="error">{error}</p>}
       {mode === "login" && (
         <p className="muted right">
-          <Link to="/forgot-password">Forgot your password?</Link>
+          <Link to="/forgot-password">Забыли пароль?</Link>
         </p>
       )}
       <button className="btn block" disabled={busy}>
-        {busy ? "Please wait…" : mode === "login" ? "Log in" : "Create account"}
+        {busy ? "Подождите…" : mode === "login" ? "Войти" : "Создать аккаунт"}
       </button>
       <p className="muted center">
         {mode === "login" ? (
           <>
-            New here? <Link to="/register">Create an account</Link>
+
+            Впервые здесь? <Link to="/register">Создать аккаунт</Link>
           </>
         ) : (
           <>
-            Already a member? <Link to="/login">Log in</Link>
+
+            Уже есть аккаунт? <Link to="/login">Войти</Link>
           </>
         )}
       </p>

@@ -1,0 +1,143 @@
+.profile-avatar-link { display: inline-flex; flex-shrink: 0; align-self: start; width: fit-content; border-radius: 50%; }
+.profile-avatar-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.comments-disclosure { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 180ms ease-out, visibility 0s linear 180ms; }
+.comments-disclosure.is-open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 180ms ease-out, visibility 0s; }
+.comments-disclosure-inner { min-height: 0; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) {
+  .comments-disclosure, .comments-disclosure.is-open { transition: none; }
+}
+/*
+ * Opt-in primitives for the future site-wide migration. Nothing is imported yet.
+ * Example host: <div data-theme="aero-blue"> ... </div>.
+ * Use aero-panel (optional aero-glass), aero-card, aero-button, aero-input,
+ * aero-tab, aero-notice or aero-error on descendants. No Commune class aliases.
+ * Set real disabled/aria-disabled semantics in the consuming React component;
+ * aria-disabled alone does NOT block activation. Tabs need tablist/tabpanel
+ * semantics and keyboard handling in React. Do not use opacity on whole controls.
+ */
+:where([data-theme^="aero-"]) :is(.aero-panel, .aero-card, .aero-button, .aero-input, .aero-tab, .aero-notice, .aero-error) {
+  box-sizing: border-box;
+  min-width: 0;
+  font-family: var(--aero-font-body);
+  font-size: var(--aero-font-size);
+  font-weight: var(--aero-font-weight);
+  line-height: var(--aero-line-height);
+  color: var(--aero-color-text);
+}
+
+:where([data-theme^="aero-"]) :is(.aero-panel, .aero-card) {
+  padding: var(--aero-space-4);
+  border: var(--aero-border-width) solid var(--aero-color-border);
+  border-radius: var(--aero-radius-panel);
+  background-color: var(--aero-color-surface-solid);
+  background-image: var(--aero-gradient-panel);
+  box-shadow: var(--aero-shadow-panel-geometry) var(--aero-color-shadow), var(--aero-shadow-inset-geometry) var(--aero-color-highlight);
+  overflow-wrap: anywhere;
+}
+
+:where([data-theme^="aero-"]) .aero-card {
+  background-image: var(--aero-gradient-card);
+}
+
+/* Opaque panel is the fallback. Enable translucency only with filter support.
+ * Keep reading surfaces (cards/fields/notices) opaque-backed inside glass.
+ * Glass requires a controlled backdrop; arbitrary photos need contrast review.
+ */
+@supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  :where([data-theme^="aero-"]) .aero-panel.aero-glass {
+    background-color: transparent;
+    background-image: var(--aero-gradient-glass);
+    -webkit-backdrop-filter: blur(var(--aero-glass-blur)) saturate(var(--aero-glass-saturation));
+    backdrop-filter: blur(var(--aero-glass-blur)) saturate(var(--aero-glass-saturation));
+  }
+}
+
+:where([data-theme^="aero-"]) :is(.aero-button, .aero-tab) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--aero-space-2);
+  min-height: var(--aero-control-min-height);
+  max-width: 100%;
+  padding: var(--aero-space-2) var(--aero-space-4);
+  border: var(--aero-border-width) solid var(--aero-color-border-strong);
+  border-radius: var(--aero-radius-control);
+  color: var(--aero-color-text-control);
+  background-color: var(--aero-color-surface-solid);
+  background-image: var(--aero-gradient-button);
+  box-shadow: var(--aero-shadow-control-geometry) var(--aero-color-shadow), var(--aero-shadow-inset-geometry) var(--aero-color-highlight-solid);
+  font-weight: var(--aero-font-weight-control);
+  text-align: center;
+  text-decoration: none;
+  overflow-wrap: anywhere;
+  cursor: pointer;
+  transition: border-color var(--aero-motion-duration) var(--aero-motion-easing), transform var(--aero-motion-duration) var(--aero-motion-easing);
+}
+
+@media (hover: hover) {
+  :where([data-theme^="aero-"]) :is(.aero-button, .aero-tab):hover:not(:disabled):not([aria-disabled="true"]):not([aria-selected="true"]) {
+    border-color: var(--aero-color-hover-border);
+    background-image: var(--aero-gradient-button-hover);
+  }
+}
+
+:where([data-theme^="aero-"]) :is(.aero-button, .aero-tab):active:not(:disabled):not([aria-disabled="true"]) {
+  transform: translateY(var(--aero-press-offset));
+  border-color: var(--aero-color-active-border);
+  background-image: var(--aero-gradient-button-active);
+}
+
+:where([data-theme^="aero-"]) .aero-tab[aria-selected="true"] {
+  border-color: var(--aero-color-active-border);
+  background-image: var(--aero-gradient-tab-active);
+  text-decoration: underline;
+  text-underline-offset: var(--aero-space-1);
+}
+
+:where([data-theme^="aero-"]) .aero-input {
+  width: 100%;
+  min-height: var(--aero-control-min-height);
+  padding: var(--aero-space-2) var(--aero-space-3);
+  border: var(--aero-border-width) solid var(--aero-color-border-strong);
+  border-radius: var(--aero-radius-control);
+  background: var(--aero-color-field);
+}
+
+:where([data-theme^="aero-"]) .aero-input::placeholder {
+  color: var(--aero-color-text-muted);
+  opacity: 1;
+}
+
+:where([data-theme^="aero-"]) .aero-input[aria-invalid="true"] {
+  border-color: var(--aero-color-error-border);
+}
+
+:where([data-theme^="aero-"]) :is(.aero-button, .aero-input, .aero-tab):is(:disabled, [aria-disabled="true"]) {
+  color: var(--aero-color-disabled-text);
+  border-color: var(--aero-color-disabled-border);
+  background: var(--aero-color-disabled-surface);
+  box-shadow: none;
+  cursor: not-allowed;
+}
+
+/* Keep this after selected/disabled states, including keyboard-focusable links. */
+:where([data-theme^="aero-"]) :is(.aero-button, .aero-input, .aero-tab):focus-visible {
+  outline: var(--aero-focus-width) solid var(--aero-color-focus);
+  outline-offset: var(--aero-focus-offset);
+  box-shadow: 0 0 0 var(--aero-focus-offset) var(--aero-color-focus-gap);
+}
+
+:where([data-theme^="aero-"]) :is(.aero-notice, .aero-error) {
+  padding: var(--aero-space-3);
+  border: var(--aero-border-width) solid var(--aero-color-notice-border);
+  border-radius: var(--aero-radius-control);
+  background: var(--aero-color-notice-surface);
+  color: var(--aero-color-notice-text);
+  overflow-wrap: anywhere;
+}
+
+:where([data-theme^="aero-"]) .aero-error {
+  border-color: var(--aero-color-error-border);
+  background: var(--aero-color-error-surface);
+  color: var(--aero-color-error-text);
+}

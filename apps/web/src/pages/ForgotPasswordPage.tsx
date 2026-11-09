@@ -15,7 +15,7 @@ export default function ForgotPasswordPage() {
     setError(null);
     const parsed = forgotPasswordSchema.safeParse({ email });
     if (!parsed.success) {
-      setError("Enter a valid email address");
+      setError("Введите корректный адрес почты");
       return;
     }
     setBusy(true);
@@ -23,7 +23,7 @@ export default function ForgotPasswordPage() {
       await api("/auth/forgot-password", { method: "POST", body: parsed.data });
       setSent(true);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Что-то пошло не так");
     } finally {
       setBusy(false);
     }
@@ -32,13 +32,13 @@ export default function ForgotPasswordPage() {
   if (sent) {
     return (
       <div className="card auth">
-        <h1>Check your email</h1>
+        <h1>Проверьте почту</h1>
         <p>
-          If an account exists for <strong>{email}</strong>, a reset link is on its way. It works
-          once and expires in 1 hour.
+
+          Если аккаунт зарегистрирован на адрес <strong>{email}</strong>, мы отправили ссылку для сброса пароля. Её можно использовать один раз в течение часа.
         </p>
         <p className="muted center">
-          <Link to="/login">Back to log in</Link>
+          <Link to="/login">Вернуться ко входу</Link>
         </p>
       </div>
     );
@@ -46,10 +46,11 @@ export default function ForgotPasswordPage() {
 
   return (
     <form className="card auth" onSubmit={(e) => void submit(e)}>
-      <h1>Forgot your password?</h1>
-      <p className="muted">Enter your email and we'll send you a link to choose a new one.</p>
+      <h1>Забыли пароль?</h1>
+      <p className="muted">Укажите почту, и мы отправим ссылку для создания нового пароля.</p>
       <label>
-        Email
+
+        Электронная почта
         <input
           type="email"
           value={email}
@@ -59,10 +60,10 @@ export default function ForgotPasswordPage() {
       </label>
       {error && <p className="error">{error}</p>}
       <button className="btn block" disabled={busy}>
-        {busy ? "Sending…" : "Send reset link"}
+        {busy ? "Отправка…" : "Отправить ссылку"}
       </button>
       <p className="muted center">
-        <Link to="/login">Back to log in</Link>
+        <Link to="/login">Вернуться ко входу</Link>
       </p>
     </form>
   );

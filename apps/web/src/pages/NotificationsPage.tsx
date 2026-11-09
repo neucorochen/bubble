@@ -8,9 +8,9 @@ import { timeAgo } from "../components/PostCard";
 import { useMarkAllRead, useNotifications } from "../hooks/useSocial";
 
 const TEXT: Record<NotificationDTO["type"], string> = {
-  like: "liked your post",
-  comment: "commented on your post",
-  follow: "started following you",
+  like: "понравилась ваша запись",
+  comment: "прокомментировал вашу запись",
+  follow: "подписался на вас",
 };
 
 export default function NotificationsPage() {
@@ -27,13 +27,13 @@ export default function NotificationsPage() {
 
   return (
     <>
-      <h1 className="page-title">Notifications</h1>
+      <h1 className="page-title">Уведомления</h1>
       <SoundSettings />
       <PushSettings />
       {list.isLoading && <RowsSkeleton count={5} avatar={36} card />}
       {list.isError && <p className="error center">{list.error.message}</p>}
       {list.isSuccess && list.data.length === 0 && (
-        <p className="muted center">Nothing yet. Likes, comments and new followers show up here.</p>
+        <p className="muted center">Здесь пока пусто. Здесь появятся отметки «Нравится», комментарии и новые подписчики.</p>
       )}
       {list.data?.map((n) => (
         <Link

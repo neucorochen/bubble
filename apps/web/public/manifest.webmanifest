@@ -1,8 +1,8 @@
 {
   "id": "/",
-  "name": "Commune",
-  "short_name": "Commune",
-  "description": "An open source community platform: post, follow and chat with your community.",
+  "name": "Bubble",
+  "short_name": "Bubble",
+  "description": "Открытая платформа сообществ: записи, подписки и общение.",
   "lang": "en",
   "dir": "ltr",
   "start_url": "/?source=pwa",

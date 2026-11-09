@@ -3,14 +3,14 @@ import { prefetchRoute } from "../lib/prefetch";
 import { useAuth } from "../store/auth";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
-import Avatar from "./Avatar";
 import Brand from "./BrandMark";
-import Icon, { type IconName } from "./Icon";
-import PlusBadge from "./PlusBadge";
+import { navigationFor } from "../lib/navigation";
+import type { IconName } from "./Icon";
+import NavigationIcon from "./NavigationIcon";
 
-/** Left column for members on wide screens: brand, navigation, and the account at the bottom. */
+/** Left column for members on wide screens: brand and primary navigation. */
 export default function LeftNav() {
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
   const notifications = useUnreadCount(Boolean(user));
   const messages = useUnreadMessages(Boolean(user));
   if (!user) return null;
@@ -28,10 +28,10 @@ export default function LeftNav() {
       onFocus={() => prefetchRoute(to)}
       end={end}
       className={cls}
-      aria-label={count ? `${label}, ${count} unread` : undefined}
+      aria-label={count ? `${label}, непрочитанных: ${count}` : undefined}
     >
       <span className="side-icon">
-        <Icon name={icon} size={24} />
+        <NavigationIcon name={icon} size={28} />
       </span>
       <span className="side-label">{label}</span>
       {badge(count)}
@@ -39,46 +39,13 @@ export default function LeftNav() {
   );
 
   return (
-    <aside className="left-nav" aria-label="Primary">
-      <Link to="/" className="side-brand" aria-label="Commune home">
+    <aside className="left-nav" aria-label="Основная навигация">
+      <Link to="/" className="side-brand" aria-label="На главную Bubble">
         <Brand size={34} />
       </Link>
       <nav>
-        {link("/", "home", "Home", 0, true)}
-        {link("/explore", "compass", "Explore")}
-        {link("/news", "news", "News")}
-        {link("/communities", "users", "Communities")}
-        {link("/notifications", "bell", "Notifications", n)}
-        {link("/messages", "mail", "Messages", m)}
-        {link(`/u/${user.username}`, "user", "Profile")}
-        {link(
-          user.plus ? "/insights" : "/plus",
-          user.plus ? "chart" : "sparkle",
-          user.plus ? "Insights" : "Commune Plus",
-        )}
-        {user.role === "admin" && link("/admin", "shield", "Admin")}
-        {link("/contact", "contact", "Contact")}
+        {navigationFor("member", "desktop").map((item) => <span key={item.id}>{link(item.to(user.username), item.icon, item.label, item.id === "messages" ? m : item.id === "notifications" ? n : 0, item.end)}</span>)}
       </nav>
-      <Link to="/" className="btn side-post" aria-label="Write a post">
-        <Icon name="pencil" size={20} />
-        <span className="side-label">Post</span>
-      </Link>
-      <div className="side-me">
-        <Link to={`/u/${user.username}`} className="side-me-link">
-          <Avatar username={user.username} url={user.avatarUrl} size={38} />
-          <span className="side-label">
-            @{user.username} <PlusBadge plus={user.plus} />
-          </span>
-        </Link>
-        <button
-          className="icon-btn side-logout"
-          onClick={() => void logout()}
-          aria-label="Log out"
-          title="Log out"
-        >
-          <Icon name="logout" size={20} />
-        </button>
-      </div>
     </aside>
   );
 }

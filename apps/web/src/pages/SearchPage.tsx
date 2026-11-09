@@ -20,16 +20,16 @@ export default function SearchPage() {
   if (q.length < 2) {
     return (
       <>
-        <h1 className="search-title">Search</h1>
+        <h1 className="search-title">Поиск</h1>
         <SearchBox />
-        <p className="muted">Find people and posts. Type at least 2 characters.</p>
+        <p className="muted">Ищите людей и записи. Введите не менее двух символов.</p>
       </>
     );
   }
 
   return (
     <>
-      <h1 className="search-title">Results for “{q}”</h1>
+      <h1 className="search-title">Результаты поиска «{q}”</h1>
       <div className="tabs" role="tablist">
         {(["people", "posts"] as const).map((t) => (
           <button
@@ -39,17 +39,17 @@ export default function SearchPage() {
             className={`tab ${tab === t ? "active" : ""}`}
             onClick={() => choose(t)}
           >
-            {t === "people" ? "People" : "Posts"}
+            {t === "people" ? "Люди" : "Записи"}
           </button>
         ))}
       </div>
 
       {tab === "people" && (
         <>
-          {users.isLoading && <p className="muted center">Searching…</p>}
+          {users.isLoading && <p className="muted center">Поиск…</p>}
           {users.isError && <p className="error center">{users.error.message}</p>}
           {users.isSuccess && people.length === 0 && (
-            <p className="muted center">No people found. Search matches the start of a username.</p>
+            <p className="muted center">Пользователи не найдены. Поиск выполняется по началу имени пользователя.</p>
           )}
           {people.map((u) => (
             <Link key={u.id} to={`/u/${u.username}`} className="card person">
@@ -66,13 +66,13 @@ export default function SearchPage() {
               onClick={() => void users.fetchNextPage()}
               disabled={users.isFetchingNextPage}
             >
-              {users.isFetchingNextPage ? "Loading…" : "Load more"}
+              {users.isFetchingNextPage ? "Загрузка…" : "Загрузить ещё"}
             </button>
           )}
         </>
       )}
 
-      {tab === "posts" && <PostList query={posts} emptyMessage="No posts match those words." />}
+      {tab === "posts" && <PostList query={posts} emptyMessage="По этому запросу записи не найдены." />}
     </>
   );
 }

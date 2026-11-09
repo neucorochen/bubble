@@ -1,10 +1,11 @@
+import NavigationIcon from "./NavigationIcon";
 import { NavLink } from "react-router-dom";
 import { prefetchRoute } from "../lib/prefetch";
 import { useAuth } from "../store/auth";
 import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
-import Avatar from "./Avatar";
-import Icon, { type IconName } from "./Icon";
+import { navigationFor } from "../lib/navigation";
+import { type IconName } from "./Icon";
 
 /** App-style tab bar for members on phones and tablets. The menu button holds everything else. */
 export default function BottomNav() {
@@ -24,10 +25,10 @@ export default function BottomNav() {
       onFocus={() => prefetchRoute(to)}
       end={end}
       className={cls}
-      aria-label={count ? `${label}, ${count} unread` : label}
+      aria-label={count ? `${label}, непрочитанных: ${count}` : label}
     >
       <span className="tab-icon">
-        <Icon name={icon} size={25} />
+        <NavigationIcon name={icon} size={25} />
         {count > 0 && <span className="dot" aria-hidden="true" />}
       </span>
       <span className="tab-label">{label}</span>
@@ -35,22 +36,8 @@ export default function BottomNav() {
   );
 
   return (
-    <nav className="bottom-nav" aria-label="Tabs">
-      {tab("/", "home", "Home", 0, true)}
-      {tab("/news", "news", "News")}
-      {tab("/messages", "mail", "Messages", m)}
-      {tab("/notifications", "bell", "Alerts", n)}
-      <NavLink
-        to={`/u/${user.username}`}
-        className={cls}
-        aria-label="Profile"
-        onTouchStart={() => prefetchRoute("/u/")}
-      >
-        <span className="tab-icon">
-          <Avatar username={user.username} url={user.avatarUrl} size={26} />
-        </span>
-        <span className="tab-label">Me</span>
-      </NavLink>
+    <nav className="bottom-nav" aria-label="Вкладки">
+      {navigationFor("member", "bottom").map((entry) => <span key={entry.id}>{tab(entry.to(user.username), entry.icon, entry.label, entry.id === "messages" ? m : entry.id === "notifications" ? n : 0, entry.end)}</span>)}
     </nav>
   );
 }

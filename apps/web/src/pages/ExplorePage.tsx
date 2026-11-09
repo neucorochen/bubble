@@ -37,15 +37,17 @@ export default function ExplorePage() {
           <span className="blob b2" />
           <span className="blob b3" />
         </div>
-        <h1>A home for your communities</h1>
-        <p>Post, follow people, chat and keep up with the news. Free to join and open source.</p>
+        <h1>Ваше место для общения</h1>
+        <p>Публикуйте записи, подписывайтесь, общайтесь и следите за новостями. Регистрация бесплатна, исходный код открыт.</p>
         {!user && (
           <div className="row">
             <Link className="btn" to="/register">
-              Create account
+
+              Создать аккаунт
             </Link>
             <Link className="btn btn-outline" to="/login">
-              Log in
+
+              Войти
             </Link>
           </div>
         )}
@@ -54,7 +56,7 @@ export default function ExplorePage() {
       {query.isLoading && <PostListSkeleton />}
       {query.isError && <p className="error center">{query.error.message}</p>}
       {query.isSuccess && posts.length === 0 && (
-        <p className="muted center">Nothing here yet. Be the first to post!</p>
+        <p className="muted center">Здесь пока пусто. Опубликуйте первую запись!</p>
       )}
 
       {posts.map((post, i) => (
@@ -72,7 +74,7 @@ export default function ExplorePage() {
                 <img
                   className="post-image"
                   src={assetUrl(post.imageUrl)}
-                  alt={`Image posted by @${post.author.username}`}
+                  alt={`Изображение пользователя @${post.author.username}`}
                   loading="lazy"
                 />
               )}
@@ -84,7 +86,7 @@ export default function ExplorePage() {
                   <Icon name="comment" size={17} /> {post.commentCount}
                 </span>
                 <Link to={user ? `/posts/${post.id}` : "/login"}>
-                  {user ? "Open post" : "Log in to join in"}
+                  {user ? "Открыть запись" : "Войдите, чтобы присоединиться"}
                 </Link>
               </p>
             </div>
@@ -97,7 +99,8 @@ export default function ExplorePage() {
       {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
       {query.hasNextPage && !isFetchingNextPage && (
         <button className="btn btn-ghost block" onClick={() => void query.fetchNextPage()}>
-          Load more
+
+          Загрузить ещё
         </button>
       )}
     </>

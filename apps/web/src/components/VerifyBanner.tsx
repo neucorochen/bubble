@@ -22,16 +22,16 @@ export default function VerifyBanner() {
   return (
     <div className="banner" role="status">
       {state === "sent" ? (
-        <span>Link sent. Check your inbox (and spam folder).</span>
+        <span>Ссылка отправлена. Проверьте почту и папку «Спам».</span>
       ) : (
         <>
-          <span>Confirm your email address to secure your account.</span>
+          <span>Подтвердите адрес почты, чтобы защитить аккаунт.</span>
           <button
             className="btn btn-ghost"
             disabled={state === "sending"}
             onClick={() => void resend()}
           >
-            {state === "sending" ? "Sending…" : state === "error" ? "Failed, retry" : "Resend link"}
+            {state === "sending" ? "Отправка…" : state === "error" ? "Ошибка, повторить" : "Отправить ссылку повторно"}
           </button>
         </>
       )}
