@@ -1,0 +1,375 @@
+import { Router } from "express";
+import {
+  banUserSchema,
+  completeUploadSchema,
+  clientErrorSchema,
+  pushPreferencesSchema,
+  pushSubscribeSchema,
+  pushUnsubscribeSchema,
+  contactSchema,
+  messagesQuerySchema,
+  newsQuerySchema,
+  sendMessageSchema,
+  communityListSchema,
+  createCommentSchema,
+  createCommunitySchema,
+  createPostSchema,
+  createReportSchema,
+  forgotPasswordSchema,
+  googleLoginSchema,
+  loginSchema,
+  paginationSchema,
+  registerSchema,
+  reportQuerySchema,
+  resetPasswordSchema,
+  resolveReportSchema,
+  searchQuerySchema,
+  updateProfileSchema,
+  verifyEmailSchema,
+} from "@commune/shared";
+import * as account from "../controllers/accountController.js";
+import * as push from "../controllers/pushController.js";
+import * as internal from "../controllers/internalController.js";
+import * as monitor from "../controllers/monitorController.js";
+import * as contact from "../controllers/contactController.js";
+import * as messages from "../controllers/messageController.js";
+import * as news from "../controllers/newsController.js";
+import * as billing from "../controllers/billingController.js";
+import * as insights from "../controllers/insightsController.js";
+import * as admin from "../controllers/adminController.js";
+import * as auth from "../controllers/authController.js";
+import * as payments from "../controllers/paymentController.js";
+import * as communities from "../controllers/communityController.js";
+import * as notifications from "../controllers/notificationController.js";
+import * as posts from "../controllers/postController.js";
+import * as reports from "../controllers/reportController.js";
+import * as publicApi from "../controllers/publicController.js";
+import * as search from "../controllers/searchController.js";
+import * as uploads from "../controllers/uploadController.js";
+import * as users from "../controllers/userController.js";
+import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
+import {
+  authLimiter,
+  clientErrorLimiter,
+  pushLimiter,
+  readLimiter,
+  testPushLimiter,
+  checkoutLimiter,
+  contactLimiter,
+  messageLimiter,
+  newChatLimiter,
+  communityLimiter,
+  emailLimiter,
+  reportLimiter,
+  publicLimiter,
+  searchLimiter,
+  uploadLimiter,
+  viewLimiter,
+} from "../middleware/rateLimit.js";
+import { parseImageUpload } from "../middleware/upload.js";
+import { validate } from "../middleware/validate.js";
+import { asyncHandler } from "../utils/errors.js";
+
+export const router = Router();
+
+/**
+ * Middleware order on write routes:  requireAuth -> (limiter) -> validate -> requireActive.
+ * Validation runs before the database lookup in requireActive so malformed requests are
+ * rejected cheaply. Reads only need requireAuth. Admin routes check the role first.
+ */
+const adminOnly = [requireAuth, requireActive, requireAdmin];
+
+// Health checks. /health only says the process is up; /health/ready also checks the database
+// and is the one for an uptime monitor. Neither reveals versions, paths or settings.
+router.get("/health", monitor.live);
+router.get("/health/ready", monitor.ready);
+
+// Used only by the realtime service (shared secret; 404 for everyone else).
+router.get(
+  "/internal/conversations/:id/participants",
+  asyncHandler(internal.conversationParticipants),
+);
+
+// Errors from the browser (public: they can happen before sign-in; rate limited and capped).
+router.post(
+  "/client-errors",
+  clientErrorLimiter,
+  validate(clientErrorSchema),
+  asyncHandler(monitor.reportClientError),
+);
+
+// Auth
+router.post("/auth/register", authLimiter, validate(registerSchema), asyncHandler(auth.register));
+router.post("/auth/login", authLimiter, validate(loginSchema), asyncHandler(auth.login));
+router.post("/auth/google", authLimiter, validate(googleLoginSchema), asyncHandler(auth.google));
+router.post("/auth/refresh", authLimiter, asyncHandler(auth.refresh));
+router.post("/auth/logout", asyncHandler(auth.logout));
+
+// Email verification and password reset
+router.post(
+  "/auth/forgot-password",
+  emailLimiter,
+  validate(forgotPasswordSchema),
+  asyncHandler(account.forgotPassword),
+);
+router.post(
+  "/auth/reset-password",
+  authLimiter,
+  validate(resetPasswordSchema),
+  asyncHandler(account.resetPassword),
+);
+router.post(
+  "/auth/verify-email",
+  authLimiter,
+  validate(verifyEmailSchema),
+  asyncHandler(account.verifyEmail),
+);
+router.post(
+  // No requireActive here: with REQUIRE_VERIFIED_EMAIL on, unverified users must still be able
+  // to ask for a new link. The controller rejects suspended accounts itself.
+  "/auth/resend-verification",
+  requireAuth,
+  emailLimiter,
+  asyncHandler(account.resendVerification),
+);
+
+// Public, read-only (no login): powers the Explore page that search engines and ad
+// reviewers can see. Only free posts are ever returned.
+router.get(
+  "/public/posts",
+  publicLimiter,
+  validate(paginationSchema, "query"),
+  asyncHandler(publicApi.listPosts),
+);
+
+// Uploads (auth and rate limit run before the file is parsed)
+router.post(
+  "/uploads",
+  requireAuth,
+  uploadLimiter,
+  parseImageUpload,
+  requireActive,
+  asyncHandler(uploads.upload),
+);
+
+router.post("/uploads/sign", requireAuth, uploadLimiter, requireActive, asyncHandler(uploads.sign));
+router.post(
+  "/uploads/complete",
+  requireAuth,
+  uploadLimiter,
+  validate(completeUploadSchema),
+  requireActive,
+  asyncHandler(uploads.complete),
+);
+
+// Users. "/users/me" must be declared before "/users/:username".
+router.get("/users/me", requireAuth, asyncHandler(users.me));
+router.patch(
+  "/users/me",
+  requireAuth,
+  validate(updateProfileSchema),
+  requireActive,
+  asyncHandler(users.updateMe),
+);
+router.get("/users/me/earnings", requireAuth, asyncHandler(payments.earnings));
+router.get("/users/:username", requireAuth, asyncHandler(users.getProfile));
+router.get(
+  "/users/:username/posts",
+  requireAuth,
+  validate(paginationSchema, "query"),
+  asyncHandler(users.userPosts),
+);
+router.post(
+  "/users/:username/follow",
+  requireAuth,
+  requireActive,
+  asyncHandler(users.toggleFollow),
+);
+
+// Notifications
+router.get("/notifications", requireAuth, asyncHandler(notifications.list));
+router.get("/notifications/unread-count", requireAuth, asyncHandler(notifications.unreadCount));
+router.post("/notifications/read", requireAuth, asyncHandler(notifications.markAllRead));
+
+// Commune Plus: billing and creator insights
+router.get("/billing", requireAuth, asyncHandler(billing.status));
+router.post(
+  "/billing/checkout",
+  requireAuth,
+  checkoutLimiter,
+  requireActive,
+  asyncHandler(billing.checkout),
+);
+router.post("/billing/portal", requireAuth, checkoutLimiter, asyncHandler(billing.portal));
+router.get("/insights", requireAuth, requirePlus, asyncHandler(insights.get));
+
+// Search
+router.get(
+  "/search/users",
+  requireAuth,
+  searchLimiter,
+  validate(searchQuerySchema, "query"),
+  asyncHandler(search.users),
+);
+router.get(
+  "/search/posts",
+  requireAuth,
+  searchLimiter,
+  validate(searchQuerySchema, "query"),
+  asyncHandler(search.posts),
+);
+
+// Communities
+router.get(
+  "/communities",
+  requireAuth,
+  validate(communityListSchema, "query"),
+  asyncHandler(communities.list),
+);
+router.post(
+  "/communities",
+  requireAuth,
+  communityLimiter,
+  validate(createCommunitySchema),
+  requireActive,
+  asyncHandler(communities.create),
+);
+router.get("/communities/:slug", requireAuth, asyncHandler(communities.get));
+router.get(
+  "/communities/:slug/posts",
+  requireAuth,
+  validate(paginationSchema, "query"),
+  asyncHandler(communities.posts),
+);
+router.post("/communities/:slug/join", requireAuth, requireActive, asyncHandler(communities.join));
+router.delete(
+  "/communities/:slug/join",
+  requireAuth,
+  requireActive,
+  asyncHandler(communities.leave),
+);
+
+// Posts
+router.get(
+  "/posts",
+  requireAuth,
+  validate(paginationSchema, "query"),
+  asyncHandler(posts.listPosts),
+);
+router.post(
+  "/posts",
+  requireAuth,
+  validate(createPostSchema),
+  requireActive,
+  asyncHandler(posts.createPost),
+);
+router.get("/posts/:id", requireAuth, asyncHandler(posts.getPost));
+router.delete("/posts/:id", requireAuth, requireActive, asyncHandler(posts.deletePost));
+router.post("/posts/:id/like", requireAuth, requireActive, asyncHandler(posts.toggleLike));
+router.post(
+  "/posts/:id/checkout",
+  requireAuth,
+  checkoutLimiter,
+  requireActive,
+  asyncHandler(payments.checkout),
+);
+router.post("/posts/:id/view", requireAuth, viewLimiter, asyncHandler(posts.trackView));
+router.get("/posts/:id/comments", requireAuth, asyncHandler(posts.listComments));
+router.post(
+  "/posts/:id/comments",
+  requireAuth,
+  validate(createCommentSchema),
+  requireActive,
+  asyncHandler(posts.addComment),
+);
+router.post(
+  "/posts/:id/report",
+  requireAuth,
+  reportLimiter,
+  validate(createReportSchema),
+  requireActive,
+  asyncHandler(reports.createReport),
+);
+
+// Admin / moderation
+router.get(
+  "/admin/reports",
+  ...adminOnly,
+  validate(reportQuerySchema, "query"),
+  asyncHandler(admin.listReports),
+);
+router.get("/admin/errors", ...adminOnly, asyncHandler(monitor.listErrors));
+router.post("/admin/errors/:id/resolve", ...adminOnly, asyncHandler(monitor.resolveError));
+router.post("/admin/reports/:id/dismiss", ...adminOnly, asyncHandler(admin.dismissReport));
+router.post(
+  "/admin/reports/:id/resolve",
+  ...adminOnly,
+  validate(resolveReportSchema),
+  asyncHandler(admin.resolveReport),
+);
+router.post(
+  "/admin/users/:username/ban",
+  ...adminOnly,
+  validate(banUserSchema),
+  asyncHandler(admin.banUserByUsername),
+);
+router.post("/admin/users/:username/unban", ...adminOnly, asyncHandler(admin.unbanUserByUsername));
+
+// News (public: guests see it too) and the Contact form
+router.get("/news", publicLimiter, validate(newsQuerySchema, "query"), asyncHandler(news.list));
+router.post("/contact", contactLimiter, validate(contactSchema), asyncHandler(contact.send));
+
+// Web Push (notifications when the site is closed)
+router.get("/push/status", requireAuth, asyncHandler(push.status));
+router.post(
+  "/push/subscribe",
+  requireAuth,
+  pushLimiter,
+  validate(pushSubscribeSchema),
+  requireActive,
+  asyncHandler(push.subscribe),
+);
+router.post(
+  "/push/unsubscribe",
+  requireAuth,
+  pushLimiter,
+  validate(pushUnsubscribeSchema),
+  asyncHandler(push.unsubscribe),
+);
+router.put(
+  "/push/preferences",
+  requireAuth,
+  pushLimiter,
+  validate(pushPreferencesSchema),
+  asyncHandler(push.savePreferences),
+);
+router.post("/push/test", requireAuth, testPushLimiter, asyncHandler(push.test));
+
+// Direct messages. Fixed paths ("/messages/unread-count", "/messages/with/:username") come
+// before "/messages/:id".
+router.get("/messages", requireAuth, asyncHandler(messages.listConversations));
+router.get("/messages/unread-count", requireAuth, asyncHandler(messages.unreadCount));
+router.post(
+  "/messages/with/:username",
+  requireAuth,
+  newChatLimiter,
+  validate(sendMessageSchema),
+  requireActive,
+  asyncHandler(messages.start),
+);
+router.get(
+  "/messages/:id",
+  requireAuth,
+  validate(messagesQuerySchema, "query"),
+  asyncHandler(messages.getMessages),
+);
+// After /messages/with/:username, so a user named "read" can still be messaged.
+router.post("/messages/:id/read", requireAuth, readLimiter, asyncHandler(messages.markRead));
+router.post(
+  "/messages/:id",
+  requireAuth,
+  messageLimiter,
+  validate(sendMessageSchema),
+  requireActive,
+  asyncHandler(messages.send),
+);

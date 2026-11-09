@@ -1,0 +1,33 @@
+import { Schema, model } from "mongoose";
+import type { InferSchemaType } from "mongoose";
+
+const userSchema = new Schema(
+  {
+    username: { type: String, required: true, trim: true, minlength: 3, maxlength: 24 },
+    email: { type: String, required: true, lowercase: true, trim: true, unique: true },
+    passwordHash: { type: String, required: true, select: false },
+    bio: { type: String, default: "", maxlength: 160 },
+    avatarUrl: { type: String, default: null, index: true, sparse: true },
+    role: { type: String, enum: ["user", "admin"], default: "user" },
+    banned: { type: Boolean, default: false },
+    // Google account id ("sub"). Unset for password-only accounts, so the unique index is sparse.
+    googleId: { type: String, unique: true, sparse: true },
+    // Commune Plus access runs until this moment. Set by the payment webhook and checked
+    // against the clock, so access ends on time even if a cancellation webhook is missed.
+    plusUntil: { type: Date, default: null },
+    emailVerified: { type: Boolean, default: false },
+    // Which push notifications this person wants (they can still be turned off per device).
+    pushMessages: { type: Boolean, default: true },
+    pushSocial: { type: Boolean, default: true },
+    // Brute-force protection: consecutive wrong passwords, and the end of a temporary lock.
+    failedLogins: { type: Number, default: 0, select: false },
+    lockUntil: { type: Date, default: null, select: false },
+  },
+  { timestamps: true },
+);
+
+// Case-insensitive unique usernames ("Sam" and "sam" are the same person).
+userSchema.index({ username: 1 }, { unique: true, collation: { locale: "en", strength: 2 } });
+
+export type UserDoc = InferSchemaType<typeof userSchema>;
+export const User = model("User", userSchema);

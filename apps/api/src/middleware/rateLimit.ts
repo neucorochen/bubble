@@ -1,0 +1,166 @@
+import rateLimit from "express-rate-limit";
+import { env } from "../config/env.js";
+
+const skip = () => env.NODE_ENV === "test";
+
+export const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, slow down." },
+});
+
+export const uploadLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many uploads, try again later." },
+});
+
+export const reportLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You're reporting too fast, try again later." },
+});
+
+export const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many attempts, try again later." },
+});
+
+/** Anything that sends an email: forgot password and resend verification. */
+export const emailLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many email requests, try again later." },
+});
+
+export const checkoutLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many checkout attempts, try again later." },
+});
+
+export const searchLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 40,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Searching too fast, try again in a moment." },
+});
+
+/** Post view pings: generous, since opening posts is normal browsing. */
+export const viewLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 200,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, slow down." },
+});
+
+/** Unauthenticated read-only endpoints (the public Explore page). */
+export const publicLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, slow down." },
+});
+
+export const communityLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 10,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You're creating communities too fast, try again later." },
+});
+
+/** Sending direct messages. */
+export const messageLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 60,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You're sending messages too fast, slow down." },
+});
+
+/** Starting conversations with new people (the main spam vector for direct messages). */
+export const newChatLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "You've started a lot of conversations, try again later." },
+});
+
+/** Subscribing, unsubscribing and changing push settings. */
+export const pushLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 30,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, try again later." },
+});
+
+/** "Send a test notification" button. */
+export const testPushLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 3,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Test notifications are limited, try again in a few minutes." },
+});
+
+/** Marking a conversation read happens whenever a message arrives while it is open. */
+export const readLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 300,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Slow down." },
+});
+
+/** Browser error reports: public, so keep it tight. */
+export const clientErrorLimiter = rateLimit({
+  windowMs: 10 * 60 * 1000,
+  limit: 20,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many reports." },
+});
+
+export const contactLimiter = rateLimit({
+  windowMs: 60 * 60 * 1000,
+  limit: 5,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many messages, try again later." },
+});
