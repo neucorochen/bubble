@@ -1,7 +1,6 @@
 import { Router } from "express";
 import {
   banUserSchema,
-  completeUploadSchema,
   clientErrorSchema,
   pushPreferencesSchema,
   pushSubscribeSchema,
@@ -150,16 +149,6 @@ router.post(
   parseImageUpload,
   requireActive,
   asyncHandler(uploads.upload),
-);
-
-router.post("/uploads/sign", requireAuth, uploadLimiter, requireActive, asyncHandler(uploads.sign));
-router.post(
-  "/uploads/complete",
-  requireAuth,
-  uploadLimiter,
-  validate(completeUploadSchema),
-  requireActive,
-  asyncHandler(uploads.complete),
 );
 
 // Users. "/users/me" must be declared before "/users/:username".

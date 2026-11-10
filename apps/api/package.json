@@ -13,6 +13,7 @@
     "make-admin": "tsx src/scripts/makeAdmin.ts"
   },
   "dependencies": {
+    "@aws-sdk/client-s3": "^3.1165.0",
     "@commune/shared": "*",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
@@ -26,8 +27,8 @@
     "multer": "^2.0.0",
     "pino": "^9.4.0",
     "pino-http": "^10.3.0",
-    "zod": "^4.6.7",
-    "web-push": "^3.6.7"
+    "web-push": "^3.6.7",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@types/bcryptjs": "^2.4.6",
