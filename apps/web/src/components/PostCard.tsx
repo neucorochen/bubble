@@ -37,7 +37,8 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
   return (
     <article className={`card post post-head${inlineComments ? " feed-post" : ""}`}>
       <ProfileAvatar username={post.author.username} url={post.author.avatarUrl} />
-      {inlineComments && (mine || isAdmin) && <button type="button" className="btn btn-ghost danger feed-delete" title="Удалить запись" aria-label="Удалить запись" disabled={del.isPending} onClick={() => window.confirm(mine ? "Удалить эту запись?" : "Удалить эту запись как администратор?") && del.mutate(post.id)}><Icon name="trash" size={18} /></button>}
+      {!mine && <button type="button" className="btn btn-ghost post-report" title="Пожаловаться" aria-label="Пожаловаться" aria-expanded={reporting} onClick={() => setReporting((r) => !r)}><Icon name="flag" size={18} /></button>}
+      {inlineComments && mine && <button type="button" className="btn btn-ghost danger feed-delete" title="Удалить запись" aria-label="Удалить запись" disabled={del.isPending} onClick={() => window.confirm(mine ? "Удалить эту запись?" : "Удалить эту запись как администратор?") && del.mutate(post.id)}><Icon name="trash" size={18} /></button>}
       <div className="post-main">
         <div className="post-meta">
           <Link to={`/u/${post.author.username}`} className="user-link">
@@ -111,16 +112,7 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
             <Icon name="comment" size={19} />
             <span>{post.commentCount}</span>
           </Link>}
-          {!mine && (
-            <button
-              className="btn btn-ghost"
-              onClick={() => setReporting((r) => !r)}
-              aria-expanded={reporting}
-            >
-              <Icon name="flag" size={18} /> Пожаловаться
-            </button>
-          )}
-          {!inlineComments && (mine || isAdmin) && (
+          {(!inlineComments || !mine) && (mine || isAdmin) && (
             <button
               className="btn btn-ghost danger"
               onClick={() =>

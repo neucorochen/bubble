@@ -76,6 +76,10 @@
 .aero-home .feed-post .post-meta { min-width: 0; padding-right: 36px; flex-wrap: wrap; overflow-wrap: anywhere; }
 .aero-home .feed-post .post-main > :not(.post-meta) { grid-column: 1 / -1; min-width: 0; }
 .aero-home .feed-post .post-image { max-width: 100%; height: auto; }
+.aero-home .post-head { position: relative; }
+.aero-home .post-head:has(.post-report) .post-meta { padding-right: 44px; }
+.aero-home .post-report { position: absolute; top: 8px; right: 8px; min-width: 44px; min-height: 44px; padding: 8px; }
+.aero-home .feed-post:has(.post-report) .post-meta { min-height: 40px; }
 .aero-home .feed-delete { position: absolute; right: 8px; top: 8px; }
 .aero-home .inline-comments { padding: 10px; background: var(--aero-color-notice-surface); border: 1px solid var(--aero-color-border); border-radius: var(--aero-radius-control); overflow-wrap: anywhere; }
 .aero-home .inline-comment { display: flex; gap: 8px; margin-bottom: 10px; }
@@ -346,10 +350,8 @@ html:has(.aero-home)::-webkit-scrollbar-thumb:hover { border-color: #297cb8; bac
   .aero-app *::after { box-shadow: none !important; }
   /* Replace viewport-sized blur with a crisp contour; keep the inner glass highlight. */
   .aero-home .aero-fixed-frame { --aero-frame-shadow: 0 1px 0 1px var(--aero-color-shadow); }
-  html[data-aero-debug~="restore-frame-shadow"] .aero-home .aero-fixed-frame { --aero-frame-shadow: initial; }
   /* The full-document backdrop needs no blurred outer shadow; the fixed window keeps its own. */
   .aero-app.aero-home { box-shadow: none; }
-  html[data-aero-debug~="restore-page-shadow"] .aero-app.aero-home { box-shadow: 0 4px 20px var(--aero-color-shadow); }
   .aero-home .aero-fixed-frame::before { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .aero-home :is(.feed-tabs, .bottom-nav) { backdrop-filter: none; -webkit-backdrop-filter: none; }
   /* Keep the scrolling surface opaque while reducing overlapping paint layers. */
