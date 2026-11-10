@@ -46,7 +46,7 @@ export default function Header() {
 
   // If the window grows to desktop size, make sure no stale drawer stays open.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 901px)");
+    const mq = window.matchMedia("(min-width: 1101px)");
     const onChange = () => mq.matches && setOpen(false);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
@@ -82,7 +82,7 @@ export default function Header() {
           {user && (
             <>
               <Link to={`/u/${user.username}`} className="nav-link nav-profile">
-                <Avatar username={user.username} url={user.avatarUrl} size={26} />@{user.username}
+                <Avatar username={user.username} url={user.avatarUrl} size={26} /><span className="nav-profile-name">@{user.username}</span>
                 <PlusBadge plus={user.plus} />
               </Link>
               <button className="btn btn-ghost" onClick={confirmLogout}>

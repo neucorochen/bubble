@@ -13,6 +13,7 @@ import BottomNav from "./components/BottomNav";
 import Brand from "./components/BrandMark";
 import Icon from "./components/Icon";
 import { PageSkeleton } from "./components/Skeleton";
+import AeroDebug from "./components/AeroDebug";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
@@ -288,6 +289,7 @@ export default function App() {
   if (authPage) {
     return (
       <div className="aero-app aero-auth" data-theme="aero-blue">
+        {new URLSearchParams(window.location.search).get("aeroDebug") === "1" && <AeroDebug />}
         {skip}
         <RouteMeta />
         <PwaBanner />
@@ -306,6 +308,7 @@ export default function App() {
 
   return (
     <div className="aero-app aero-home" data-theme="aero-blue">
+      {new URLSearchParams(window.location.search).get("aeroDebug") === "1" && <AeroDebug />}
       <div className="aero-fixed-frame" aria-hidden="true" />
       <div className="aero-window">
       {(

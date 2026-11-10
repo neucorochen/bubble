@@ -149,10 +149,10 @@
   opacity: 1;
   box-shadow: none;
 }
-@media (min-width: 1100px) {
+@media (min-width: 1101px) {
   .aero-home .shell.has-left { grid-template-columns: 185px minmax(0, 1fr) 205px; }
 }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .aero-home .aero-window { backdrop-filter: none; }
   .aero-home { padding: 0; }
   .aero-home .aero-window { border-width: 2px; border-radius: 0; }
@@ -225,14 +225,14 @@
 .aero-home .inline-comments form > .btn { justify-self: end; }
 .aero-home :is(.composer-footer > .btn, .inline-comments form > .btn) { min-height: 36px; border-radius: 5px; background: var(--aero-gradient-button); }
 .aero-home :is(.composer-footer > .btn, .inline-comments form > .btn):disabled { background: var(--aero-color-disabled-surface); }
-@media (min-width: 901px) {
+@media (min-width: 1101px) {
   .aero-home .header { display: grid; grid-template-columns: 72px minmax(0, 1fr) auto; gap: 0; padding-inline: 12px; }
   .aero-home .header-search { margin: 0; width: 100%; max-width: 300px; }
 }
-@media (min-width: 1100px) {
+@media (min-width: 1101px) {
   .aero-home .header { grid-template-columns: 185px minmax(0, 1fr) 205px; }
 }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   /* A filtered ancestor would trap fixed mobile navigation and the drawer. */
   .aero-home .aero-window { backdrop-filter: none; -webkit-backdrop-filter: none; }
 }
@@ -271,9 +271,10 @@
 .aero-home .aero-window::before, .aero-home .aero-window::after { content: none; }
 .aero-home .aero-fixed-frame {
   position: fixed; top: var(--aero-frame-top); bottom: -24px; left: 50%; transform: translateX(-50%);
-  width: min(1120px, calc(100% - 24px)); pointer-events: none; z-index: 20;
+  /* Keep the shared inner contour above the sticky header (30) and banner (25). */
+  width: min(1120px, calc(100% - 24px)); pointer-events: none; z-index: 32;
   border: var(--aero-frame-edge) solid var(--aero-color-border-strong); border-radius: 9px 9px 0 0;
-  box-shadow: 0 5px 18px var(--aero-color-shadow), inset 0 0 0 1px var(--aero-color-highlight);
+  box-shadow: var(--aero-frame-shadow, 0 5px 18px var(--aero-color-shadow)), inset 0 0 0 1px var(--aero-color-highlight);
 }
 .aero-home .aero-fixed-frame::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 31px 8px 11px;
@@ -305,7 +306,7 @@
 .aero-home .shell.has-left .right-rail,
 .aero-home .feed-tabs { top: var(--aero-chrome-bottom, calc(var(--aero-frame-top) + var(--aero-frame-edge) + 31px + var(--header-h))); }
 .aero-home .shell.has-left .left-nav { height: auto; max-height: calc(100dvh - var(--aero-frame-top) - 31px - var(--header-h) - 12px); }
-@media (max-width: 900px) {
+@media (max-width: 1100px) {
   .aero-home { --aero-frame-top: 0px; --aero-frame-edge: 2px; }
   .aero-app.aero-home { padding: 0; }
   .aero-home .aero-fixed-frame { width: 100%; border-radius: 0; }
@@ -317,6 +318,43 @@ html:has(.aero-home)::-webkit-scrollbar { width: 16px; }
 html:has(.aero-home)::-webkit-scrollbar-track { background: rgb(193 227 246 / 65%); border-left: 1px solid #8bbbd7; }
 html:has(.aero-home)::-webkit-scrollbar-thumb { min-height: 40px; border: 1px solid #8bbbd7; border-radius: 4px; background: linear-gradient(90deg, #f6fcff, #d3eafa 48%, #bedff3 51%, #e8f8ff); box-shadow: inset 0 1px #fff; }
 html:has(.aero-home)::-webkit-scrollbar-thumb:hover { border-color: #297cb8; background: linear-gradient(90deg, #fff, #b8e3fa); }
+
+/* Keep the logo, search and account in separate, shrinkable tracks. */
+@media (min-width: 1101px) {
+  .aero-home .header { grid-template-columns: minmax(130px, 185px) minmax(0, 1fr) minmax(0, max-content); }
+  .aero-home .header > * { min-width: 0; }
+  .aero-home .header-right { max-width: min(35vw, 280px); gap: 4px; }
+  .aero-home .nav-profile { min-width: 0; overflow: hidden; }
+  .aero-home .nav-profile-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .aero-home .header-right > button { flex: 0 0 auto; }
+}
+@media (min-width: 1101px) and (max-width: 1239px) {
+  .aero-home .left-nav .side-label { position: static; width: auto; height: auto; clip: auto; overflow: visible; white-space: nowrap; }
+}
+.aero-home .nav-desktop .nav-link.active { background: var(--aero-gradient-tab-active); color: var(--aero-color-text-control); border-color: var(--aero-color-border-strong); }
+@media (max-width: 600px) {
+  .aero-home .feed-tabs { overflow: visible; }
+  .aero-home .feed-tabs .tab, .aero-home .feed-tabs .tab.active { display: flex; align-items: center; justify-content: center; min-height: 40px; height: auto; line-height: 1.25; padding: 6px; border-bottom: 1px solid var(--aero-color-border); white-space: normal; }
+}
+/* Firefox: avoid sampling scrolling content behind fixed and sticky layers. */
+@supports (-moz-appearance: none) {
+  /* Match the manually verified diagnostic override, including hover/focus and pseudo layers.
+     Keep this scoped to Aero; borders, gradients and text shadows remain intact. */
+  .aero-app,
+  .aero-app *,
+  .aero-app *::before,
+  .aero-app *::after { box-shadow: none !important; }
+  /* Replace viewport-sized blur with a crisp contour; keep the inner glass highlight. */
+  .aero-home .aero-fixed-frame { --aero-frame-shadow: 0 1px 0 1px var(--aero-color-shadow); }
+  html[data-aero-debug~="restore-frame-shadow"] .aero-home .aero-fixed-frame { --aero-frame-shadow: initial; }
+  /* The full-document backdrop needs no blurred outer shadow; the fixed window keeps its own. */
+  .aero-app.aero-home { box-shadow: none; }
+  html[data-aero-debug~="restore-page-shadow"] .aero-app.aero-home { box-shadow: 0 4px 20px var(--aero-color-shadow); }
+  .aero-home .aero-fixed-frame::before { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  .aero-home :is(.feed-tabs, .bottom-nav) { backdrop-filter: none; -webkit-backdrop-filter: none; }
+  /* Keep the scrolling surface opaque while reducing overlapping paint layers. */
+  .aero-home .shell { background: var(--aero-gradient-panel); background-color: var(--aero-color-canvas); }
+}
 @supports not selector(::-webkit-scrollbar) {
   html:has(.aero-home) { scrollbar-width: auto; scrollbar-color: #bedff3 #e4f3fc; }
 }
