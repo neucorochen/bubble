@@ -7,6 +7,12 @@ dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  COOKIE_SECURE: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) =>
+      value === undefined ? process.env.NODE_ENV === "production" : value === "true",
+    ),
   PORT: z.coerce.number().int().default(4000),
   MONGODB_URI: z.string().min(1),
   // The web app's address. A trailing slash is removed: browsers send Origin without one, and

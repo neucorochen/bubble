@@ -15,7 +15,9 @@ import { getAccessToken, tryRefresh } from "./api";
  * (new messages, "seen", typing, who is online, notifications). If it is not configured or drops,
  * the app keeps working by polling, and everything is refetched when the connection returns.
  */
-const URL = import.meta.env.VITE_REALTIME_URL?.trim().replace(/\/+$/, "");
+const URL = import.meta.env.PROD
+  ? window.location.origin
+  : import.meta.env.VITE_REALTIME_URL?.trim().replace(/\/+$/, "");
 export const realtimeEnabled = Boolean(URL);
 
 const TYPING_SHOWN_MS = 4000;

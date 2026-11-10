@@ -13,6 +13,7 @@ import { globalLimiter } from "./middleware/rateLimit.js";
 import { lemonSqueezyWebhook, rawBody } from "./controllers/paymentController.js";
 import { router } from "./routes/index.js";
 import { getObject } from "./services/storageService.js";
+import { Readable } from "node:stream";
 
 export function createApp() {
   const app = express();
@@ -100,7 +101,9 @@ export function createApp() {
 
       res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
 
-      object.Body.pipe(res);
+      Readable.fromWeb(
+        object.Body.transformToWebStream() as unknown as import("node:stream/web").ReadableStream,
+      ).pipe(res);
     }),
   );
 
