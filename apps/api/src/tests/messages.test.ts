@@ -137,7 +137,7 @@ describe("message routes", () => {
     expect(res.body.nextCursor).toBe(new Date(base + 2000).toISOString());
     // reading the latest page clears the unread counter
     expect(update).toHaveBeenCalledWith(
-      { _id: convoId.toString() },
+      { _id: convoId.toString(), [`unread.${ME}`]: 2, lastMessageAt: expect.any(Date) },
       { $set: { [`unread.${ME}`]: 0 } },
     );
   });

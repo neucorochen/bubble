@@ -22,21 +22,22 @@ export function setAccessToken(token: string | null) {
 }
 
 // ---- Session hint: lets the app skip, or start earlier, the "am I logged in?" round trip ----
-// "1" = this browser has a session, "0" = known guest, missing = unknown (ask the server once).
+// "1" = this browser has a session, "guest" = confirmed guest, unknown = ask the server once.
 // The hint is never trusted for access; the server still checks every request.
 const HINT_KEY = "commune_session";
-export type SessionHint = "1" | "0" | null;
+export type SessionHint = "1" | "guest" | null;
 
 export function readSessionHint(): SessionHint {
   try {
     const v = localStorage.getItem(HINT_KEY);
-    return v === "1" || v === "0" ? v : null;
+    // Older clients also wrote "0" on network errors. Recheck those browsers once.
+    return v === "guest" || v === "1" ? v : null;
   } catch {
     return null;
   }
 }
 
-export function writeSessionHint(hint: "1" | "0") {
+export function writeSessionHint(hint: Exclude<SessionHint, null>) {
   try {
     localStorage.setItem(HINT_KEY, hint);
   } catch {
@@ -54,18 +55,27 @@ function takeEarly(path: string): Promise<Response> | undefined {
   return hit;
 }
 
+export class SessionRestoreError extends Error {
+  constructor(public readonly retryAfterMs?: number) {
+    super("Не удалось проверить сеанс. Проверьте соединение и попробуйте ещё раз.");
+  }
+}
+
 async function refreshSession(): Promise<AuthResponse | null> {
   refreshing ??= (
     takeEarly("/auth/refresh") ??
     fetch(`${BASE}/auth/refresh`, { method: "POST", credentials: "include" })
   )
     .then(async (res) => {
-      if (!res.ok) return null;
+      if (res.status === 401) return null;
+      if (!res.ok) {
+        const seconds = Number(res.headers.get("Retry-After"));
+        throw new SessionRestoreError(seconds > 0 ? seconds * 1000 : undefined);
+      }
       const data = (await res.json()) as AuthResponse;
       accessToken = data.accessToken;
       return data;
     })
-    .catch(() => null)
     .finally(() => {
       refreshing = null;
     });
@@ -73,17 +83,14 @@ async function refreshSession(): Promise<AuthResponse | null> {
 }
 
 async function refresh(): Promise<boolean> {
-  return (await refreshSession()) !== null;
+  return (await refreshSession().catch(() => null)) !== null;
 }
 
 // Starts at page load (not after React renders) unless this browser is a known guest.
-let boot: Promise<AuthResponse | null> | null = readSessionHint() === "0" ? null : refreshSession();
-void boot?.finally(() => {
-  boot = null;
-});
-const bootPromise = boot;
-/** Resolves with the restored session (or null). Used once by the AuthProvider. */
-export const bootSession = (): Promise<AuthResponse | null> => bootPromise ?? Promise.resolve(null);
+const boot = readSessionHint() === "guest" ? Promise.resolve(null) : refreshSession();
+// The eager request can fail before React mounts. AuthProvider handles its original rejection.
+void boot.catch(() => undefined);
+export const bootSession = (retry = false) => retry ? refreshSession() : boot;
 
 /** Turns a stored upload path like "/uploads/x.png" into a URL the browser can load. */
 export function assetUrl(path: string | null | undefined): string | undefined {
@@ -102,17 +109,18 @@ export class ApiError extends Error {
 
 export async function api<T>(
   path: string,
-  options: { method?: string; body?: unknown } = {},
+  options: { method?: string; body?: unknown; signal?: AbortSignal } = {},
   retry = true,
 ): Promise<T> {
   const isForm = options.body instanceof FormData;
   // Requests that need a login wait for the session restore that is already in flight, instead
   // of going out without a token, failing with 401 and being repeated.
-  if (boot && !accessToken && !path.startsWith("/auth/")) await boot;
+  if (refreshing && !accessToken && !path.startsWith("/auth/")) await refreshing;
 
   const send = () =>
     fetch(`${BASE}${path}`, {
       method: options.method ?? "GET",
+      signal: options.signal,
       credentials: "include",
       headers: {
         // For FormData the browser sets the multipart Content-Type (with boundary) itself.

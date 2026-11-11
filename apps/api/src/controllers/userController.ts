@@ -20,12 +20,18 @@ export async function findByUsername(raw: string | undefined) {
 }
 
 async function buildProfile(user: Awaited<ReturnType<typeof findByUsername>>, viewerId: string) {
-  const [followerCount, followingCount, follows] = await Promise.all([
+  const [followerCount, followingCount, follows, followedBy] = await Promise.all([
     Follow.countDocuments({ following: user._id }),
     Follow.countDocuments({ follower: user._id }),
     Follow.exists({ follower: viewerId, following: user._id }),
+    Follow.exists({ follower: user._id, following: viewerId }),
   ]);
-  return toProfileDTO(user, { followerCount, followingCount }, Boolean(follows));
+  return toProfileDTO(
+    user,
+    { followerCount, followingCount },
+    Boolean(follows),
+    Boolean(followedBy),
+  );
 }
 
 export async function me(req: Request, res: Response) {
@@ -81,5 +87,26 @@ export async function toggleFollow(req: Request, res: Response) {
       if ((err as { code?: number }).code !== 11000) throw err;
     }
   }
+  res.json(await buildProfile(user, req.userId!));
+}
+
+/** Idempotent creation; the unique pair index arbitrates concurrent inserts. */
+export async function follow(req: Request, res: Response) {
+  const user = await findByUsername(req.params.username);
+  if (user._id.toString() === req.userId) throw badRequest("You can't follow yourself");
+  try {
+    await Follow.create({ follower: req.userId, following: user._id });
+    if (!(await Follow.exists({ follower: user._id, following: req.userId }))) {
+      await notify({ user: user._id, actor: req.userId!, type: "follow" });
+    }
+  } catch (err) {
+    if ((err as { code?: number }).code !== 11000) throw err;
+  }
+  res.json(await buildProfile(user, req.userId!));
+}
+
+export async function unfollow(req: Request, res: Response) {
+  const user = await findByUsername(req.params.username);
+  await Follow.findOneAndDelete({ follower: req.userId, following: user._id });
   res.json(await buildProfile(user, req.userId!));
 }

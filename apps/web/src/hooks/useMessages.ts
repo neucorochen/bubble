@@ -11,8 +11,9 @@ export function useConversations(enabled = true) {
     queryKey: ["conversations"],
     queryFn: () => api<ConversationDTO[]>("/messages"),
     enabled,
+    refetchOnWindowFocus: true,
     // The live connection delivers changes; polling is only a safety net while it is up.
-    refetchInterval: () => (isRealtimeConnected() ? 120_000 : 15_000),
+    refetchInterval: () => (isRealtimeConnected() ? 120_000 : 45_000),
   });
 }
 
@@ -22,18 +23,20 @@ export function useUnreadMessages(enabled: boolean) {
     queryKey: ["unread-messages"],
     queryFn: () => api<{ count: number }>("/messages/unread-count"),
     enabled,
+    refetchOnWindowFocus: true,
     refetchInterval: () => (isRealtimeConnected() ? 180_000 : 30_000),
   });
 }
 
-/** The newest page of a conversation: live through the socket, re-checked every 4 seconds without it. */
+/** Only the open conversation needs the shorter fallback interval. */
 export function useThread(id: string | undefined) {
   const qc = useQueryClient();
   return useQuery({
     queryKey: ["thread", id],
     enabled: Boolean(id),
-    queryFn: async () => {
-      const page = await api<ThreadPage>(`/messages/${id}`);
+    refetchOnWindowFocus: true,
+    queryFn: async ({ signal }) => {
+      const page = await api<ThreadPage>(`/messages/${id}`, { signal });
       // Opening a thread marks it read on the server, so refresh the badges when it mattered.
       if ((page.conversation?.unread ?? 0) > 0) {
         void qc.invalidateQueries({ queryKey: ["unread-messages"] });
@@ -41,7 +44,7 @@ export function useThread(id: string | undefined) {
       }
       return page;
     },
-    refetchInterval: () => (isRealtimeConnected() ? 60_000 : 4_000),
+    refetchInterval: () => (isRealtimeConnected() ? 60_000 : 15_000),
     refetchIntervalInBackground: false,
     staleTime: 0,
   });

@@ -10,6 +10,11 @@ const userSchema = new Schema(
     avatarUrl: { type: String, default: null, index: true, sparse: true },
     role: { type: String, enum: ["user", "admin"], default: "user" },
     banned: { type: Boolean, default: false },
+    friendsVisibility: {
+      type: String,
+      enum: ["everyone", "friends", "only_me"],
+      default: "everyone",
+    },
     // Google account id ("sub"). Unset for password-only accounts, so the unique index is sparse.
     googleId: { type: String, unique: true, sparse: true },
     // Commune Plus access runs until this moment. Set by the payment webhook and checked

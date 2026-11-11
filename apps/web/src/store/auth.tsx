@@ -2,7 +2,9 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 import type { ReactNode } from "react";
 import type { AuthResponse, LoginInput, PublicUser, RegisterInput } from "@commune/shared";
 import { releasePushOnLogout } from "../lib/push";
-import { api, bootSession, readSessionHint, setAccessToken, writeSessionHint } from "../lib/api";
+import { api, bootSession, readSessionHint, SessionRestoreError, setAccessToken, writeSessionHint } from "../lib/api";
+import { PageSkeleton } from "../components/Skeleton";
+import { useQueryClient } from "@tanstack/react-query";
 
 // The last known profile, shown instantly on the next visit while the session is re-checked.
 const USER_KEY = "commune_user";
@@ -37,14 +39,11 @@ interface AuthState {
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // With a cached profile the app renders as logged in straight away (left menu, feed shell)
-  // and the session is confirmed in the background. Known guests never wait at all.
+  const qc = useQueryClient();
   const [user, setUserState] = useState<PublicUser | null>(readCachedUser);
-  // Wait only when there is nothing to show yet: first visit (unknown) or a session without a cached profile.
-  const [loading, setLoading] = useState(() => {
-    const hint = readSessionHint();
-    return hint === null || (hint === "1" && readCachedUser() === null);
-  });
+  const [loading, setLoading] = useState(() => readSessionHint() !== "guest");
+  const [restoreAttempt, setRestoreAttempt] = useState(0);
+  const [restoreFailed, setRestoreFailed] = useState(false);
 
   const setUser = useCallback((next: PublicUser | null) => {
     cacheUser(next);
@@ -53,29 +52,48 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let alive = true;
-    void bootSession().then((res) => {
+    let timer: number | undefined;
+    const retry = () => setRestoreAttempt((attempt) => attempt + 1);
+    setRestoreFailed(false);
+    void bootSession(restoreAttempt > 0).then((res) => {
       if (!alive) return;
       if (res) {
+        if (readCachedUser()?.id !== res.user.id) qc.clear();
         writeSessionHint("1");
         setUser(res.user);
       } else {
-        writeSessionHint("0");
+        qc.clear();
+        writeSessionHint("guest");
         setUser(null);
       }
       setLoading(false);
+    }).catch((error: unknown) => {
+      if (!alive) return;
+      setRestoreFailed(true);
+      // Honour the API's cooldown. Other transient failures get one automatic retry.
+      const delay = error instanceof SessionRestoreError ? error.retryAfterMs : undefined;
+      if (delay || restoreAttempt === 0) timer = window.setTimeout(retry, delay ?? 3000);
+      window.addEventListener("online", retry, { once: true });
     });
     return () => {
       alive = false;
+      window.clearTimeout(timer);
+      window.removeEventListener("online", retry);
     };
-  }, [setUser]);
+  }, [setUser, qc, restoreAttempt]);
 
   const apply = useCallback(
     (res: AuthResponse) => {
+      qc.clear();
+      qc.removeQueries({ queryKey: ["friends-access"] });
+      qc.removeQueries({ queryKey: ["friends-list"] });
+      qc.removeQueries({ queryKey: ["relationships"] });
+      qc.removeQueries({ queryKey: ["profile"] });
       setAccessToken(res.accessToken);
       writeSessionHint("1");
       setUser(res.user);
     },
-    [setUser],
+    [setUser, qc],
   );
 
   const login = useCallback(
@@ -104,14 +122,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await releasePushOnLogout();
     await api("/auth/logout", { method: "POST" }).catch(() => undefined);
     setAccessToken(null);
-    writeSessionHint("0");
+    qc.clear();
+    qc.removeQueries({ queryKey: ["friends-access"] });
+    qc.removeQueries({ queryKey: ["friends-list"] });
+    qc.removeQueries({ queryKey: ["relationships"] });
+    qc.removeQueries({ queryKey: ["profile"] });
+    writeSessionHint("guest");
     setUser(null);
-  }, [setUser]);
+  }, [setUser, qc]);
 
   const value = useMemo(
     () => ({ user, loading, login, register, loginWithGoogle, logout, setUser }),
     [user, loading, login, register, loginWithGoogle, logout, setUser],
   );
+  if (restoreFailed) return (
+    <main role="alert" className="card">
+      <p>Не удалось проверить сеанс. Попробуйте ещё раз чуть позже.</p>
+      <button className="btn" onClick={() => setRestoreAttempt((attempt) => attempt + 1)}>Повторить</button>
+    </main>
+  );
+  if (loading) return <PageSkeleton />;
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 

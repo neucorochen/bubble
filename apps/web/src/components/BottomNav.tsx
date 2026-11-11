@@ -6,10 +6,14 @@ import { useUnreadCount } from "../hooks/useSocial";
 import { useUnreadMessages } from "../hooks/useMessages";
 import { navigationFor } from "../lib/navigation";
 import { type IconName } from "./Icon";
+import { useQueryClient } from "@tanstack/react-query";
+import { useLocation } from "react-router-dom";
 
 /** App-style tab bar for members on phones and tablets. The menu button holds everything else. */
 export default function BottomNav() {
   const { user } = useAuth();
+  const qc = useQueryClient();
+  const location = useLocation();
   const notifications = useUnreadCount(Boolean(user));
   const messages = useUnreadMessages(Boolean(user));
   if (!user) return null;
@@ -20,6 +24,7 @@ export default function BottomNav() {
   const tab = (to: string, icon: IconName, label: string, count = 0, end = false) => (
     <NavLink
       to={to}
+      onClick={() => { if (to === "/" && location.pathname === "/") { void qc.invalidateQueries({ queryKey: ["feed", "all"] }); void qc.invalidateQueries({ queryKey: ["feed", "following"] }); } }}
       onPointerEnter={() => prefetchRoute(to)}
       onTouchStart={() => prefetchRoute(to)}
       onFocus={() => prefetchRoute(to)}

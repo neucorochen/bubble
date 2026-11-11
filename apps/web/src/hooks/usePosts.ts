@@ -14,6 +14,9 @@ export type FeedType = "all" | "following";
 export function useFeed(feed: FeedType = "all") {
   return useInfiniteQuery({
     queryKey: ["feed", feed],
+    staleTime: 0,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
     initialPageParam: undefined as string | undefined,
     queryFn: ({ pageParam }) =>
       api<Page<PostDTO>>(withQuery("/posts", { feed, cursor: pageParam })),

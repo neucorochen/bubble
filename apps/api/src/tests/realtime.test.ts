@@ -116,12 +116,14 @@ describe("POST /api/messages/:id/read", () => {
         lastMessageAt: new Date(),
         unread: { [ME]: 3 },
       })) as never);
-    const update = vi.spyOn(Conversation, "updateOne").mockResolvedValue({} as never);
+    const update = vi.spyOn(Conversation, "updateOne")
+      .mockResolvedValueOnce({ modifiedCount: 1 } as never)
+      .mockResolvedValue({ modifiedCount: 0 } as never);
 
     const res = await request(app).post(`/api/messages/${convoId}/read`).set(auth);
     expect(res.status).toBe(204);
     expect(update).toHaveBeenCalledWith(
-      { _id: convoId.toString() },
+      { _id: convoId.toString(), [`unread.${ME}`]: 3, lastMessageAt: expect.any(Date) },
       { $set: { [`unread.${ME}`]: 0 } },
     );
     const body = JSON.parse(
@@ -132,6 +134,9 @@ describe("POST /api/messages/:id/read", () => {
       event: "message:read",
       payload: { conversationId: convoId.toString(), readerId: ME },
     });
+    // Another reader saw the same snapshot, but its conditional write no longer matches.
+    expect((await request(app).post(`/api/messages/${convoId}/read`).set(auth)).status).toBe(204);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("does nothing when there was nothing unread", async () => {

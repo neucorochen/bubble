@@ -128,8 +128,6 @@
 .aero-auth .btn:not(.btn-ghost) { background: var(--aero-gradient-button); border: 1px solid var(--aero-color-border-strong); color: var(--aero-color-text-control); border-radius: var(--aero-radius-control); }
 .aero-auth :is(input, textarea):focus-visible { outline: 2px solid var(--aero-color-focus); outline-offset: 2px; }
 
-/* Fill a short window without constraining long content. */
-.aero-home .shell { min-height: calc(100dvh - var(--aero-chrome-bottom, 108px)); }
 .aero-app.aero-home .aero-window { border-bottom-width: 0; }
 .aero-auth .auth-main .auth { background: transparent; border: 0; box-shadow: none; }
 .aero-app :is(.container, .auth-main) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select):focus { outline: none; box-shadow: none; border-color: var(--aero-color-border-strong); }
@@ -139,7 +137,7 @@
 /* A thread stays in view while its history, rather than the whole thread, scrolls. */
 .aero-home .chat { height: auto; min-height: 0; align-items: start; }
 .aero-home .chat-list { overflow: visible; }
-.aero-home .chat-thread { position: sticky; top: var(--aero-chrome-bottom, 108px); height: max(220px, calc(100dvh - var(--aero-chrome-bottom, 108px) - 12px)); min-height: 0; }
+.aero-home .chat-thread { position: sticky; top: 12px; height: max(220px, calc(100cqb - 24px)); min-height: 0; }
 .aero-home .chat-messages { min-height: 0; overflow-y: auto; }
 .aero-home .chat-messages::-webkit-scrollbar { width: 16px; }
 .aero-home .chat-messages::-webkit-scrollbar-track { background: rgb(193 227 246 / 65%); border-left: 1px solid #8bbbd7; }
@@ -147,7 +145,7 @@
 .aero-home .chat-messages::-webkit-scrollbar-thumb:hover { border-color: #297cb8; background: linear-gradient(90deg, #fff, #b8e3fa); }
 @media (max-width: 767px) {
   .aero-home .chat.chat-open { height: auto; }
-  .aero-home .chat:not(.chat-open) .chat-list { min-height: calc(100dvh - var(--aero-chrome-bottom, 93px) - 100px); }
+  .aero-home .chat:not(.chat-open) .chat-list { min-height: calc(100cqb - 24px); }
 }
 
 .aero-app .side-link .side-label, .aero-app .drawer-links .nav-link { white-space: nowrap; }

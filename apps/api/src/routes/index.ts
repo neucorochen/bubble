@@ -21,6 +21,9 @@ import {
   paginationSchema,
   registerSchema,
   reportQuerySchema,
+  relationshipsQuerySchema,
+  friendsQuerySchema,
+  updateFriendsVisibilitySchema,
   resetPasswordSchema,
   resolveReportSchema,
   searchQuerySchema,
@@ -47,6 +50,7 @@ import * as publicApi from "../controllers/publicController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
 import * as users from "../controllers/userController.js";
+import * as relationships from "../controllers/relationshipController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
 import {
   authLimiter,
@@ -172,7 +176,28 @@ router.patch(
   asyncHandler(users.updateMe),
 );
 router.get("/users/me/earnings", requireAuth, asyncHandler(payments.earnings));
+router.patch(
+  "/users/me/friends-visibility",
+  requireAuth,
+  validate(updateFriendsVisibilitySchema),
+  requireActive,
+  asyncHandler(relationships.updateVisibility),
+);
+router.get(
+  "/users/me/relationships",
+  requireAuth,
+  validate(relationshipsQuerySchema, "query"),
+  asyncHandler(relationships.list),
+);
 router.get("/users/:username", requireAuth, asyncHandler(users.getProfile));
+router.get("/users/me/relationships/counts", requireAuth, asyncHandler(relationships.counts));
+router.get("/users/:username/friends/access", requireAuth, asyncHandler(relationships.access));
+router.get(
+  "/users/:username/friends",
+  requireAuth,
+  validate(friendsQuerySchema, "query"),
+  asyncHandler(relationships.friends),
+);
 router.get(
   "/users/:username/posts",
   requireAuth,
@@ -185,6 +210,8 @@ router.post(
   requireActive,
   asyncHandler(users.toggleFollow),
 );
+router.put("/users/:username/follow", requireAuth, requireActive, asyncHandler(users.follow));
+router.delete("/users/:username/follow", requireAuth, requireActive, asyncHandler(users.unfollow));
 
 // Notifications
 router.get("/notifications", requireAuth, asyncHandler(notifications.list));

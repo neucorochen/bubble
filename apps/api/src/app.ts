@@ -48,7 +48,7 @@ export function createApp() {
       crossOriginResourcePolicy: { policy: "cross-origin" },
     }),
   );
-  app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true }));
+  app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true, exposedHeaders: ["Retry-After"] }));
   app.use(globalLimiter);
 
   // Uploaded images. File names are random, so they can be cached for a long time.

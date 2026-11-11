@@ -19,6 +19,7 @@ const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
+const FriendsPage = lazy(() => import("./pages/FriendsPage"));
 const NotificationsPage = lazy(() => import("./pages/NotificationsPage"));
 const AdminPage = lazy(() => import("./pages/AdminPage"));
 const ForgotPasswordPage = lazy(() => import("./pages/ForgotPasswordPage"));
@@ -44,6 +45,7 @@ const TITLES: Record<string, string> = {
   "/communities": "Сообщества",
   "/notifications": "Уведомления",
   "/search": "Поиск",
+  "/friends": "Друзья",
   "/login": "Вход",
   "/register": "Регистрация",
   "/forgot-password": "Восстановление пароля",
@@ -124,6 +126,8 @@ function AppRoutes() {
             </Protected>
           }
         />
+        <Route path="/friends" element={<Protected><FriendsPage /></Protected>} />
+        <Route path="/friends/:username" element={<Protected><FriendsPage /></Protected>} />
         <Route
           path="/notifications"
           element={
@@ -236,42 +240,6 @@ export default function App() {
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
   const signedIn = Boolean(user);
-  const aeroHome = !authPage;
-  useEffect(() => {
-    if (!aeroHome) return;
-    const home = document.querySelector<HTMLElement>(".aero-home");
-    const shell = home?.querySelector<HTMLElement>(".shell");
-    const header = home?.querySelector<HTMLElement>(".header");
-    if (!home || !shell || !header) return;
-    let frame = 0;
-    const update = () => {
-      frame = 0;
-      const banner = home.querySelector<HTMLElement>(".aero-window > .banner");
-      const top = header.getBoundingClientRect().bottom + (banner?.offsetHeight ?? 0);
-      const rect = shell.getBoundingClientRect();
-      home.style.setProperty("--aero-chrome-bottom", `${top}px`);
-      home.style.setProperty("--aero-shell-cut-top", `${Math.max(0, top - rect.top)}px`);
-      home.style.setProperty("--aero-shell-cut-bottom", `${Math.max(0, rect.bottom - window.innerHeight + 11)}px`);
-    };
-    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
-    const observer = new ResizeObserver(schedule);
-    observer.observe(shell);
-    observer.observe(header);
-    const banner = home.querySelector<HTMLElement>(".aero-window > .banner");
-    if (banner) observer.observe(banner);
-    update();
-    window.addEventListener("scroll", schedule, { passive: true });
-    window.addEventListener("resize", schedule);
-    window.addEventListener("pageshow", schedule);
-    return () => {
-      cancelAnimationFrame(frame);
-      observer.disconnect();
-      window.removeEventListener("scroll", schedule);
-      window.removeEventListener("resize", schedule);
-      window.removeEventListener("pageshow", schedule);
-      for (const key of ["--aero-chrome-bottom", "--aero-shell-cut-top", "--aero-shell-cut-bottom"]) home.style.removeProperty(key);
-    };
-  }, [aeroHome]);
   // Once signed in, quietly download the most-used pages so tapping them is instant.
   useEffect(() => {
     if (signedIn) prefetchLikelyRoutes();
@@ -320,7 +288,12 @@ export default function App() {
       <Header />
       <VerifyBanner />
       <PwaBanner />
-      <div className={`shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}>
+      <div
+        className={`shell${user ? " has-left" : ""}${wide ? " wide" : ""}`}
+        role="region"
+        aria-label="Содержимое окна"
+        tabIndex={0}
+      >
         {user && <LeftNav />}
         <main id="main" tabIndex={-1} className="container">
           <AppRoutes />
