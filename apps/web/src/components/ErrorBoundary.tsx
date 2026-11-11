@@ -49,10 +49,11 @@ export default class ErrorBoundary extends Component<{ children: ReactNode }, St
         role="alert"
         style={{ margin: "20vh auto 0", maxWidth: 420, padding: 24 }}
       >
-        <h1 className="page-title">Something went wrong</h1>
-        <p className="muted">The problem has been reported. Reloading usually fixes it.</p>
+        <h1 className="page-title">Что-то пошло не так</h1>
+        <p className="muted">Мы получили сообщение об ошибке. Обычно помогает перезагрузка.</p>
         <button className="btn btn-primary" onClick={() => window.location.assign("/")}>
-          Reload Commune
+
+          Перезагрузить Bubble
         </button>
       </div>
     );

@@ -15,7 +15,7 @@ import { useAuth } from "../store/auth";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
 
-export default function Composer({ communitySlug }: { communitySlug?: string }) {
+export default function Composer({ communitySlug, allowPaid = true }: { communitySlug?: string; allowPaid?: boolean }) {
   const { user } = useAuth();
   const MAX = user?.plus ? PLUS_POST_LENGTH : FREE_POST_LENGTH;
   const [content, setContent] = useState("");
@@ -100,7 +100,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
 
   const priceCents = Math.round(Number(price) * 100);
   const priceOk = priceCents >= MIN_PRICE_CENTS && priceCents <= MAX_PRICE_CENTS;
-  const paidOk = !paid || (priceOk && premium.trim().length > 0);
+  const paidOk = !allowPaid || !paid || (priceOk && premium.trim().length > 0);
   const canPost = (content.trim().length > 0 || imageUrl !== null) && !upload.isPending && paidOk;
 
   const submit = (e: FormEvent) => {
@@ -111,7 +111,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
         content,
         imageUrl,
         ...(communitySlug ? { community: communitySlug } : {}),
-        ...(paid ? { priceCents, premiumContent: premium } : {}),
+        ...(allowPaid && paid ? { priceCents, premiumContent: premium } : {}),
       },
       {
         onSuccess: () => {
@@ -142,19 +142,20 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder={
-            communitySlug ? `Post in c/${communitySlug}` : "What's happening in your community?"
+            communitySlug ? `Запись в c/${communitySlug}` : "Что нового? Поделитесь со всеми!"
           }
           maxLength={MAX}
           rows={2}
-          aria-label="Write a post"
+          aria-label="Написать запись"
           onPaste={onPaste}
         />
       </div>
 
-      {paid && (
+      {allowPaid && paid && (
         <div className="paid-fields">
           <label>
-            Price (USD, {MIN_PRICE_CENTS / 100} to {MAX_PRICE_CENTS / 100})
+
+            Цена (USD, от {MIN_PRICE_CENTS / 100} до {MAX_PRICE_CENTS / 100})
             <input
               type="number"
               min={MIN_PRICE_CENTS / 100}
@@ -167,22 +168,22 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
           <textarea
             value={premium}
             onChange={(e) => setPremium(e.target.value)}
-            placeholder="The content people pay to unlock. The text above stays free as a teaser."
+            placeholder="Платное содержимое. Текст выше останется бесплатным для ознакомления."
             maxLength={MAX_PREMIUM_LENGTH}
             rows={4}
           />
-          {!priceOk && <p className="error">Enter a price within the range.</p>}
+          {!priceOk && <p className="error">Укажите цену в допустимом диапазоне.</p>}
         </div>
       )}
 
       {(preview || imageUrl) && (
         <div className="image-preview">
-          <img src={preview ?? assetUrl(imageUrl)} alt="Attached preview" />
+          <img src={preview ?? assetUrl(imageUrl)} alt="Предпросмотр вложения" />
           {upload.isPending && (
             <div
               className="upload-progress"
               role="progressbar"
-              aria-label="Uploading image"
+              aria-label="Загрузка изображения"
               aria-valuemin={0}
               aria-valuemax={100}
               aria-valuenow={upload.progress ?? 0}
@@ -193,7 +194,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
           <button
             type="button"
             className="image-remove"
-            aria-label="Remove image"
+            aria-label="Удалить изображение"
             onClick={removeImage}
           >
             ×
@@ -202,7 +203,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
       )}
       {upload.isPending && (
         <p className="muted small" role="status">
-          {upload.progress ? `Uploading… ${upload.progress}%` : "Preparing photo…"}
+          {upload.progress ? `Загрузка… ${upload.progress}%` : "Подготовка фотографии…"}
         </p>
       )}
       {imageError && (
@@ -210,7 +211,7 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
           {imageError}{" "}
           {lastFile && !upload.isPending && (
             <button type="button" className="link-btn" onClick={() => handleFile(lastFile)}>
-              Try again
+              Попробовать снова
             </button>
           )}
         </p>
@@ -230,20 +231,22 @@ export default function Composer({ communitySlug }: { communitySlug?: string }) 
             className="btn btn-ghost"
             onClick={() => fileRef.current?.click()}
             disabled={upload.isPending}
-            aria-label="Attach an image"
+            aria-label="Прикрепить изображение"
           >
-            <Icon name="image" size={20} /> Photo
+            <Icon name="image" size={20} /> Фото
           </button>
+          {allowPaid && (<>
           <label className="row paid-toggle">
             <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />
-            Paid
+            Платная запись
           </label>
           <span className="muted">
             {content.length}/{MAX}
           </span>
+          </>)}
         </span>
         <button className="btn" disabled={create.isPending || !canPost}>
-          {create.isPending ? "Posting…" : "Post"}
+          {create.isPending ? "Публикация…" : "Опубликовать"}
         </button>
       </div>
       {create.isError && <p className="error">{create.error.message}</p>}

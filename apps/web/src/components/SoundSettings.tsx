@@ -11,8 +11,8 @@ export default function SoundSettings() {
   };
 
   return (
-    <section className="card sound-settings" aria-label="Notification sounds">
-      <h2 className="push-title">Sounds</h2>
+    <section className="card sound-settings" aria-label="Звуки уведомлений">
+      <h2 className="push-title">Звуки</h2>
       <label className="check">
         <input
           type="checkbox"
@@ -22,10 +22,10 @@ export default function SoundSettings() {
             setSoundPrefs({ enabled: e.target.checked });
           }}
         />
-        <span>Play a chime for new messages and notifications</span>
+        <span>Воспроизводить звук для новых сообщений и уведомлений</span>
       </label>
       <label className="sound-volume">
-        <span>Volume</span>
+        <span>Громкость</span>
         <input
           type="range"
           min={0}
@@ -33,21 +33,24 @@ export default function SoundSettings() {
           step={5}
           value={Math.round(prefs.volume * 100)}
           disabled={!prefs.enabled}
-          aria-label="Chime volume"
+          aria-label="Громкость звука"
           onChange={(e) => setSoundPrefs({ volume: Number(e.target.value) / 100 })}
         />
         <span className="muted small">{Math.round(prefs.volume * 100)}%</span>
       </label>
       <div className="row">
         <button className="btn btn-outline" onClick={() => preview("message")}>
-          Hear message chime
+
+          Прослушать звук сообщения
         </button>
         <button className="btn btn-outline" onClick={() => preview("notification")}>
-          Hear notification chime
+
+          Прослушать звук уведомления
         </button>
       </div>
       <p className="muted small">
-        Saved on this device. Chimes stay quiet while you are looking at the conversation.
+
+        Настройки сохранены на этом устройстве. При открытой переписке звук не воспроизводится.
       </p>
     </section>
   );

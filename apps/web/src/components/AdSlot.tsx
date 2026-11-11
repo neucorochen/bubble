@@ -61,8 +61,8 @@ export default function AdSlot({ slot }: { slot: string | undefined }) {
 
   if (!enabled) return null;
   return (
-    <aside className="ad-slot" aria-label="Advertisement">
-      <span className="ad-label">Advertisement</span>
+    <aside className="ad-slot" aria-label="Реклама">
+      <span className="ad-label">Реклама</span>
       <ins
         className="adsbygoogle"
         style={{ display: "block" }}

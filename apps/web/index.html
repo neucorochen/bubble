@@ -1,15 +1,15 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
 
-    <title>Commune: an open source community platform</title>
+    <title>Bubble — открытая платформа сообществ</title>
     <meta
       name="description"
-      content="Commune is an open source community platform. Share posts, follow people and join the conversation."
+      content="Bubble — открытая платформа сообществ. Публикуйте записи, подписывайтесь и общайтесь."
     />
-    <meta name="application-name" content="Commune" />
+    <meta name="application-name" content="Bubble" />
 
     <!-- Browser UI colours follow the user's light or dark setting. -->
     <meta name="color-scheme" content="light dark" />
@@ -29,14 +29,14 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Commune" />
+    <meta name="apple-mobile-web-app-title" content="Bubble" />
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="format-detection" content="telephone=no" />
 
     <!-- Link previews. Add og:image (an absolute https URL to a 1200x630 image) once you have one. -->
     <meta property="og:type" content="website" />
-    <meta property="og:site_name" content="Commune" />
-    <meta property="og:title" content="Commune" />
+    <meta property="og:site_name" content="Bubble" />
+    <meta property="og:title" content="Bubble" />
     <meta
       property="og:description"
       content="An open source community platform. Share posts, follow people and join the conversation."
@@ -45,57 +45,13 @@
     <link rel="canonical" href="https://commune-mu.vercel.app/" />
     <meta property="og:url" content="https://commune-mu.vercel.app/" />
 
-    <!-- Paint the right background immediately, so there is no white flash before the CSS loads. -->
+    <!-- Aero fallback remains visible until React replaces #root. -->
     <style>
-      html,
-      body {
-        margin: 0;
-        background: #f3f4f9;
-      }
-      @media (prefers-color-scheme: dark) {
-        html,
-        body {
-          background: #0b0d13;
-          color: #eceef5;
-        }
-      }
-      .boot-header {
-        display: flex;
-        align-items: center;
-        height: 57px;
-        padding: 0 20px;
-        background: #fff;
-        border-bottom: 1px solid #e2e5ee;
-        font:
-          700 1.2rem system-ui,
-          sans-serif;
-        color: #12141c;
-      }
-      .boot-body {
-        max-width: 620px;
-        margin: 0 auto;
-        padding: 24px 16px;
-        font-family: system-ui, sans-serif;
-        color: #596073;
-      }
-      .boot-body h1 {
-        margin: 0 0 8px;
-        font-size: 1.4rem;
-        color: #12141c;
-      }
-      @media (prefers-color-scheme: dark) {
-        .boot-header {
-          background: #141822;
-          border-color: #262b3b;
-          color: #eceef5;
-        }
-        .boot-body {
-          color: #9aa2b7;
-        }
-        .boot-body h1 {
-          color: #eceef5;
-        }
-      }
+      html, body { margin: 0; background: #e4f3fc; color: #123b60; }
+      #root > .boot-header, #root > .boot-body { box-sizing: border-box; width: min(100% - 24px, 1104px); margin-inline: auto; font-family: "Segoe UI", system-ui, sans-serif; }
+      #root > .boot-header { margin-top: 16px; padding: 15px 20px; color: white; font-size: 1.2rem; font-weight: 700; background: linear-gradient(#19beef, #0076c8 49%, #0056a6 51%, #008ed0); border: 1px solid #297cb8; border-radius: 8px 8px 0 0; }
+      #root > .boot-body { min-height: 200px; padding: 24px; background: linear-gradient(135deg, #f8fdff, #d7effc); border: 1px solid #8bbbd7; border-top: 0; }
+      #root > .boot-body h1 { margin: 0 0 8px; font-size: 1.4rem; }
     </style>
 
     <!--
@@ -138,16 +94,15 @@
   </head>
   <body>
     <div id="root">
-      <div class="boot-header">Commune</div>
+      <div class="boot-header">Bubble</div>
       <div class="boot-body">
-        <h1>Commune</h1>
+        <h1>Bubble</h1>
         <p>
-          An open source community platform. Share posts, follow people, join communities and read
-          the latest news.
+          Открытая платформа сообществ. Публикуйте записи, подписывайтесь, вступайте в сообщества и читайте новости.
         </p>
       </div>
     </div>
-    <noscript>Commune needs JavaScript to run. Please enable it in your browser settings.</noscript>
+    <noscript>Для работы Bubble включите JavaScript в настройках браузера.</noscript>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

@@ -21,7 +21,7 @@ export default function VerifyEmailPage() {
     const parsed = verifyEmailSchema.safeParse({ token: params.get("token") ?? "" });
     if (!parsed.success) {
       setStatus("failed");
-      setMessage("This confirmation link is invalid.");
+      setMessage("Ссылка подтверждения недействительна.");
       return;
     }
     api("/auth/verify-email", { method: "POST", body: parsed.data })
@@ -32,31 +32,34 @@ export default function VerifyEmailPage() {
       })
       .catch((err: unknown) => {
         setStatus("failed");
-        setMessage(err instanceof Error ? err.message : "Something went wrong");
+        setMessage(err instanceof Error ? err.message : "Что-то пошло не так");
       });
   }, [params, user, setUser]);
 
   return (
     <div className="card auth">
-      {status === "working" && <p className="muted center">Confirming your email…</p>}
+      {status === "working" && <p className="muted center">Подтверждаем почту…</p>}
       {status === "done" && (
         <>
-          <h1>Email confirmed</h1>
-          <p>Thanks, your address is verified.</p>
+          <h1>Почта подтверждена</h1>
+          <p>Спасибо, ваш адрес подтверждён.</p>
           <Link className="btn block" to="/">
-            Go to Commune
+
+            Перейти в Bubble
           </Link>
         </>
       )}
       {status === "failed" && (
         <>
-          <h1>Couldn't confirm</h1>
+          <h1>Не удалось подтвердить почту</h1>
           <p className="error">{message}</p>
           <p className="muted">
-            Log in and use the "Resend" button in the banner to get a fresh link.
+
+            Войдите и нажмите кнопку повторной отправки в уведомлении, чтобы получить новую ссылку.
           </p>
           <Link className="btn block" to="/login">
-            Log in
+
+            Войти
           </Link>
         </>
       )}

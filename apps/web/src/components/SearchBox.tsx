@@ -1,3 +1,4 @@
+import Icon from "./Icon";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -16,12 +17,13 @@ export default function SearchBox() {
 
   return (
     <form className="search-box" role="search" onSubmit={submit}>
+      <span className="search-field-icon"><Icon name="search" size={16} /></span>
       <input
         type="search"
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="Search people and posts"
-        aria-label="Search people and posts"
+        placeholder="Поиск людей и записей"
+        aria-label="Поиск людей и записей"
         maxLength={50}
       />
     </form>

@@ -69,10 +69,11 @@ function Composer({
           placeholder={placeholder}
           rows={1}
           maxLength={MESSAGE_MAX_LENGTH}
-          aria-label="Message"
+          aria-label="Сообщение"
         />
         <button className="btn" disabled={busy || !text.trim()}>
-          Send
+
+          Отправить
         </button>
       </div>
       {text.length > MESSAGE_MAX_LENGTH - 200 && (
@@ -168,13 +169,13 @@ function Thread({ id }: { id: string }) {
 
   if (thread.isLoading) return <ThreadSkeleton />;
   if (thread.isError || !thread.data)
-    return <p className="error center">Conversation not found.</p>;
+    return <p className="error center">Переписка не найдена.</p>;
   const other = thread.data.conversation?.other;
 
   return (
     <>
       <div className="chat-head">
-        <Link to="/messages" className="icon-btn chat-back" aria-label="Back to conversations">
+        <Link to="/messages" className="icon-btn chat-back" aria-label="К списку переписок">
           ←
         </Link>
         {other && (
@@ -185,10 +186,10 @@ function Thread({ id }: { id: string }) {
                 @{other.username} <PlusBadge plus={other.plus} />
               </strong>
               {typing ? (
-                <span className="chat-status typing-label">typing…</span>
+                <span className="chat-status typing-label">печатает…</span>
               ) : online ? (
                 <span className="chat-status">
-                  <span className="presence-dot" aria-hidden="true" /> Online
+                  <span className="presence-dot" aria-hidden="true" />  В сети
                 </span>
               ) : null}
             </span>
@@ -203,10 +204,10 @@ function Thread({ id }: { id: string }) {
             onClick={() => void showOlder()}
             disabled={loadingOlder}
           >
-            {loadingOlder ? "Loading…" : "Load earlier messages"}
+            {loadingOlder ? "Загрузка…" : "Загрузить предыдущие сообщения"}
           </button>
         )}
-        {messages.length === 0 && <p className="muted center">No messages yet. Say hello!</p>}
+        {messages.length === 0 && <p className="muted center">Сообщений пока нет. Поздоровайтесь!</p>}
         {messages.map((m) => {
           const mine = m.senderId === user?.id;
           const pending = m.id.startsWith(PENDING_PREFIX);
@@ -220,15 +221,15 @@ function Thread({ id }: { id: string }) {
                 <time
                   className="bubble-time"
                   dateTime={m.createdAt}
-                  title={new Date(m.createdAt).toLocaleString()}
+                  title={new Date(m.createdAt).toLocaleString("ru-RU")}
                 >
-                  {pending ? "Sending…" : timeAgo(m.createdAt)}
+                  {pending ? "Отправка…" : timeAgo(m.createdAt)}
                 </time>
                 {mine &&
                   m.id === lastMineId &&
                   !pending &&
                   thread.data?.conversation?.seenByOther && (
-                    <span className="bubble-seen">Seen</span>
+                    <span className="bubble-seen">Прочитано</span>
                   )}
               </div>
             </div>
@@ -236,7 +237,7 @@ function Thread({ id }: { id: string }) {
         })}
         {typing && (
           <div className="bubble-row" aria-live="polite">
-            <div className="bubble typing-bubble" aria-label="Typing">
+            <div className="bubble typing-bubble" aria-label="Печатает">
               <i />
               <i />
               <i />
@@ -247,7 +248,7 @@ function Thread({ id }: { id: string }) {
       </div>
 
       <Composer
-        placeholder="Write a message…"
+        placeholder="Напишите сообщение…"
         busy={false}
         error={send.isError ? send.error.message : null}
         onTyping={() => noteTyping(id)}
@@ -268,16 +269,16 @@ function NewChat({ username }: { username: string }) {
   return (
     <>
       <div className="chat-head">
-        <Link to="/messages" className="icon-btn chat-back" aria-label="Back to conversations">
+        <Link to="/messages" className="icon-btn chat-back" aria-label="К списку переписок">
           ←
         </Link>
-        <strong>New message to @{username}</strong>
+        <strong>Новое сообщение для @{username}</strong>
       </div>
       <div className="chat-messages">
-        <p className="muted center">Say hello to @{username}. Be kind; people can report abuse.</p>
+        <p className="muted center">Поздоровайтесь с @{username}. Соблюдайте правила общения: пользователи могут пожаловаться на нарушения.</p>
       </div>
       <Composer
-        placeholder={`Message @${username}…`}
+        placeholder={`Сообщение для @${username}…`}
         busy={start.isPending}
         error={start.isError ? start.error.message : null}
         onSend={async (text) => {
@@ -311,13 +312,14 @@ export default function MessagesPage() {
 
   return (
     <div className={`chat${showThread ? " chat-open" : ""}`}>
-      <section className="card chat-list" aria-label="Conversations">
-        <h1 className="chat-title">Messages</h1>
+      <section className="card chat-list" aria-label="Переписки">
+        <h1 className="chat-title">Сообщения</h1>
         {conversations.isLoading && <RowsSkeleton count={6} />}
-        {conversations.isError && <p className="error center">Could not load messages.</p>}
+        {conversations.isError && <p className="error center">Не удалось загрузить сообщения.</p>}
         {conversations.data && list.length === 0 && (
           <p className="muted center">
-            No conversations yet. Open someone's profile and tap <strong>Message</strong>.
+
+            Переписок пока нет. Откройте профиль пользователя и нажмите <strong>Сообщение</strong>.
           </p>
         )}
         {list.map((c) => (
@@ -336,8 +338,8 @@ export default function MessagesPage() {
               </span>
               <span className="convo-last muted">
                 {c.lastMessage
-                  ? (c.lastMessage.senderId === user?.id ? "You: " : "") + c.lastMessage.text
-                  : "No messages"}
+                  ? (c.lastMessage.senderId === user?.id ? "Вы: " : "") + c.lastMessage.text
+                  : "Нет сообщений"}
               </span>
             </span>
             {c.unread > 0 && <span className="pill">{c.unread}</span>}
@@ -345,13 +347,13 @@ export default function MessagesPage() {
         ))}
       </section>
 
-      <section className="card chat-thread" aria-label="Conversation">
+      <section className="card chat-thread" aria-label="Переписка">
         {id ? (
           <Thread id={id} key={id} />
         ) : to && conversations.data ? (
           <NewChat username={to} />
         ) : (
-          <p className="muted center chat-empty">Select a conversation to start chatting.</p>
+          <p className="muted center chat-empty">Выберите переписку, чтобы начать общение.</p>
         )}
       </section>
     </div>

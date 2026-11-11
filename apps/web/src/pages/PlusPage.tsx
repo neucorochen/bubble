@@ -9,69 +9,69 @@ import "../styles/plus.css";
 const FEATURES: ReadonlyArray<readonly [IconName, string, string]> = [
   [
     "chart",
-    "Creator insights",
-    "Views, likes, comments and follower growth, with your best posts.",
+    "Статистика автора",
+    "Просмотры, отметки «Нравится», комментарии и рост подписчиков, а также лучшие записи.",
   ],
-  ["coin", "Keep more of every sale", "Platform fee on paid posts drops from 20% to 10%."],
+  ["coin", "Получайте больше с каждой продажи", "Комиссия за платные записи снижается с 20% до 10%."],
   [
     "pencil",
-    "Longer posts",
-    `Write up to ${PLUS_POST_LENGTH} characters instead of ${FREE_POST_LENGTH}.`,
+    "Более длинные записи",
+    `До ${PLUS_POST_LENGTH} символов вместо ${FREE_POST_LENGTH}.`,
   ],
-  ["users", "More communities", "Create up to 20 communities instead of 5."],
-  ["sparkle", "Plus badge", "A badge next to your name on posts, comments and your profile."],
+  ["users", "Больше сообществ", "Создавайте до 20 сообществ вместо 5."],
+  ["sparkle", "Значок Plus", "Значок рядом с именем в записях, комментариях и профиле."],
 ];
 
 const COMPARE: ReadonlyArray<readonly [string, string, string]> = [
-  ["Post length", `${FREE_POST_LENGTH} characters`, `${PLUS_POST_LENGTH} characters`],
-  ["Communities you can create", "5", "20"],
-  ["Platform fee on paid posts", "20%", "10%"],
-  ["Creator insights", "—", "Included"],
-  ["Plus badge", "—", "Included"],
+  ["Длина записи", `${FREE_POST_LENGTH} символов`, `${PLUS_POST_LENGTH} символов`],
+  ["Количество сообществ", "5", "20"],
+  ["Комиссия за платные записи", "20%", "10%"],
+  ["Статистика автора", "—", "Включено"],
+  ["Значок Plus", "—", "Включено"],
 ];
 
 const FAQ: ReadonlyArray<readonly [string, string]> = [
   [
-    "How do I pay?",
-    "You pay on a secure checkout page run by Lemon Squeezy, our payment partner. We never see or store your card details.",
+    "Как оплатить?",
+    "Оплата происходит на защищённой странице нашего партнёра Lemon Squeezy. Мы не видим и не храним данные вашей карты.",
   ],
   [
-    "When do I get Plus?",
-    "Within a few seconds of paying. This page confirms it as soon as the payment arrives.",
+    "Когда активируется Plus?",
+    "Через несколько секунд после оплаты. Страница подтвердит получение платежа.",
   ],
   [
-    "Can I cancel?",
-    "Yes, any time, from Manage billing. You keep Plus until the end of the period you already paid for.",
+    "Можно отменить подписку?",
+    "Да, в любой момент в разделе управления оплатой. Plus сохранится до конца оплаченного периода.",
   ],
   [
-    "What about taxes?",
-    "Taxes such as VAT or sales tax are added at checkout where required, and Lemon Squeezy handles them.",
+    "Как учитываются налоги?",
+    "При необходимости налоги добавляются при оплате и обрабатываются Lemon Squeezy.",
   ],
   [
-    "My card was declined or a renewal failed.",
-    "Open Manage billing and update your card. Plus stays on for a few days while the payment is retried.",
+    "Мою карту отклонили или продление не удалось.",
+    "Откройте управление оплатой и обновите карту. Plus останется активным несколько дней, пока платёж повторяется.",
   ],
 ];
 
-const fmt = (iso: string) => new Date(iso).toLocaleDateString(undefined, { dateStyle: "long" });
+const fmt = (iso: string) => new Date(iso).toLocaleDateString("ru-RU", { dateStyle: "long" });
 
 /** One short line about where the plan stands. */
 function planStatus(b: BillingDTO): { label: string; tone: "ok" | "warn" | "bad"; detail: string } {
   if (b.pastDue) {
     return {
-      label: "Payment problem",
+      label: "Проблема с оплатой",
       tone: "bad",
-      detail: "Your last payment didn't go through. Update your card to keep Plus.",
+      detail: "Последний платёж не прошёл. Обновите карту, чтобы сохранить Plus.",
     };
   }
   if (b.cancelled && b.plusUntil) {
-    return { label: "Cancelled", tone: "warn", detail: `You keep Plus until ${fmt(b.plusUntil)}.` };
+    return { label: "Отменена", tone: "warn", detail: `Plus действует до ${fmt(b.plusUntil)}.` };
   }
   const next = b.renewsAt ?? b.plusUntil;
   return {
-    label: "Active",
+    label: "Активна",
     tone: "ok",
-    detail: next ? `Renews on ${fmt(next)}.` : "Your plan is active.",
+    detail: next ? `Продление ${fmt(next)}.` : "Ваша подписка активна.",
   };
 }
 
@@ -95,9 +95,11 @@ export default function PlusPage() {
   if (billing.isError || !b) {
     return (
       <p className="error center">
-        Could not load your plan.{" "}
+
+        Не удалось загрузить сведения о подписке.{" "}
         <button className="link-btn" onClick={() => void billing.refetch()}>
-          Try again
+
+          Попробовать снова
         </button>
       </p>
     );
@@ -113,8 +115,7 @@ export default function PlusPage() {
         <div className="plus-banner warn" role="note">
           <Icon name="card" size={18} />
           <span>
-            <strong>Test mode.</strong> Payments are simulated and nothing is charged. Use the test
-            card 4242 4242 4242 4242 with any future date and any CVC.
+            <strong>Тестовый режим.</strong>  Платежи имитируются, деньги не списываются. Используйте тестовую карту 4242 4242 4242 4242 с любой будущей датой и любым CVC.
           </span>
         </div>
       )}
@@ -123,11 +124,10 @@ export default function PlusPage() {
         <div className="plus-banner danger" role="alert">
           <Icon name="flag" size={18} />
           <span>
-            <strong>We couldn't take your latest payment.</strong> Update your card now to keep your
-            Plus features.
+            <strong>Не удалось принять последний платёж.</strong>  Обновите данные карты, чтобы сохранить возможности Plus.
             <span className="row">
               <button className="btn" disabled={portal.isPending} onClick={() => portal.mutate()}>
-                {portal.isPending ? "Opening…" : "Update payment method"}
+                {portal.isPending ? "Открываем…" : "Обновить способ оплаты"}
               </button>
             </span>
           </span>
@@ -136,44 +136,45 @@ export default function PlusPage() {
 
       <section className="card plus-top" aria-live="polite">
         <span className="plus-eyebrow">
-          <Icon name="sparkle" size={14} /> Commune Plus
+          <Icon name="sparkle" size={14} />  Bubble Plus
         </span>
 
         {activating ? (
           <>
-            <h1>Almost there</h1>
+            <h1>Почти готово</h1>
             <ul className="plus-steps">
               <li className="done">
                 <span className="dot">
                   <Icon name="check" size={14} />
                 </span>{" "}
-                Payment received
+
+                Оплата получена
               </li>
               <li className={waitedTooLong ? "" : "busy"}>
-                <span className="dot" /> Activating Plus on your account
+                <span className="dot" />  Активируем Plus для вашего аккаунта
               </li>
               <li>
-                <span className="dot" /> Ready to use
+                <span className="dot" />  Готово к использованию
               </li>
             </ul>
             {waitedTooLong && (
               <p className="muted">
-                This is taking longer than usual. Your payment is safe and Plus will switch on by
-                itself. You can refresh this page, or <Link to="/contact">contact us</Link> if it
-                still isn't active in a few minutes.
+
+                Активация занимает больше времени, чем обычно. Платёж получен, и Plus включится автоматически. Обновите страницу или <Link to="/contact">свяжитесь с нами</Link>  если подписка не активируется через несколько минут.
               </p>
             )}
           </>
         ) : hasPlan && status ? (
           <>
-            <h1>You're a Plus member{welcome ? " 🎉" : ""}</h1>
+            <h1>У вас подключён Plus{welcome ? " 🎉" : ""}</h1>
             <div className="plus-status">
               <span className={`plus-chip ${status.tone}`}>{status.label}</span>
               <span className="plus-dates">{status.detail}</span>
             </div>
             <div className="row">
               <Link className="btn" to="/insights">
-                Open insights
+
+                Открыть статистику
               </Link>
               {b.status && (
                 <button
@@ -181,7 +182,7 @@ export default function PlusPage() {
                   disabled={portal.isPending}
                   onClick={() => portal.mutate()}
                 >
-                  {portal.isPending ? "Opening…" : "Manage billing"}
+                  {portal.isPending ? "Открываем…" : "Управление оплатой"}
                 </button>
               )}
               {b.cancelled && (
@@ -190,20 +191,21 @@ export default function PlusPage() {
                   disabled={upgrade.isPending}
                   onClick={() => upgrade.mutate()}
                 >
-                  {upgrade.isPending ? "Opening checkout…" : "Resubscribe"}
+                  {upgrade.isPending ? "Открываем страницу оплаты…" : "Возобновить подписку"}
                 </button>
               )}
             </div>
             <p className="muted small">
-              Manage billing lets you update your card, download invoices or cancel.
+
+              В разделе управления оплатой можно обновить карту, скачать счета или отменить подписку.
             </p>
             {portal.isError && <p className="error">{portal.error.message}</p>}
             {upgrade.isError && <p className="error">{upgrade.error.message}</p>}
           </>
         ) : (
           <>
-            <h1>Create more. Keep more.</h1>
-            <p className="muted">Tools for people who create on Commune. Cancel any time.</p>
+            <h1>Создавайте больше. Получайте больше.</h1>
+            <p className="muted">Инструменты для авторов Bubble. Отменить подписку можно в любое время.</p>
             <p className="plus-price-big">{b.priceLabel}</p>
             <button
               className="btn plus-cta"
@@ -211,29 +213,29 @@ export default function PlusPage() {
               onClick={() => upgrade.mutate()}
             >
               <Icon name="lock" size={18} />{" "}
-              {upgrade.isPending ? "Opening secure checkout…" : "Upgrade to Plus"}
+              {upgrade.isPending ? "Открываем защищённую страницу оплаты…" : "Подключить Plus"}
             </button>
             <div className="plus-assure">
               <span>
-                <Icon name="lock" size={15} /> Secure checkout
+                <Icon name="lock" size={15} />  Безопасная оплата
               </span>
               <span>
-                <Icon name="check" size={15} /> Cancel any time
+                <Icon name="check" size={15} />  Отмена в любой момент
               </span>
               <span>
-                <Icon name="sparkle" size={15} /> Active within seconds
+                <Icon name="sparkle" size={15} />  Активация за несколько секунд
               </span>
             </div>
-            {b.available === false && <p className="muted">Commune Plus isn't available yet.</p>}
+            {b.available === false && <p className="muted">Bubble Plus пока недоступен.</p>}
             {upgrade.isError && <p className="error">{upgrade.error.message}</p>}
             {b.status && b.status !== "active" && (
-              <p className="muted">Your previous subscription has ended.</p>
+              <p className="muted">Срок предыдущей подписки истёк.</p>
             )}
           </>
         )}
       </section>
 
-      <section className="plus-features" aria-label="What Plus includes">
+      <section className="plus-features" aria-label="Возможности Plus">
         {FEATURES.map(([icon, title, text]) => (
           <div key={title} className="card">
             <span className="plus-icon" aria-hidden>
@@ -245,12 +247,12 @@ export default function PlusPage() {
         ))}
       </section>
 
-      <section className="card plus-compare" aria-label="Free compared with Plus">
+      <section className="card plus-compare" aria-label="Сравнение бесплатного тарифа и Plus">
         <table>
           <thead>
             <tr>
-              <th scope="col">Feature</th>
-              <th scope="col">Free</th>
+              <th scope="col">Возможность</th>
+              <th scope="col">Бесплатно</th>
               <th scope="col">Plus</th>
             </tr>
           </thead>
@@ -266,7 +268,7 @@ export default function PlusPage() {
         </table>
       </section>
 
-      <section className="card plus-faq" aria-label="Questions">
+      <section className="card plus-faq" aria-label="Вопросы">
         {FAQ.map(([q, a]) => (
           <details key={q}>
             <summary>{q}</summary>
@@ -276,7 +278,8 @@ export default function PlusPage() {
       </section>
 
       <p className="muted center small">
-        Payments are handled securely by Lemon Squeezy. Taxes are added at checkout where required.
+
+        Платежи безопасно обрабатывает Lemon Squeezy. При необходимости налоги добавляются при оплате.
       </p>
     </div>
   );

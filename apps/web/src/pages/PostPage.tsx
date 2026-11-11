@@ -2,9 +2,10 @@ import { useState } from "react";
 import { PostListSkeleton } from "../components/Skeleton";
 import type { FormEvent } from "react";
 import { Link, useParams, useSearchParams } from "react-router-dom";
-import Avatar from "../components/Avatar";
+import { ProfileAvatar } from "../components/Avatar";
 import PostCard, { timeAgo } from "../components/PostCard";
 import PlusBadge from "../components/PlusBadge";
+import CommentInput from "../components/CommentInput";
 import { useTrackView } from "../hooks/useBilling";
 import { useAddComment, useComments, usePost } from "../hooks/usePosts";
 
@@ -28,35 +29,26 @@ export default function PostPage() {
   return (
     <>
       <Link to="/" className="muted">
-        ← Back to feed
+        ← Вернуться к ленте
       </Link>
       {post.isLoading && <PostListSkeleton count={1} />}
-      {post.isError && <p className="error center">Post not found.</p>}
+      {post.isError && <p className="error center">Запись не найдена.</p>}
       {justPaid && post.data?.locked && (
-        <p className="notice">Payment received. Unlocking your post, this takes a few seconds…</p>
+        <p className="notice">Оплата получена. Открываем запись, это займёт несколько секунд…</p>
       )}
       {post.data && <PostCard post={post.data} />}
 
       <form className="card composer" onSubmit={submit}>
-        <textarea
-          value={content}
-          onChange={(e) => setContent(e.target.value)}
-          placeholder="Write a comment"
-          maxLength={300}
-          rows={2}
-        />
+        <CommentInput value={content} onChange={setContent} pending={add.isPending} />
         <div className="composer-footer">
           <span className="muted">{content.length}/300</span>
-          <button className="btn" disabled={add.isPending || !content.trim()}>
-            Comment
-          </button>
         </div>
         {add.isError && <p className="error">{add.error.message}</p>}
       </form>
 
       {comments.data?.map((c) => (
         <div key={c.id} className="card comment post-head">
-          <Avatar username={c.author.username} url={c.author.avatarUrl} size={32} />
+          <ProfileAvatar username={c.author.username} url={c.author.avatarUrl} size={32} />
           <div className="post-main">
             <div className="post-meta">
               <Link to={`/u/${c.author.username}`} className="user-link">

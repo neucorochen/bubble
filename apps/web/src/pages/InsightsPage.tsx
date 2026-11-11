@@ -4,7 +4,7 @@ import Icon from "../components/Icon";
 import { useInsights } from "../hooks/useBilling";
 import { useAuth } from "../store/auth";
 
-const nf = new Intl.NumberFormat("en-US");
+const nf = new Intl.NumberFormat("ru-RU");
 
 function Stat({ label, value }: { label: string; value: number }) {
   return (
@@ -23,17 +23,18 @@ export default function InsightsPage() {
   if (!plus) {
     return (
       <section className="card plus-hero">
-        <h1>Insights</h1>
-        <p>See how your posts perform: views, likes, comments and follower growth.</p>
+        <h1>Статистика</h1>
+        <p>Смотрите статистику записей: просмотры, отметки «Нравится», комментарии и рост подписчиков.</p>
         <Link className="btn" to="/plus">
-          Get Commune Plus
+
+          Подключить Bubble Plus
         </Link>
       </section>
     );
   }
   if (insights.isLoading) return <CardsSkeleton count={3} />;
   if (insights.isError || !insights.data) {
-    return <p className="error center">{insights.error?.message ?? "Could not load insights."}</p>;
+    return <p className="error center">{insights.error?.message ?? "Не удалось загрузить статистику."}</p>;
   }
 
   const { totals, daily, topPosts } = insights.data;
@@ -42,44 +43,45 @@ export default function InsightsPage() {
 
   return (
     <>
-      <h1 className="search-title">Insights</h1>
+      <h1 className="search-title">Статистика</h1>
       <div className="stats">
-        <Stat label="Posts" value={totals.posts} />
-        <Stat label="Views" value={totals.views} />
-        <Stat label="Likes" value={totals.likes} />
-        <Stat label="Comments" value={totals.comments} />
-        <Stat label="Followers" value={totals.followers} />
-        <Stat label="New followers (30d)" value={totals.newFollowers30d} />
+        <Stat label="Записи" value={totals.posts} />
+        <Stat label="Просмотры" value={totals.views} />
+        <Stat label="Отметки «Нравится»" value={totals.likes} />
+        <Stat label="Комментарии" value={totals.comments} />
+        <Stat label="Подписчики" value={totals.followers} />
+        <Stat label="Новые подписчики за 30 дней" value={totals.newFollowers30d} />
       </div>
 
       <section className="card">
-        <strong>Views, last 30 days</strong>{" "}
-        <span className="muted">· {nf.format(last30)} total</span>
+        <strong>Просмотры за 30 дней</strong>{" "}
+        <span className="muted">· {nf.format(last30)}  всего</span>
         <div
           className="bars"
           role="img"
-          aria-label={`Daily views over the last 30 days, ${last30} in total`}
+          aria-label={`Просмотры за последние 30 дней, всего ${last30}`}
         >
           {daily.map((d) => (
             <div
               key={d.day}
               className="bar"
               style={{ height: `${Math.max(2, (d.views / max) * 100)}%` }}
-              title={`${d.day}: ${d.views} views`}
+              title={`${d.day}: просмотров — ${d.views}`}
             />
           ))}
         </div>
         <p className="muted small">
-          Each person counts once per post per day. Your own views are not counted.
+
+          Каждый пользователь учитывается один раз на запись в день. Ваши просмотры не учитываются.
         </p>
       </section>
 
       <section className="card">
-        <strong>Top posts</strong>
-        {topPosts.length === 0 && <p className="muted">Post something to see how it performs.</p>}
+        <strong>Популярные записи</strong>
+        {topPosts.length === 0 && <p className="muted">Опубликуйте запись, чтобы увидеть её статистику.</p>}
         {topPosts.map((p) => (
           <Link key={p.id} to={`/posts/${p.id}`} className="top-post">
-            <span>{p.content || "(image post)"}</span>
+            <span>{p.content || "(запись с изображением)"}</span>
             <span className="muted">
               <span className="metric">
                 <Icon name="eye" size={16} /> {nf.format(p.views)}

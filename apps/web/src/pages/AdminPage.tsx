@@ -10,9 +10,9 @@ import { assetUrl } from "../lib/api";
 import { useAuth } from "../store/auth";
 
 const TABS: Array<{ id: ReportStatus; label: string }> = [
-  { id: "open", label: "Open" },
-  { id: "resolved", label: "Resolved" },
-  { id: "dismissed", label: "Dismissed" },
+  { id: "open", label: "Открытые" },
+  { id: "resolved", label: "Решённые" },
+  { id: "dismissed", label: "Отклонённые" },
 ];
 
 function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boolean }) {
@@ -22,14 +22,14 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
   const error = dismiss.error ?? resolve.error;
 
   const removePost = () => {
-    if (window.confirm("Remove this post?")) {
+    if (window.confirm("Удалить эту запись?")) {
       resolve.mutate({ id: report.id, action: "remove_post" });
     }
   };
   const removeAndSuspend = () => {
     if (
       report.post &&
-      window.confirm(`Remove this post and suspend @${report.post.author.username}?`)
+      window.confirm(`Удалить запись и заблокировать @${report.post.author.username}?`)
     ) {
       resolve.mutate({ id: report.id, action: "remove_post_and_ban" });
     }
@@ -40,7 +40,8 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
       <div className="report-head">
         <strong>{REASON_LABELS[report.reason]}</strong>
         <span className="muted">
-          reported by @{report.reporter.username} · {timeAgo(report.createdAt)}
+
+          пожаловался @{report.reporter.username} · {timeAgo(report.createdAt)}
         </span>
       </div>
       {report.details && <p className="report-details">“{report.details}”</p>}
@@ -59,14 +60,14 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
               <img
                 className="post-image"
                 src={assetUrl(report.post.imageUrl)}
-                alt="Reported attachment"
+                alt="Вложение в жалобе"
                 loading="lazy"
               />
             )}
           </div>
         </div>
       ) : (
-        <p className="muted">This post has already been deleted.</p>
+        <p className="muted">Эта запись уже удалена.</p>
       )}
 
       {actionable && (
@@ -76,15 +77,18 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
             onClick={() => dismiss.mutate(report.id)}
             disabled={busy}
           >
-            Dismiss
+
+            Отклонить
           </button>
           {report.post && (
             <>
               <button className="btn btn-outline" onClick={removePost} disabled={busy}>
-                Remove post
+
+                Удалить запись
               </button>
               <button className="btn btn-danger" onClick={removeAndSuspend} disabled={busy}>
-                Remove post and suspend author
+
+                Удалить запись и заблокировать автора
               </button>
             </>
           )}
@@ -101,23 +105,23 @@ function ErrorsPanel() {
   const items = errors.data ?? [];
   return (
     <>
-      {errors.isLoading && <p className="muted center">Loading…</p>}
+      {errors.isLoading && <p className="muted center">Загрузка…</p>}
       {errors.isError && <p className="error center">{errors.error.message}</p>}
       {errors.isSuccess && items.length === 0 && (
-        <p className="muted center">No open errors. Everything looks healthy.</p>
+        <p className="muted center">Активных ошибок нет.</p>
       )}
       {items.map((e) => (
         <article key={e.id} className="card report">
           <div className="report-head">
             <strong>{e.message}</strong>
             <span className="muted">
-              {e.source === "web" ? "Browser" : "API"} · {e.count}× · last {timeAgo(e.lastSeen)}
+              {e.source === "web" ? "Браузер" : "API"} · {e.count}× · {timeAgo(e.lastSeen)}
             </span>
           </div>
           <p className="muted">{e.route}</p>
           {e.stack && (
             <details>
-              <summary className="muted">Stack trace</summary>
+              <summary className="muted">Трассировка ошибки</summary>
               <pre style={{ whiteSpace: "pre-wrap", fontSize: 12, overflowWrap: "anywhere" }}>
                 {e.stack}
               </pre>
@@ -129,7 +133,8 @@ function ErrorsPanel() {
               onClick={() => resolve.mutate(e.id)}
               disabled={resolve.isPending}
             >
-              Mark as fixed
+
+              Отметить исправленной
             </button>
           </div>
         </article>
@@ -150,15 +155,16 @@ export default function AdminPage() {
 
   return (
     <>
-      <h1 className="page-title">Admin</h1>
-      <div className="tabs" role="tablist" aria-label="Admin sections">
+      <h1 className="page-title">Администрирование</h1>
+      <div className="tabs" role="tablist" aria-label="Разделы администрирования">
         <button
           role="tab"
           aria-selected={view === "reports"}
           className={`tab ${view === "reports" ? "active" : ""}`}
           onClick={() => setView("reports")}
         >
-          Moderation
+
+          Модерация
         </button>
         <button
           role="tab"
@@ -166,7 +172,8 @@ export default function AdminPage() {
           className={`tab ${view === "errors" ? "active" : ""}`}
           onClick={() => setView("errors")}
         >
-          Errors
+
+          Ошибки
         </button>
       </div>
       {view === "errors" ? (
@@ -187,11 +194,11 @@ export default function AdminPage() {
             ))}
           </div>
 
-          {reports.isLoading && <p className="muted center">Loading…</p>}
+          {reports.isLoading && <p className="muted center">Загрузка…</p>}
           {reports.isError && <p className="error center">{reports.error.message}</p>}
           {reports.isSuccess && items.length === 0 && (
             <p className="muted center">
-              {status === "open" ? "No open reports. Nice and quiet." : "Nothing here yet."}
+              {status === "open" ? "Открытых жалоб нет." : "Здесь пока пусто."}
             </p>
           )}
           {items.map((r) => (
@@ -203,7 +210,7 @@ export default function AdminPage() {
               onClick={() => void reports.fetchNextPage()}
               disabled={reports.isFetchingNextPage}
             >
-              {reports.isFetchingNextPage ? "Loading…" : "Load more"}
+              {reports.isFetchingNextPage ? "Загрузка…" : "Загрузить ещё"}
             </button>
           )}
         </>

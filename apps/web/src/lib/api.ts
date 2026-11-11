@@ -94,6 +94,7 @@ export class ApiError extends Error {
   constructor(
     public status: number,
     message: string,
+    public readonly serverMessage?: string,
   ) {
     super(message);
   }
@@ -123,6 +124,8 @@ export async function api<T>(
           ? (options.body as FormData)
           : JSON.stringify(options.body)
         : undefined,
+    }).catch((error: unknown) => {
+      throw new Error("Не удалось подключиться к серверу. Проверьте соединение.", { cause: error });
     });
 
   // A plain GET may already have been started by index.html; use that response if it worked.
@@ -145,7 +148,28 @@ export async function api<T>(
           : res.status >= 500
             ? "The server had a problem. Try again in a moment."
             : "Something went wrong";
-    throw new ApiError(res.status, data.error ?? fallback);
+    const known: Record<string, string> = {
+      "Invalid input": "Проверьте введённые данные.",
+      "Invalid email or password": "Неверный адрес почты или пароль.",
+      "Email or username is already taken": "Этот адрес почты или имя пользователя уже заняты.",
+      "This account has been suspended": "Этот аккаунт заблокирован.",
+      "No session": "Войдите в аккаунт.",
+      "Session expired": "Срок сеанса истёк. Войдите снова.",
+      "Post not found": "Запись не найдена.",
+      "Community not found": "Сообщество не найдено.",
+      "Join this community to post in it": "Вступите в сообщество, чтобы публиковать записи.",
+      "You can only delete your own posts": "Вы можете удалять только свои записи.",
+      "Not found": "Запрошенные данные не найдены.",
+      "Invalid JSON": "Не удалось обработать запрос.",
+      "Invalid request": "Не удалось обработать запрос.",
+      "Invalid or expired access token": "Срок сеанса истёк. Войдите снова.",
+      "Image must be 4 MB or smaller": "Размер изображения не должен превышать 4 МБ.",
+      "Too many requests, slow down.": "Слишком много запросов. Попробуйте позже.",
+      "Too many attempts, try again later.": "Слишком много попыток. Попробуйте позже.",
+    };
+    const safe = (data.error && known[data.error]) ||
+      (res.status === 413 ? "Файл слишком большой." : res.status === 429 ? "Слишком много запросов. Попробуйте позже." : `Не удалось выполнить запрос (код ${res.status}).`);
+    throw new ApiError(res.status, safe, data.error ?? fallback);
   }
   return res.status === 204 ? (undefined as T) : ((await res.json()) as T);
 }

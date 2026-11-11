@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { RowsSkeleton } from "../components/Skeleton";
 import type { FormEvent } from "react";
+import { pluralRu } from "../lib/plural";
 import { Link, useNavigate } from "react-router-dom";
 import { createCommunitySchema } from "@commune/shared";
 import { useCommunities, useCreateCommunity } from "../hooks/useCommunities";
@@ -21,7 +22,7 @@ export default function CommunitiesPage() {
     setError(null);
     const parsed = createCommunitySchema.safeParse(form);
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      setError("Проверьте введённые данные");
       return;
     }
     create.mutate(parsed.data, {
@@ -36,29 +37,32 @@ export default function CommunitiesPage() {
   return (
     <>
       <div className="row between">
-        <h1 className="search-title">Communities</h1>
+        <h1 className="search-title">Сообщества</h1>
         <button className="btn" onClick={() => setCreating((c) => !c)}>
-          {creating ? "Cancel" : "Create a community"}
+          {creating ? "Отмена" : "Создать сообщество"}
         </button>
       </div>
 
       {creating && (
         <form className="card auth" onSubmit={submit}>
           <label>
-            Name
+
+            Имя
             <input value={form.name} onChange={(e) => set("name")(e.target.value)} maxLength={40} />
           </label>
           <label>
-            Address (letters, numbers, underscores)
+
+            Адрес (буквы, цифры, подчёркивания)
             <input
               value={form.slug}
               onChange={(e) => set("slug")(e.target.value.toLowerCase())}
               maxLength={24}
-              placeholder="e.g. typescript"
+              placeholder="например, typescript"
             />
           </label>
           <label>
-            Description
+
+            Описание
             <textarea
               value={form.description}
               onChange={(e) => set("description")(e.target.value)}
@@ -68,7 +72,7 @@ export default function CommunitiesPage() {
           </label>
           {error && <p className="error">{error}</p>}
           <button className="btn block" disabled={create.isPending}>
-            {create.isPending ? "Creating…" : "Create community"}
+            {create.isPending ? "Создание…" : "Создать сообщество"}
           </button>
         </form>
       )}
@@ -78,12 +82,12 @@ export default function CommunitiesPage() {
         type="search"
         value={q}
         onChange={(e) => setQ(e.target.value)}
-        placeholder="Find a community"
-        aria-label="Find a community"
+        placeholder="Найти сообщество"
+        aria-label="Найти сообщество"
         maxLength={30}
       />
 
-      <div className="tabs" role="tablist">
+      <div className="tabs feed-tabs" role="tablist">
         {(["all", "mine"] as const).map((t) => (
           <button
             key={t}
@@ -92,7 +96,7 @@ export default function CommunitiesPage() {
             className={`tab ${tab === t ? "active" : ""}`}
             onClick={() => setTab(t)}
           >
-            {t === "all" ? "Popular" : "Joined"}
+            {t === "all" ? "Популярные" : "Мои"}
           </button>
         ))}
       </div>
@@ -101,7 +105,7 @@ export default function CommunitiesPage() {
       {list.isError && <p className="error center">{list.error.message}</p>}
       {list.isSuccess && list.data.length === 0 && (
         <p className="muted center">
-          {tab === "mine" ? "You haven't joined any community yet." : "No communities found."}
+          {tab === "mine" ? "Вы пока не вступили ни в одно сообщество." : "Сообщества не найдены."}
         </p>
       )}
       {list.data?.map((c) => (
@@ -110,8 +114,8 @@ export default function CommunitiesPage() {
             <strong>{c.name}</strong> <span className="muted">c/{c.slug}</span>
             {c.description && <p className="muted">{c.description}</p>}
             <p className="muted">
-              {c.memberCount} {c.memberCount === 1 ? "member" : "members"}
-              {c.joinedByMe && " · Joined"}
+              {c.memberCount} {pluralRu(c.memberCount, "участник", "участника", "участников")}
+              {c.joinedByMe && " · Вы участник"}
             </p>
           </div>
         </Link>

@@ -70,7 +70,7 @@ export function PostSkeleton({ index = 0 }: { index?: number }) {
 
 export function PostListSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <Busy label="Loading posts">
+    <Busy label="Загрузка записей">
       {Array.from({ length: count }, (_, i) => (
         <PostSkeleton key={i} index={i} />
       ))}
@@ -81,7 +81,7 @@ export function PostListSkeleton({ count = 3 }: { count?: number }) {
 /** The "What's happening" panel. */
 export function NewsPanelSkeleton({ count = 5 }: { count?: number }) {
   return (
-    <Busy label="Loading news">
+    <Busy label="Загрузка новостей">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="sk-news" aria-hidden="true">
           <Sk className="sk-line" w="40%" />
@@ -96,7 +96,7 @@ export function NewsPanelSkeleton({ count = 5 }: { count?: number }) {
 /** Cards on the full news page. */
 export function NewsCardsSkeleton({ count = 6 }: { count?: number }) {
   return (
-    <Busy label="Loading headlines">
+    <Busy label="Загрузка заголовков">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="card sk-news-card" aria-hidden="true">
           <Sk className="sk-line" w="30%" />
@@ -119,7 +119,7 @@ export function RowsSkeleton({
   card?: boolean;
 }) {
   return (
-    <Busy label="Loading">
+    <Busy label="Загрузка">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className={`sk-convo${card ? " card" : ""}`} aria-hidden="true">
           <Sk circle w={avatar} h={avatar} />
@@ -136,7 +136,7 @@ export function RowsSkeleton({
 export function ThreadSkeleton() {
   const sides = [false, false, true, false, true, true, false];
   return (
-    <Busy label="Loading conversation">
+    <Busy label="Загрузка переписки">
       <div className="sk-thread" aria-hidden="true">
         {sides.map((me, i) => (
           <Sk key={i} className={`sk-bubble${me ? " me" : ""}`} w={`${30 + ((i * 13) % 35)}%`} />
@@ -148,7 +148,7 @@ export function ThreadSkeleton() {
 
 export function ProfileSkeleton() {
   return (
-    <Busy label="Loading profile">
+    <Busy label="Загрузка профиля">
       <div className="card sk-profile" aria-hidden="true">
         <div className="sk-row">
           <Sk circle w={84} h={84} />
@@ -172,7 +172,7 @@ export function ProfileSkeleton() {
 /** Generic stack of cards, for pages without a special shape. */
 export function CardsSkeleton({ count = 3 }: { count?: number }) {
   return (
-    <Busy label="Loading">
+    <Busy label="Загрузка">
       {Array.from({ length: count }, (_, i) => (
         <div key={i} className="card sk-news-card" aria-hidden="true">
           <Sk className="sk-line tall" w="50%" />

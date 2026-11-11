@@ -27,35 +27,35 @@ export default function PushSettings() {
   if (!pushSupported()) {
     body = needsInstallForPush() ? (
       <p className="muted">
-        On iPhone, first add Commune to your Home Screen (Share → Add to Home Screen), then open it
-        from there to turn on notifications.
+
+        На iPhone сначала добавьте Bubble на экран «Домой» через меню «Поделиться», затем откройте приложение и включите уведомления.
       </p>
     ) : (
-      <p className="muted">This browser does not support push notifications.</p>
+      <p className="muted">Этот браузер не поддерживает push-уведомления.</p>
     );
   } else if (needsInstallForPush()) {
     body = (
       <p className="muted">
-        On iPhone, add Commune to your Home Screen (Share → Add to Home Screen) and open it from
-        there to turn on notifications.
+
+        На iPhone добавьте Bubble на экран «Домой» через меню «Поделиться» и откройте приложение, чтобы включить уведомления.
       </p>
     );
   } else if (pushPermission() === "denied" && !subscribed) {
     body = (
       <p className="muted">
-        Notifications are blocked for this site. Allow them in your browser's site settings, then
-        come back here.
+
+        Уведомления для этого сайта заблокированы. Разрешите их в настройках браузера и вернитесь сюда.
       </p>
     );
   } else if (!subscribed) {
     body = (
       <>
         <p className="muted">
-          Get a notification for new messages, likes, comments and followers, even when Commune is
-          closed.
+
+          Получайте уведомления о сообщениях, отметках «Нравится», комментариях и подписчиках, даже когда Bubble закрыт.
         </p>
         <button className="btn" disabled={enable.isPending} onClick={() => enable.mutate()}>
-          {enable.isPending ? "Turning on…" : "Turn on notifications"}
+          {enable.isPending ? "Включение…" : "Включить уведомления"}
         </button>
         {enable.isError && <p className="error small">{enable.error.message}</p>}
       </>
@@ -69,7 +69,7 @@ export default function PushSettings() {
             checked={prefs.messages}
             onChange={(e) => save.mutate({ ...prefs, messages: e.target.checked })}
           />
-          <span>New messages</span>
+          <span>Новые сообщения</span>
         </label>
         <label className="check">
           <input
@@ -77,7 +77,7 @@ export default function PushSettings() {
             checked={prefs.social}
             onChange={(e) => save.mutate({ ...prefs, social: e.target.checked })}
           />
-          <span>Likes, comments and new followers</span>
+          <span>Отметки «Нравится», комментарии и новые подписчики</span>
         </label>
         <div className="row">
           <button
@@ -85,25 +85,27 @@ export default function PushSettings() {
             disabled={test.isPending}
             onClick={() => test.mutate()}
           >
-            Send a test
+
+            Отправить проверочное уведомление
           </button>
           <button
             className="btn btn-ghost"
             disabled={disable.isPending}
             onClick={() => disable.mutate()}
           >
-            Turn off on this device
+
+            Отключить на этом устройстве
           </button>
         </div>
         {test.isError && <p className="error small">{test.error.message}</p>}
-        {test.isSuccess && <p className="muted small">Sent. It should arrive in a moment.</p>}
+        {test.isSuccess && <p className="muted small">Отправлено. Уведомление скоро появится.</p>}
       </>
     );
   }
 
   return (
-    <section className="card push-settings" aria-label="Push notifications">
-      <h2 className="push-title">Push notifications</h2>
+    <section className="card push-settings" aria-label="Push-уведомления">
+      <h2 className="push-title">Push-уведомления</h2>
       {body}
     </section>
   );

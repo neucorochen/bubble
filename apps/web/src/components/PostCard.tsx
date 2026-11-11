@@ -1,3 +1,4 @@
+import { pluralRu } from "../lib/plural";
 import { useState } from "react";
 import type { CSSProperties } from "react";
 import { Link } from "react-router-dom";
@@ -6,39 +7,49 @@ import { useAuth } from "../store/auth";
 import { useDeletePost, useToggleLike } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
 import { assetUrl } from "../lib/api";
-import Avatar from "./Avatar";
+import { ProfileAvatar } from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
 import { hueFor } from "../lib/hue";
 import ReportForm from "./ReportForm";
+import InlineComments from "./InlineComments";
 
+const relativeTime = new Intl.RelativeTimeFormat("ru", { numeric: "always" });
 export function timeAgo(iso: string): string {
   const seconds = Math.max(1, Math.floor((Date.now() - new Date(iso).getTime()) / 1000));
-  if (seconds < 60) return `${seconds}s`;
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-  return `${Math.floor(seconds / 86400)}d`;
+  if (seconds < 60) return relativeTime.format(-seconds, "second");
+  if (seconds < 3600) return relativeTime.format(-Math.floor(seconds / 60), "minute");
+  if (seconds < 86400) return relativeTime.format(-Math.floor(seconds / 3600), "hour");
+  return relativeTime.format(-Math.floor(seconds / 86400), "day");
 }
 
-export default function PostCard({ post }: { post: PostDTO }) {
+export default function PostCard({ post, inlineComments = false }: { post: PostDTO; inlineComments?: boolean }) {
   const { user } = useAuth();
   const like = useToggleLike();
   const del = useDeletePost();
   const checkout = useCheckout();
+  const [commentsOpen, setCommentsOpen] = useState(false);
+  const [commentsMounted, setCommentsMounted] = useState(false);
   const [reporting, setReporting] = useState(false);
   const mine = user?.id === post.author.id;
   const isAdmin = user?.role === "admin";
 
   return (
-    <article className="card post post-head">
-      <Avatar username={post.author.username} url={post.author.avatarUrl} />
+    <article className={`card post post-head${inlineComments ? " feed-post" : ""}`}>
+      <ProfileAvatar username={post.author.username} url={post.author.avatarUrl} />
+      {!mine && <button type="button" className="btn btn-ghost post-report" title="Пожаловаться" aria-label="Пожаловаться" aria-expanded={reporting} onClick={() => setReporting((r) => !r)}><Icon name="flag" size={18} /></button>}
+      {inlineComments && mine && <button type="button" className="btn btn-ghost danger feed-delete" title="Удалить запись" aria-label="Удалить запись" disabled={del.isPending} onClick={() => window.confirm(mine ? "Удалить эту запись?" : "Удалить эту запись как администратор?") && del.mutate(post.id)}><Icon name="trash" size={18} /></button>}
       <div className="post-main">
         <div className="post-meta">
           <Link to={`/u/${post.author.username}`} className="user-link">
             @{post.author.username}
           </Link>
           <PlusBadge plus={post.author.plus} />
-          <span className="muted">· {timeAgo(post.createdAt)}</span>
+          {inlineComments ? (
+            <span className="muted">· <Link className="feed-post-time" to={`/posts/${post.id}`} aria-label={`Открыть публикацию @${post.author.username} от ${new Date(post.createdAt).toLocaleString("ru-RU")}`}>
+              <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
+            </Link></span>
+          ) : <span className="muted">· {timeAgo(post.createdAt)}</span>}
           {post.community && (
             <Link
               to={`/c/${post.community.slug}`}
@@ -58,7 +69,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <img
               className="post-image"
               src={assetUrl(post.imageUrl)}
-              alt={`Image posted by @${post.author.username}`}
+              alt={`Изображение пользователя @${post.author.username}`}
               loading="lazy"
               decoding="async"
             />
@@ -67,7 +78,7 @@ export default function PostCard({ post }: { post: PostDTO }) {
         {post.locked && post.priceCents != null && (
           <div className="paywall">
             <p>
-              <Icon name="lock" size={16} /> The rest of this post is for people who unlock it.
+              <Icon name="lock" size={16} />  Остальная часть записи доступна после оплаты.
             </p>
             <button
               className="btn"
@@ -75,15 +86,15 @@ export default function PostCard({ post }: { post: PostDTO }) {
               onClick={() => checkout.mutate(post.id)}
             >
               {checkout.isPending
-                ? "Opening checkout…"
-                : `Unlock for ${formatPrice(post.priceCents)}`}
+                ? "Открываем страницу оплаты…"
+                : `Открыть за ${formatPrice(post.priceCents)}`}
             </button>
             {checkout.isError && <p className="error">{checkout.error.message}</p>}
           </div>
         )}
         {post.premiumContent && (
           <div className="premium">
-            <span className="premium-label">Unlocked content</span>
+            <span className="premium-label">Открытое содержимое</span>
             <p className="post-body">{post.premiumContent}</p>
           </div>
         )}
@@ -97,31 +108,27 @@ export default function PostCard({ post }: { post: PostDTO }) {
             <Icon name="heart" size={19} filled={post.likedByMe} />
             <span>{post.likeCount}</span>
           </button>
-          <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
+          {inlineComments ? <button type="button" className="btn btn-ghost" aria-label={`${post.commentCount} ${pluralRu(post.commentCount, "комментарий", "комментария", "комментариев")}`} aria-expanded={commentsOpen} onClick={() => { setCommentsMounted(true); setCommentsOpen(v => !v); }}><Icon name="comment" size={19} /><span>{post.commentCount}</span></button> : <Link className="btn btn-ghost" to={`/posts/${post.id}`}>
             <Icon name="comment" size={19} />
             <span>{post.commentCount}</span>
-          </Link>
-          {!mine && (
-            <button
-              className="btn btn-ghost"
-              onClick={() => setReporting((r) => !r)}
-              aria-expanded={reporting}
-            >
-              <Icon name="flag" size={18} /> Report
-            </button>
-          )}
-          {(mine || isAdmin) && (
+          </Link>}
+          {(!inlineComments || !mine) && (mine || isAdmin) && (
             <button
               className="btn btn-ghost danger"
               onClick={() =>
-                window.confirm(mine ? "Delete this post?" : "Remove this post as an admin?") &&
+                window.confirm(mine ? "Удалить эту запись?" : "Удалить эту запись как администратор?") &&
                 del.mutate(post.id)
               }
             >
-              <Icon name="trash" size={18} /> {mine ? "Delete" : "Remove"}
+              <Icon name="trash" size={18} /> {mine ? "Удалить" : "Удалить"}
             </button>
           )}
         </div>
+        {inlineComments && (
+          <div className={`comments-disclosure${commentsOpen ? " is-open" : ""}`} aria-hidden={!commentsOpen} ref={(node) => { node?.toggleAttribute("inert", !commentsOpen); }}>
+            <div className="comments-disclosure-inner">{commentsMounted && <InlineComments postId={post.id} />}</div>
+          </div>
+        )}
         {reporting && <ReportForm postId={post.id} onClose={() => setReporting(false)} />}
       </div>
     </article>
