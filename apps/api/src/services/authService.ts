@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import bcrypt from "bcryptjs";
 import type { Response } from "express";
 import type { AuthResponse, LoginInput, RegisterInput } from "@commune/shared";
-import { env, isProd } from "../config/env.js";
+import { env } from "../config/env.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import { AppError, conflict, forbidden, unauthorized } from "../utils/errors.js";
@@ -16,18 +16,22 @@ const COOKIE_PATH = "/api/auth";
 // Used to keep login timing similar whether or not the email exists.
 const DUMMY_HASH = bcrypt.hashSync("not-a-real-password", 12);
 
+const refreshCookieOptions = {
+  httpOnly: true,
+  secure: env.COOKIE_SECURE,
+  sameSite: "lax" as const,
+  path: COOKIE_PATH,
+};
+
 function setRefreshCookie(res: Response, token: string) {
   res.cookie(REFRESH_COOKIE, token, {
-    httpOnly: true,
-    secure: isProd,
-    sameSite: "lax",
-    path: COOKIE_PATH,
+    ...refreshCookieOptions,
     maxAge: env.REFRESH_TOKEN_TTL_DAYS * 24 * 60 * 60 * 1000,
   });
 }
 
 export function clearRefreshCookie(res: Response) {
-  res.clearCookie(REFRESH_COOKIE, { path: COOKIE_PATH });
+  res.clearCookie(REFRESH_COOKIE, refreshCookieOptions);
 }
 
 async function issueSession(res: Response, user: Parameters<typeof toPublicUser>[0]) {

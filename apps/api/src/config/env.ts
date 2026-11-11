@@ -7,6 +7,12 @@ dotenv.config({ path: path.resolve(process.cwd(), "../../.env") });
 
 const schema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
+  COOKIE_SECURE: z
+    .enum(["true", "false"])
+    .optional()
+    .transform((value) =>
+      value === undefined ? process.env.NODE_ENV === "production" : value === "true",
+    ),
   PORT: z.coerce.number().int().default(4000),
   MONGODB_URI: z.string().min(1),
   // The web app's address. A trailing slash is removed: browsers send Origin without one, and
@@ -20,6 +26,15 @@ const schema = z.object({
   REFRESH_TOKEN_TTL_DAYS: z.coerce.number().int().positive().default(30),
   // Where uploaded images are stored. Relative paths resolve from the API's working directory.
   UPLOAD_DIR: z.string().default("uploads"),
+  S3_ENDPOINT: z.string().url().optional(),
+  S3_REGION: z.string().default("us-east-1"),
+  S3_BUCKET: z.string().min(1).default("bubble"),
+  S3_ACCESS_KEY: z.string().optional(),
+  S3_SECRET_KEY: z.string().optional(),
+  S3_FORCE_PATH_STYLE: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((value) => value === "true"),
   // How many reverse proxies sit in front of the API (used for correct client IPs in rate
   // limits). 1 = a single host proxy; 2 = Vercel rewrite in front of Render.
   TRUST_PROXY: z.coerce.number().int().min(0).default(1),

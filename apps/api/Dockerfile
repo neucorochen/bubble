@@ -15,8 +15,6 @@ COPY --from=build /app/package.json ./
 COPY --from=build /app/node_modules ./node_modules
 COPY --from=build /app/apps/api/package.json apps/api/package.json
 COPY --from=build /app/apps/api/dist apps/api/dist
-ENV UPLOAD_DIR=/data/uploads
-RUN mkdir -p /data/uploads && chown node:node /data/uploads
 USER node
 EXPOSE 4000
 CMD ["node", "apps/api/dist/server.js"]

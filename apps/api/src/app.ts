@@ -12,7 +12,8 @@ import { noStore, originGuard } from "./middleware/security.js";
 import { globalLimiter } from "./middleware/rateLimit.js";
 import { lemonSqueezyWebhook, rawBody } from "./controllers/paymentController.js";
 import { router } from "./routes/index.js";
-import { cloudImageUrl, uploadDir, usesCloudStorage } from "./services/uploadService.js";
+import { getObject } from "./services/storageService.js";
+import { Readable } from "node:stream";
 
 export function createApp() {
   const app = express();
@@ -53,27 +54,59 @@ export function createApp() {
 
   // Uploaded images. File names are random, so they can be cached for a long time.
   // Helmet already sets X-Content-Type-Options: nosniff on these responses.
-  if (usesCloudStorage) {
-    app.get("/uploads/:file", (req, res) => {
+
+  app.get(
+    "/uploads/:file",
+    asyncHandler(async (req, res) => {
       const file = req.params.file ?? "";
+
       if (!uploadUrlSchema.safeParse(`/uploads/${file}`).success) {
         res.status(404).json({ error: "Not found" });
         return;
       }
-      res.set("Cache-Control", "public, max-age=2592000, immutable");
-      res.redirect(302, cloudImageUrl(file));
-    });
-  } else {
-    app.use(
-      "/uploads",
-      express.static(uploadDir, {
-        index: false,
-        dotfiles: "ignore",
-        maxAge: "30d",
-        immutable: true,
-      }),
-    );
-  }
+
+      let object;
+
+      try {
+        object = await getObject(`uploads/${file}`);
+      } catch (err) {
+        const isNotFound =
+          err instanceof Error &&
+          (err.name === "NoSuchKey" ||
+            err.name === "NotFound" ||
+            (err as Error & {
+              $metadata?: { httpStatusCode?: number };
+            }).$metadata?.httpStatusCode === 404);
+
+        if (isNotFound) {
+          res.status(404).json({ error: "Not found" });
+          return;
+        }
+
+        throw err;
+      }
+
+      if (!object.Body) {
+        res.status(404).json({ error: "Not found" });
+        return;
+      }
+
+      if (object.ContentType) {
+        res.setHeader("Content-Type", object.ContentType);
+      }
+
+      if (object.ContentLength !== undefined) {
+        res.setHeader("Content-Length", String(object.ContentLength));
+      }
+
+      res.setHeader("Cache-Control", "public, max-age=2592000, immutable");
+
+      Readable.fromWeb(
+        object.Body.transformToWebStream() as unknown as import("node:stream/web").ReadableStream,
+      ).pipe(res);
+    }),
+  );
+
 
   // The payment webhook needs the raw bytes to check the provider's signature, so it is
   // registered before the JSON parser.
