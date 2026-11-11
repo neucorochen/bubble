@@ -7,6 +7,7 @@ export const navigation: readonly NavigationItem[] = [
   { id: "feed", label: "Лента", to: () => "/", icon: "home", audience: "member", surfaces: ["desktop", "drawer", "bottom"], end: true },
   { id: "search", label: "Поиск", to: () => "/search", icon: "search", audience: "member", surfaces: ["desktop", "drawer", "bottom", "header"] },
   { id: "messages", label: "Сообщения", to: () => "/messages", icon: "mail", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
+  { id: "music", label: "Музыка", to: () => "/music", icon: "music", audience: "member", surfaces: ["desktop", "drawer"],},
   { id: "communities", label: "Группы", to: () => "/communities", icon: "users", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
   { id: "notifications", label: "События", to: () => "/notifications", icon: "bell", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
   { id: "explore", label: "Обзор", to: () => "/explore", icon: "compass", audience: "guest", surfaces: ["header", "drawer"] },
