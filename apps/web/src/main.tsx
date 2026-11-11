@@ -13,6 +13,11 @@ import "@fontsource-variable/bricolage-grotesque";
 import "./styles/global.css";
 import "./styles/theme.css";
 import "./styles/skeleton.css";
+import "./styles/aero-tokens.css";
+import "./styles/aero-themes.css";
+import "./styles/aero-components.css";
+import "./styles/aero-shell.css";
+import "./styles/aero-home.css";
 
 armSoundUnlock();
 

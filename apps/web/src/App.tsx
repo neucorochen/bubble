@@ -34,21 +34,21 @@ const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
 
 const TITLES: Record<string, string> = {
-  "/": "Commune: an open source community platform",
-  "/explore": "Explore",
-  "/news": "Latest news",
-  "/contact": "Contact",
-  "/plus": "Commune Plus",
-  "/insights": "Insights",
-  "/messages": "Messages",
-  "/communities": "Communities",
-  "/notifications": "Notifications",
-  "/search": "Search",
-  "/login": "Log in",
-  "/register": "Sign up",
-  "/forgot-password": "Forgot password",
-  "/reset-password": "Reset password",
-  "/admin": "Admin",
+  "/": "Bubble — открытая платформа сообществ",
+  "/explore": "Обзор",
+  "/news": "Последние новости",
+  "/contact": "Связаться",
+  "/plus": "Bubble Plus",
+  "/insights": "Статистика",
+  "/messages": "Сообщения",
+  "/communities": "Сообщества",
+  "/notifications": "Уведомления",
+  "/search": "Поиск",
+  "/login": "Вход",
+  "/register": "Регистрация",
+  "/forgot-password": "Восстановление пароля",
+  "/reset-password": "Сброс пароля",
+  "/admin": "Администрирование",
 };
 
 /** Per-page browser title and canonical link, so tabs, history and search engines get real names. */
@@ -64,11 +64,11 @@ function RouteMeta() {
         : community
           ? `c/${decodeURIComponent(community)}`
           : pathname.startsWith("/messages")
-            ? "Messages"
+            ? "Сообщения"
             : pathname.startsWith("/posts/")
-              ? "Post"
-              : "Commune");
-    document.title = pathname === "/" ? name : `${name} · Commune`;
+              ? "Запись"
+              : "Bubble");
+    document.title = pathname === "/" ? name : `${name} · Bubble`;
 
     let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!link) {
@@ -211,16 +211,16 @@ function AuthArt() {
     <aside className="auth-art" aria-hidden="true">
       <Brand size={40} />
       <div className="auth-art-body">
-        <p className="art-title">Your people, your news, one open place.</p>
+        <p className="art-title">Ваши люди и новости — в одном месте.</p>
         <ul>
           <li>
-            <Icon name="users" size={20} /> Join communities and follow people
+            <Icon name="users" size={20} /> Вступайте в сообщества и подписывайтесь на людей
           </li>
           <li>
-            <Icon name="mail" size={20} /> Message friends privately
+            <Icon name="mail" size={20} /> Общайтесь с друзьями в личных сообщениях
           </li>
           <li>
-            <Icon name="news" size={20} /> Live news beside your feed
+            <Icon name="news" size={20} /> Читайте новости рядом с лентой
           </li>
         </ul>
       </div>
@@ -236,6 +236,42 @@ export default function App() {
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
   const signedIn = Boolean(user);
+  const aeroHome = !authPage;
+  useEffect(() => {
+    if (!aeroHome) return;
+    const home = document.querySelector<HTMLElement>(".aero-home");
+    const shell = home?.querySelector<HTMLElement>(".shell");
+    const header = home?.querySelector<HTMLElement>(".header");
+    if (!home || !shell || !header) return;
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const banner = home.querySelector<HTMLElement>(".aero-window > .banner");
+      const top = header.getBoundingClientRect().bottom + (banner?.offsetHeight ?? 0);
+      const rect = shell.getBoundingClientRect();
+      home.style.setProperty("--aero-chrome-bottom", `${top}px`);
+      home.style.setProperty("--aero-shell-cut-top", `${Math.max(0, top - rect.top)}px`);
+      home.style.setProperty("--aero-shell-cut-bottom", `${Math.max(0, rect.bottom - window.innerHeight + 11)}px`);
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    const observer = new ResizeObserver(schedule);
+    observer.observe(shell);
+    observer.observe(header);
+    const banner = home.querySelector<HTMLElement>(".aero-window > .banner");
+    if (banner) observer.observe(banner);
+    update();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+    window.addEventListener("pageshow", schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      window.removeEventListener("pageshow", schedule);
+      for (const key of ["--aero-chrome-bottom", "--aero-shell-cut-top", "--aero-shell-cut-bottom"]) home.style.removeProperty(key);
+    };
+  }, [aeroHome]);
   // Once signed in, quietly download the most-used pages so tapping them is instant.
   useEffect(() => {
     if (signedIn) prefetchLikelyRoutes();
@@ -251,25 +287,34 @@ export default function App() {
 
   if (authPage) {
     return (
-      <>
+      <div className="aero-app aero-auth" data-theme="aero-blue">
         {skip}
         <RouteMeta />
         <PwaBanner />
         <div className="auth-split">
           <AuthArt />
           <main id="main" tabIndex={-1} className="auth-main">
-            <Link to="/" className="auth-brand" aria-label="Commune home">
+            <Link to="/" className="auth-brand" aria-label="На главную Bubble">
               <Brand size={36} />
             </Link>
             <AppRoutes />
           </main>
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
+    <div className="aero-app aero-home" data-theme="aero-blue">
+      <div className="aero-fixed-frame" aria-hidden="true" />
+      <div className="aero-window">
+      {(
+        <div className="aero-titlebar" aria-hidden="true">
+          <span className="aero-window-controls">
+            <span><i className="aero-control-minimize" /></span><span><i className="aero-control-maximize" /></span><span className="aero-window-close"><i className="aero-control-close" /></span>
+          </span>
+        </div>
+      )}
       {skip}
       <RouteMeta />
       <Header />
@@ -283,6 +328,7 @@ export default function App() {
         {!wide && <RightRail />}
       </div>
       <BottomNav />
-    </>
+      </div>
+    </div>
   );
 }

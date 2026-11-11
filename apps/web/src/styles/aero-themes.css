@@ -1,0 +1,57 @@
+/*
+ * One explicit, light Aero palette. No default theme or OS-theme override.
+ * Add future palettes as [data-theme="aero-NAME"] token declarations;
+ * supply the full semantic palette, not copies of component rules.
+ * Nesting theme hosts is supported through inherited tokens.
+ */
+[data-theme="aero-blue"] {
+  --aero-color-highlight-positive: #bfec67;
+  --gold: var(--aero-color-highlight-positive);
+  --gold-ink: #23410d;
+  --aero-color-primary: #349af4;
+  --aero-color-secondary: #123b60;
+  --aero-color-link: #165c93;
+  --aero-color-text: #123b60;
+  --aero-color-text-muted: #405d72;
+  --aero-color-text-control: #0c2d49;
+  --aero-color-canvas: #e4f3fc;
+  --aero-color-surface: #f2faff;
+  --aero-color-surface-solid: #f2faff;
+  --aero-color-field: #ffffff;
+  --aero-color-border: #8bbbd7;
+  --aero-color-border-strong: #297cb8;
+  --aero-color-highlight: #d9f7ffb3;
+  --aero-color-highlight-solid: #ffffff;
+  --aero-color-shadow: rgb(18 59 96 / 18%);
+
+  /* Dark text on pale surfaces; the bright primary is decorative, not body text. */
+  --aero-color-focus: #123b60;
+  --aero-color-focus-gap: #ffffff;
+  --aero-color-hover-border: #165c93;
+  --aero-color-active-border: #123b60;
+  --aero-color-disabled-text: #4c6477;
+  --aero-color-disabled-surface: #e3ecf2;
+  --aero-color-disabled-border: #718b9e;
+  --aero-color-error-text: #8c2028;
+  --aero-color-error-surface: #fff0f1;
+  --aero-color-error-border: #a8323c;
+  --aero-color-notice-text: #123b60;
+  --aero-color-notice-surface: #e4f6ff;
+  --aero-color-notice-border: #297cb8;
+  --aero-color-success-text: #20572f;
+  --aero-color-success-surface: #eef9ef;
+  --aero-color-success-border: #397a49;
+  --aero-color-warning-text: #694200;
+  --aero-color-warning-surface: #fff7df;
+  --aero-color-warning-border: #976500;
+
+  --aero-gradient-glass: linear-gradient(135deg, rgb(222 249 255 / 44%), rgb(52 154 244 / 36%) 48%, rgb(52 154 244 / 44%));
+  --aero-gradient-window-close: linear-gradient(#f8c5bd, #d55b48 48%, #a82516 51%, #df6650);
+  --aero-color-window-symbol: #ffffff;
+  --aero-gradient-panel: linear-gradient(135deg, #f8fdff, #d7effc);
+  --aero-gradient-card: linear-gradient(135deg, #ffffffd9, #d7effccc);
+  --aero-gradient-button: linear-gradient(#fff, #e4f6ff 48%, #bedff3 49%, #e8f8ff);
+  --aero-gradient-button-hover: linear-gradient(#fff, #d5efff 48%, #a9d4ee 49%, #dff5ff);
+  --aero-gradient-button-active: linear-gradient(#b5d9ef, #d7effc);
+  --aero-gradient-tab-active: linear-gradient(#f6fdff, #d2efff 48%, #b4e4fa 51%, #d5f3ff);
+}

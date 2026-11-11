@@ -17,20 +17,20 @@ export default function ResetPasswordPage() {
     e.preventDefault();
     setError(null);
     if (password !== confirm) {
-      setError("The two passwords don't match");
+      setError("Пароли не совпадают");
       return;
     }
     const parsed = resetPasswordSchema.safeParse({ token, password });
     if (!parsed.success) {
-      setError(parsed.error.issues[0]?.message ?? "Invalid input");
+      setError("Проверьте введённые данные");
       return;
     }
     setBusy(true);
     try {
       await api("/auth/reset-password", { method: "POST", body: parsed.data });
-      navigate("/login", { replace: true, state: { notice: "Password updated. Log in with it." } });
+      navigate("/login", { replace: true, state: { notice: "Пароль обновлён. Войдите с новым паролем." } });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Something went wrong");
+      setError(err instanceof Error ? err.message : "Что-то пошло не так");
     } finally {
       setBusy(false);
     }
@@ -39,10 +39,11 @@ export default function ResetPasswordPage() {
   if (!token) {
     return (
       <div className="card auth">
-        <h1>Link not valid</h1>
-        <p>This reset link is incomplete. Request a new one.</p>
+        <h1>Недействительная ссылка</h1>
+        <p>Ссылка для сброса неполная. Запросите новую.</p>
         <Link className="btn block" to="/forgot-password">
-          Request a new link
+
+          Запросить новую ссылку
         </Link>
       </div>
     );
@@ -50,9 +51,10 @@ export default function ResetPasswordPage() {
 
   return (
     <form className="card auth" onSubmit={(e) => void submit(e)}>
-      <h1>Choose a new password</h1>
+      <h1>Придумайте новый пароль</h1>
       <label>
-        New password
+
+        Новый пароль
         <input
           type="password"
           value={password}
@@ -61,7 +63,8 @@ export default function ResetPasswordPage() {
         />
       </label>
       <label>
-        Repeat password
+
+        Повторите пароль
         <input
           type="password"
           value={confirm}
@@ -69,14 +72,14 @@ export default function ResetPasswordPage() {
           autoComplete="new-password"
         />
       </label>
-      <p className="muted">At least 8 characters. You'll be signed out on all devices.</p>
+      <p className="muted">Не менее 8 символов. Вы выйдете из аккаунта на всех устройствах.</p>
       {error && (
         <p className="error">
-          {error} <Link to="/forgot-password">Request a new link</Link>
+          {error} <Link to="/forgot-password">Запросить новую ссылку</Link>
         </p>
       )}
       <button className="btn block" disabled={busy}>
-        {busy ? "Saving…" : "Update password"}
+        {busy ? "Сохранение…" : "Обновить пароль"}
       </button>
     </form>
   );

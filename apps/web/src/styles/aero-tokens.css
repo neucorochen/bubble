@@ -1,0 +1,43 @@
+/*
+ * Bubble Aero: shared, colour-independent tokens.
+ * Future integration order: aero-tokens.css, aero-themes.css, aero-components.css.
+ * Place opt-in components INSIDE a host with data-theme="aero-blue".
+ * No Commune variables, element styles or font downloads are changed here.
+ * Nunito is used only if already available; installing it is a separate decision.
+ */
+:where([data-theme^="aero-"]) {
+  --aero-font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --aero-font-heading: var(--aero-font-body);
+  --aero-font-size: 1rem;
+  --aero-line-height: 1.5;
+  --aero-font-weight: 400;
+  --aero-font-weight-control: 700;
+
+  --aero-space-1: 0.25rem;
+  --aero-space-2: 0.5rem;
+  --aero-space-3: 0.75rem;
+  --aero-space-4: 1rem;
+  --aero-space-6: 1.5rem;
+  --aero-radius-control: 6px;
+  --aero-radius-panel: 10px;
+  --aero-border-width: 1px;
+  --aero-focus-width: 3px;
+  --aero-focus-offset: 3px;
+  --aero-control-min-height: 44px;
+
+  --aero-glass-blur: 12px;
+  --aero-glass-saturation: 125%;
+  --aero-shadow-panel-geometry: 0 4px 16px;
+  --aero-shadow-control-geometry: 0 1px 3px;
+  --aero-shadow-inset-geometry: inset 0 1px 0;
+  --aero-motion-duration: 140ms;
+  --aero-motion-easing: ease-out;
+  --aero-press-offset: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where([data-theme^="aero-"]) {
+    --aero-motion-duration: 0ms;
+    --aero-press-offset: 0px;
+  }
+}

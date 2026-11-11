@@ -1,0 +1,155 @@
+/* Shared window frame; page content retains the existing light/dark theme. */
+.aero-app[data-theme^="aero-"] {
+  min-height: 100dvh;
+  background: var(--bg);
+  border: 1px solid var(--aero-color-border-strong);
+  box-shadow: inset 0 0 0 1px var(--aero-color-highlight), 0 4px 20px var(--aero-color-shadow);
+}
+
+.aero-app .header {
+  background: var(--surface);
+  background-image: var(--aero-gradient-glass);
+  border-bottom: 1px solid var(--aero-color-border-strong);
+  box-shadow: inset 0 1px var(--aero-color-highlight), 0 2px 8px var(--aero-color-shadow);
+}
+
+.aero-app .shell {
+  min-width: 0;
+}
+
+.aero-app .shell .container {
+  min-width: 0;
+}
+
+.aero-app .left-nav,
+.aero-app .right-rail {
+  min-width: 0;
+  background: var(--surface);
+  box-shadow: inset 0 1px var(--aero-color-highlight);
+}
+
+.aero-app .left-nav {
+  border-right: 1px solid var(--aero-color-border);
+}
+
+.aero-app .right-rail {
+  border-left: 1px solid var(--aero-color-border);
+  padding-inline: var(--aero-space-3);
+}
+
+.aero-app .bottom-nav {
+  border-top-color: var(--aero-color-border-strong);
+}
+
+@media (min-width: 1101px) {
+  .aero-app .header-user {
+    display: flex;
+  }
+
+  .aero-app .shell.has-left .left-nav {
+    top: var(--header-h);
+    height: calc(100dvh - var(--header-h));
+  }
+
+  .aero-app .shell.has-left .right-rail,
+  .aero-app .feed-tabs {
+    top: var(--header-h);
+  }
+}
+
+@media (max-width: 1100px) {
+  .aero-app[data-theme^="aero-"] {
+    border-inline: 0;
+  }
+}
+
+/* The compact icon is opted into by the Aero header only. */
+.search-field-icon { display: none; }
+.aero-home .header-search .search-field-icon { display: flex; }
+
+/* Russian navigation labels must not enlarge the five mobile grid tracks. */
+.aero-app .bottom-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.aero-app .bottom-nav .tab-link { min-width: 0; overflow-wrap: anywhere; }
+.aero-home .profile .earnings { display: none; }
+.aero-app .bottom-nav > span { min-width: 0; }
+
+/* Keep the mobile menu's account actions above the fixed bottom navigation. */
+.aero-home .drawer-root { position: relative; z-index: 70; }
+
+/* Shared controls and surfaces for every page inside the Aero shell. */
+.aero-home .container .card,
+.aero-home .right-rail .card {
+  background: var(--aero-gradient-card), var(--aero-color-surface-solid);
+  border: 1px solid var(--aero-color-border);
+  border-radius: var(--aero-radius-panel);
+  box-shadow: inset 0 1px var(--aero-color-highlight-solid), 0 2px 5px var(--aero-color-shadow);
+}
+.aero-home .container :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select) {
+  min-width: 0; max-width: 100%; color: var(--aero-color-text);
+  background: var(--aero-color-field); border: 1px solid var(--aero-color-border);
+  border-radius: var(--aero-radius-control); box-shadow: none;
+}
+.aero-home .container :is(input, textarea, select):focus-visible {
+  outline: 1px dotted var(--aero-color-focus); outline-offset: -4px;
+  border-color: var(--aero-color-border-strong); box-shadow: none;
+}
+.aero-home .container :is(input[type="checkbox"], input[type="radio"]) { accent-color: var(--aero-color-border-strong); }
+.aero-home .container .tabs { border-color: var(--aero-color-border); }
+.aero-home .container .tab.active { color: var(--aero-color-text-control); background: var(--aero-gradient-tab-active); }
+.aero-home .container .btn:not(.btn-ghost):not(:disabled):hover { background: var(--aero-gradient-button-hover); color: var(--aero-color-text-control); }
+.aero-home .container .btn:disabled { color: var(--aero-color-disabled-text); background: var(--aero-color-disabled-surface); border-color: var(--aero-color-disabled-border); opacity: 1; }
+@media (min-width: 1101px) {
+  .aero-home .shell.has-left.wide { grid-template-columns: 185px minmax(0, 1fr); }
+}
+
+.aero-comment-input { display: flex; align-items: center; gap: 6px; min-width: 0; width: 100%; }
+.aero-comment-input input { flex: 1 1 0; width: 0; min-width: 0; height: 40px; }
+.aero-comment-input .btn { flex: 0 0 auto; min-height: 40px; padding-inline: 10px; }
+.aero-comment-input .aero-comment-photo { width: 40px; padding: 0; }
+.aero-comment-photo-hint { display: inline-flex; flex: 0 0 auto; }
+@media (min-width: 1240px) {
+  .aero-home .left-nav .side-label { min-width: 0; white-space: normal; overflow-wrap: anywhere; }
+  .aero-home .left-nav .side-icon { flex: 0 0 28px; }
+}
+
+/* Auth keeps its split layout while using the same light palette. */
+.aero-auth {
+  --bg: var(--aero-color-canvas); --surface: var(--aero-color-surface-solid);
+  --surface-2: #d7effc; --text: var(--aero-color-text); --muted: var(--aero-color-text-muted);
+  --border: var(--aero-color-border); --accent: var(--aero-color-link);
+  --accent-hover: var(--aero-color-secondary); --accent-contrast: #fff;
+  --accent-soft: #c8edff; --danger: var(--aero-color-error-text);
+  color: var(--text); font-family: var(--aero-font-body);
+  background: var(--aero-gradient-panel); border-color: var(--aero-color-border-strong);
+}
+.aero-auth .auth-art { background: var(--aero-gradient-glass), var(--aero-color-secondary); }
+.aero-auth .auth-main { background: var(--aero-gradient-panel); }
+.aero-auth .card { background: var(--aero-gradient-card), var(--aero-color-surface-solid); border: 1px solid var(--aero-color-border); box-shadow: inset 0 1px white, 0 2px 5px var(--aero-color-shadow); }
+.aero-auth .btn:not(.btn-ghost) { background: var(--aero-gradient-button); border: 1px solid var(--aero-color-border-strong); color: var(--aero-color-text-control); border-radius: var(--aero-radius-control); }
+.aero-auth :is(input, textarea):focus-visible { outline: 2px solid var(--aero-color-focus); outline-offset: 2px; }
+
+/* Fill a short window without constraining long content. */
+.aero-home .shell { min-height: calc(100dvh - var(--aero-chrome-bottom, 108px)); }
+.aero-app.aero-home .aero-window { border-bottom-width: 0; }
+.aero-auth .auth-main .auth { background: transparent; border: 0; box-shadow: none; }
+.aero-app :is(.container, .auth-main) :is(input:not([type="checkbox"]):not([type="radio"]):not([type="file"]), textarea, select):focus { outline: none; box-shadow: none; border-color: var(--aero-color-border-strong); }
+.aero-app :is(.container, .auth-main) :is(input, textarea, select):focus-visible { outline: 1px dotted var(--aero-color-focus); outline-offset: -4px; box-shadow: none; }
+.aero-home .composer:focus-within { box-shadow: inset 0 1px var(--aero-color-highlight-solid), 0 2px 5px var(--aero-color-shadow); }
+
+/* A thread stays in view while its history, rather than the whole thread, scrolls. */
+.aero-home .chat { height: auto; min-height: 0; align-items: start; }
+.aero-home .chat-list { overflow: visible; }
+.aero-home .chat-thread { position: sticky; top: var(--aero-chrome-bottom, 108px); height: max(220px, calc(100dvh - var(--aero-chrome-bottom, 108px) - 12px)); min-height: 0; }
+.aero-home .chat-messages { min-height: 0; overflow-y: auto; }
+.aero-home .chat-messages::-webkit-scrollbar { width: 16px; }
+.aero-home .chat-messages::-webkit-scrollbar-track { background: rgb(193 227 246 / 65%); border-left: 1px solid #8bbbd7; }
+.aero-home .chat-messages::-webkit-scrollbar-thumb { border: 1px solid #8bbbd7; border-radius: 4px; background: linear-gradient(90deg, #f6fcff, #d3eafa 48%, #bedff3 51%, #e8f8ff); box-shadow: inset 0 1px #fff; }
+.aero-home .chat-messages::-webkit-scrollbar-thumb:hover { border-color: #297cb8; background: linear-gradient(90deg, #fff, #b8e3fa); }
+@media (max-width: 767px) {
+  .aero-home .chat.chat-open { height: auto; }
+  .aero-home .chat:not(.chat-open) .chat-list { min-height: calc(100dvh - var(--aero-chrome-bottom, 93px) - 100px); }
+}
+
+.aero-app .side-link .side-label, .aero-app .drawer-links .nav-link { white-space: nowrap; }
+.aero-app .bottom-nav .tab-label { white-space: nowrap; font-size: 10px; }
+.aero-app .pill { white-space: nowrap; }

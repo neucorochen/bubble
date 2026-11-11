@@ -4,7 +4,7 @@ import Icon from "./Icon";
 export default function PlusBadge({ plus }: { plus: boolean }) {
   if (!plus) return null;
   return (
-    <span className="plus-badge" title="Commune Plus member" aria-label="Commune Plus member">
+    <span className="plus-badge" title="Подписчик Bubble Plus" aria-label="Подписчик Bubble Plus">
       <Icon name="sparkle" size={11} filled />
     </span>
   );

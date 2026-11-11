@@ -13,13 +13,13 @@ function typeOf(file: File): string {
 export function validateImage(file: File): string | null {
   const type = typeOf(file);
   if (!(ALLOWED_IMAGE_TYPES as readonly string[]).includes(type)) {
-    return "Choose a PNG, JPEG, GIF or WebP image.";
+    return "Выберите изображение PNG, JPEG, GIF или WebP.";
   }
   if (file.size > MAX_SOURCE_IMAGE_BYTES) {
-    return `Photo must be ${mb(MAX_SOURCE_IMAGE_BYTES)} MB or smaller.`;
+    return `Размер фотографии не должен превышать ${mb(MAX_SOURCE_IMAGE_BYTES)} МБ.`;
   }
   if (type === "image/gif" && file.size > MAX_IMAGE_BYTES) {
-    return `GIFs must be ${mb(MAX_IMAGE_BYTES)} MB or smaller. Try a shorter one.`;
+    return `Размер GIF не должен превышать ${mb(MAX_IMAGE_BYTES)} МБ. Попробуйте более короткий файл.`;
   }
   return null;
 }
@@ -62,7 +62,7 @@ async function decode(
     };
   } catch {
     URL.revokeObjectURL(url);
-    throw new Error("We couldn't read that image. Try another photo.");
+    throw new Error("Не удалось прочитать изображение. Попробуйте другую фотографию.");
   }
 }
 

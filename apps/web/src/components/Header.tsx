@@ -1,3 +1,4 @@
+import NavigationIcon from "./NavigationIcon";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
@@ -9,6 +10,7 @@ import Brand from "./BrandMark";
 import Icon, { type IconName } from "./Icon";
 import PlusBadge from "./PlusBadge";
 import SearchBox from "./SearchBox";
+import { navigationFor } from "../lib/navigation";
 
 /** Pages where the navbar is hidden so sign-in flows stay focused. */
 export const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-password"];
@@ -16,6 +18,9 @@ export const AUTH_PATHS = ["/login", "/register", "/forgot-password", "/reset-pa
 export default function Header() {
   const { user, logout } = useAuth();
   const { pathname } = useLocation();
+  const confirmLogout = () => {
+    if (window.confirm("Вы уверены, что хотите выйти из аккаунта?")) void logout();
+  };
   const unread = useUnreadCount(Boolean(user));
   const msgs = useUnreadMessages(Boolean(user));
   const [open, setOpen] = useState(false);
@@ -41,7 +46,7 @@ export default function Header() {
 
   // If the window grows to desktop size, make sure no stale drawer stays open.
   useEffect(() => {
-    const mq = window.matchMedia("(min-width: 901px)");
+    const mq = window.matchMedia("(min-width: 1101px)");
     const onChange = () => mq.matches && setOpen(false);
     mq.addEventListener("change", onChange);
     return () => mq.removeEventListener("change", onChange);
@@ -52,7 +57,7 @@ export default function Header() {
   const navClass = ({ isActive }: { isActive: boolean }) => `nav-link${isActive ? " active" : ""}`;
   const item = (to: string, icon: IconName, label: string, extra?: ReactNode, end = false) => (
     <NavLink to={to} end={end} className={navClass}>
-      <Icon name={icon} size={20} />
+      <NavigationIcon name={icon} size={20} />
       {label}
       {extra}
     </NavLink>
@@ -61,7 +66,7 @@ export default function Header() {
   return (
     <>
       <header className={`header${user ? " header-user" : ""}`}>
-        <Link to="/" className="brand" aria-label="Commune home">
+        <Link to="/" className="brand" aria-label="На главную Bubble">
           <Brand size={30} />
         </Link>
 
@@ -72,31 +77,17 @@ export default function Header() {
         )}
 
         {/* Desktop navigation (wide screens with the left menu hide this bar for members) */}
-        <nav className="header-right nav-desktop" aria-label="Main">
-          {!user && (
-            <>
-              <NavLink to="/explore" className={navClass}>
-                Explore
-              </NavLink>
-              <NavLink to="/news" className={navClass}>
-                News
-              </NavLink>
-              <Link to="/login" className="nav-link">
-                Log in
-              </Link>
-              <Link to="/register" className="btn">
-                Sign up
-              </Link>
-            </>
-          )}
+        <nav className="header-right nav-desktop" aria-label="Основная навигация">
+          {!user && navigationFor("guest", "header").map((entry) => <NavLink key={entry.id} to={entry.to("")} className={navClass}>{entry.label}</NavLink>)}
           {user && (
             <>
               <Link to={`/u/${user.username}`} className="nav-link nav-profile">
-                <Avatar username={user.username} url={user.avatarUrl} size={26} />@{user.username}
+                <Avatar username={user.username} url={user.avatarUrl} size={26} /><span className="nav-profile-name">@{user.username}</span>
                 <PlusBadge plus={user.plus} />
               </Link>
-              <button className="btn btn-ghost" onClick={() => void logout()}>
-                Log out
+              <button className="btn btn-ghost" onClick={confirmLogout}>
+
+                Выйти
               </button>
             </>
           )}
@@ -104,14 +95,14 @@ export default function Header() {
 
         {/* Mobile / tablet controls */}
         <div className="nav-mobile">
-          {user && (
-            <Link to="/search" className="icon-btn" aria-label="Search">
-              <Icon name="search" size={22} />
+          {user && navigationFor("member", "header").map((entry) => (
+            <Link key={entry.id} to={entry.to(user.username)} className="icon-btn" aria-label={entry.label}>
+              <NavigationIcon name={entry.icon} size={22} />
             </Link>
-          )}
+          ))}
           <button
             className="icon-btn"
-            aria-label={open ? "Close menu" : "Open menu"}
+            aria-label={open ? "Закрыть меню" : "Открыть меню"}
             aria-expanded={open}
             aria-controls="mobile-menu"
             onClick={() => setOpen((o) => !o)}
@@ -126,7 +117,7 @@ export default function Header() {
         <button
           className="drawer-overlay"
           tabIndex={-1}
-          aria-label="Close menu"
+          aria-label="Закрыть меню"
           onClick={() => setOpen(false)}
         />
         <aside
@@ -134,62 +125,22 @@ export default function Header() {
           className="drawer"
           role="dialog"
           aria-modal="true"
-          aria-label="Menu"
+          aria-label="Меню"
         >
           {user ? (
             <>
-              <Link to={`/u/${user.username}`} className="drawer-profile">
-                <Avatar username={user.username} url={user.avatarUrl} size={48} />
-                <span>
-                  <strong>
-                    @{user.username} <PlusBadge plus={user.plus} />
-                  </strong>
-                  <small className="muted">View profile</small>
-                </span>
-              </Link>
-              <nav className="drawer-links" aria-label="Menu">
-                {item("/", "home", "Home", undefined, true)}
-                {item("/communities", "users", "Communities")}
-                {item("/news", "news", "News")}
-                {item(
-                  "/notifications",
-                  "bell",
-                  "Notifications",
-                  count > 0 && <span className="pill">{countLabel}</span>,
-                )}
-                {item(
-                  "/messages",
-                  "mail",
-                  "Messages",
-                  msgCount > 0 && <span className="pill">{msgCount}</span>,
-                )}
-                {item(
-                  user.plus ? "/insights" : "/plus",
-                  user.plus ? "chart" : "sparkle",
-                  user.plus ? "Insights" : "Commune Plus",
-                )}
-                {user.plus && item("/plus", "card", "Billing")}
-                {user.role === "admin" && item("/admin", "shield", "Admin")}
-                {item("/contact", "contact", "Contact")}
+              <nav className="drawer-links" aria-label="Меню">
+                {navigationFor("member", "drawer").map((entry) => <span key={entry.id}>{item(entry.to(user.username), entry.icon, entry.label, entry.id === "messages" && msgCount > 0 ? <span className="pill">{msgCount}</span> : entry.id === "notifications" && count > 0 ? <span className="pill">{countLabel}</span> : undefined, entry.end)}</span>)}
               </nav>
-              <button className="btn btn-outline block" onClick={() => void logout()}>
-                <Icon name="logout" size={18} /> Log out
+              <button className="btn btn-outline block" onClick={confirmLogout}>
+                <Icon name="logout" size={18} />  Выйти
               </button>
             </>
           ) : (
             <>
-              <nav className="drawer-links" aria-label="Menu">
-                {item("/", "home", "Home", undefined, true)}
-                {item("/explore", "compass", "Explore")}
-                {item("/news", "news", "News")}
-                {item("/contact", "contact", "Contact")}
+              <nav className="drawer-links" aria-label="Меню">
+                {navigationFor("guest", "drawer").map((entry) => <span key={entry.id}>{item(entry.to(""), entry.icon, entry.guestLabel ?? entry.label, undefined, entry.end)}</span>)}
               </nav>
-              <Link to="/register" className="btn block">
-                Create account
-              </Link>
-              <Link to="/login" className="btn btn-outline block">
-                Log in
-              </Link>
             </>
           )}
         </aside>

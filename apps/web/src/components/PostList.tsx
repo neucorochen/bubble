@@ -3,13 +3,15 @@ import { PostListSkeleton } from "./Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import type { useFeed } from "../hooks/usePosts";
 
-/** Renders any infinite post query: loading, error, empty state, posts and "Load more". */
+/** Renders any infinite post query: loading, error, empty state, posts and "Загрузить ещё". */
 export default function PostList({
   query,
   emptyMessage,
+  inlineComments = false,
 }: {
   query: ReturnType<typeof useFeed>;
   emptyMessage: string;
+  inlineComments?: boolean;
 }) {
   const posts = query.data?.pages.flatMap((p) => p.items) ?? [];
   const { hasNextPage, isFetchingNextPage, isError, fetchNextPage } = query;
@@ -25,13 +27,13 @@ export default function PostList({
       {query.isError && <p className="error center">{query.error.message}</p>}
       {query.isSuccess && posts.length === 0 && <p className="muted center">{emptyMessage}</p>}
       {posts.map((post) => (
-        <PostCard key={post.id} post={post} />
+        <PostCard key={post.id} post={post} inlineComments={inlineComments} />
       ))}
       {isFetchingNextPage && <PostListSkeleton count={1} />}
       {query.hasNextPage && <div ref={sentinel} aria-hidden="true" />}
       {query.hasNextPage && !isFetchingNextPage && (
         <button className="btn btn-ghost block" onClick={() => void query.fetchNextPage()}>
-          Load more
+          Загрузить ещё
         </button>
       )}
     </>

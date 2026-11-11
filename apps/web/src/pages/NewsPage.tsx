@@ -5,11 +5,11 @@ import { useNews } from "../hooks/useNews";
 import { timeAgo } from "../components/PostCard";
 
 const LABELS: Record<NewsTopic, string> = {
-  top: "Top",
-  world: "World",
-  technology: "Tech",
-  business: "Business",
-  sport: "Sport",
+  top: "Главное",
+  world: "Мир",
+  technology: "Технологии",
+  business: "Бизнес",
+  sport: "Спорт",
 };
 
 export default function NewsPage() {
@@ -18,8 +18,8 @@ export default function NewsPage() {
 
   return (
     <>
-      <h1 className="search-title">Latest news</h1>
-      <div className="tabs" role="tablist" aria-label="News topics">
+      <h1 className="search-title">Последние новости</h1>
+      <div className="tabs" role="tablist" aria-label="Темы новостей">
         {NEWS_TOPICS.map((t) => (
           <button
             key={t}
@@ -36,9 +36,11 @@ export default function NewsPage() {
       {news.isLoading && <NewsCardsSkeleton />}
       {news.isError && (
         <p className="error center">
-          News is unavailable right now.{" "}
+
+          Новости сейчас недоступны.{" "}
           <button className="link-btn" onClick={() => void news.refetch()}>
-            Try again
+
+            Попробовать снова
           </button>
         </p>
       )}
@@ -51,13 +53,14 @@ export default function NewsPage() {
           rel="noopener noreferrer nofollow"
         >
           <span className="muted small">
-            {n.source} · {timeAgo(n.publishedAt)} ago
+            {n.source} · {timeAgo(n.publishedAt)}
           </span>
           <strong>{n.title}</strong>
         </a>
       ))}
       <p className="muted small center">
-        Headlines from BBC, NPR, The Guardian and Al Jazeera. Links open the publisher's site.
+
+        Заголовки BBC, NPR, The Guardian и Al Jazeera. Ссылки открывают сайты изданий.
       </p>
     </>
   );

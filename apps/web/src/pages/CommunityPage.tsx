@@ -1,3 +1,4 @@
+import { pluralRu } from "../lib/plural";
 import { Link, useParams } from "react-router-dom";
 import { CardsSkeleton } from "../components/Skeleton";
 import Composer from "../components/Composer";
@@ -14,7 +15,8 @@ export default function CommunityPage() {
   if (community.isError || !community.data) {
     return (
       <p className="error center">
-        Community not found. <Link to="/communities">Browse communities</Link>
+
+        Сообщество не найдено. <Link to="/communities">Смотреть сообщества</Link>
       </p>
     );
   }
@@ -25,25 +27,28 @@ export default function CommunityPage() {
   return (
     <>
       <Link to="/communities" className="muted">
-        ← All communities
+
+        ← Все сообщества
       </Link>
       <section className="card community-head">
         <div className="row between">
           <div>
             <h1 className="community-title">{c.name}</h1>
             <p className="muted">
-              c/{c.slug} · {c.memberCount} {c.memberCount === 1 ? "member" : "members"}
-              {c.myRole === "owner" && " · You own this"}
+              c/{c.slug} · {c.memberCount} {pluralRu(c.memberCount, "участник", "участника", "участников")}
+              {c.myRole === "owner" && " · Вы владелец"}
             </p>
           </div>
           {c.myRole !== "owner" &&
             (c.joinedByMe ? (
               <button className="btn btn-outline" disabled={busy} onClick={() => leave.mutate()}>
-                Joined ✓
+
+                Вы участник ✓
               </button>
             ) : (
               <button className="btn" disabled={busy} onClick={() => join.mutate()}>
-                Join
+
+                Вступить
               </button>
             ))}
         </div>
@@ -56,9 +61,9 @@ export default function CommunityPage() {
       {c.joinedByMe ? (
         <Composer communitySlug={c.slug} />
       ) : (
-        <p className="muted center">Join this community to post in it.</p>
+        <p className="muted center">Вступите в сообщество, чтобы публиковать записи.</p>
       )}
-      <PostList query={posts} emptyMessage="No posts here yet. Start the conversation." />
+      <PostList query={posts} emptyMessage="Записей пока нет. Начните обсуждение." />
     </>
   );
 }

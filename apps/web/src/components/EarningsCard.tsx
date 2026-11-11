@@ -6,17 +6,17 @@ export default function EarningsCard() {
   if (!earnings.data) return null;
   const e = earnings.data;
   return (
-    <div className="earnings" aria-label="Your earnings from paid posts">
+    <div className="earnings" aria-label="Доход от платных записей">
       <div>
-        <span className="muted">Your earnings</span>
+        <span className="muted">Ваш доход</span>
         <strong>{formatPrice(e.netCents, e.currency)}</strong>
       </div>
       <div>
-        <span className="muted">Sales</span>
+        <span className="muted">Продажи</span>
         <strong>{e.sales}</strong>
       </div>
       <div>
-        <span className="muted">Platform fee</span>
+        <span className="muted">Комиссия платформы</span>
         <strong>{formatPrice(e.feeCents, e.currency)}</strong>
       </div>
     </div>

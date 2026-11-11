@@ -22,36 +22,38 @@ export default function ContactPage() {
     e.preventDefault();
     setError(null);
     const parsed = contactSchema.safeParse(fields);
-    if (!parsed.success) return setError(parsed.error.issues[0]?.message ?? "Check your details");
+    if (!parsed.success) return setError("Проверьте введённые данные");
     setState("sending");
     try {
       await api("/contact", { method: "POST", body: parsed.data });
       setState("sent");
     } catch (err) {
       setState("idle");
-      setError(err instanceof Error ? err.message : "Could not send your message");
+      setError(err instanceof Error ? err.message : "Не удалось отправить сообщение");
     }
   };
 
   if (state === "sent") {
     return (
       <section className="card plus-hero">
-        <h1>Thank you!</h1>
-        <p className="muted">Your message was sent. We'll reply by email as soon as we can.</p>
+        <h1>Спасибо!</h1>
+        <p className="muted">Сообщение отправлено. Мы ответим на вашу почту как можно скорее.</p>
       </section>
     );
   }
 
   return (
     <form className="card auth" onSubmit={(e) => void submit(e)} noValidate>
-      <h1>Contact us</h1>
-      <p className="muted">Questions, feedback or a bug to report? Write to us.</p>
+      <h1>Связаться с нами</h1>
+      <p className="muted">Есть вопросы, предложения или вы нашли ошибку? Напишите нам.</p>
       <label>
-        Name
+
+        Имя
         <input value={fields.name} onChange={set("name")} maxLength={60} autoComplete="name" />
       </label>
       <label>
-        Email
+
+        Электронная почта
         <input
           type="email"
           value={fields.email}
@@ -61,7 +63,8 @@ export default function ContactPage() {
         />
       </label>
       <label>
-        Message
+
+        Сообщение
         <textarea value={fields.message} onChange={set("message")} rows={6} maxLength={2000} />
       </label>
       {/* Honeypot: hidden from people, tempting for bots. */}
@@ -76,7 +79,7 @@ export default function ContactPage() {
       />
       {error && <p className="error">{error}</p>}
       <button className="btn" disabled={state === "sending"}>
-        {state === "sending" ? "Sending…" : "Send message"}
+        {state === "sending" ? "Отправка…" : "Отправить сообщение"}
       </button>
     </form>
   );
