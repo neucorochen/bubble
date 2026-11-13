@@ -29,7 +29,7 @@ export function useAdminReports(status: ReportStatus) {
 function useRefreshAfterModeration() {
   const qc = useQueryClient();
   return () => {
-    for (const key of ["admin-reports", "feed", "post", "comments", "profile"]) {
+    for (const key of ["admin-reports", "feed", "post", "comments", "profile", "friends-access", "friends-list"]) {
       void qc.invalidateQueries({ queryKey: [key] });
     }
   };

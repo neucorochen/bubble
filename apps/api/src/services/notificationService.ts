@@ -45,7 +45,7 @@ export async function notify({ user, actor, type, post }: NotifyInput): Promise<
       const text = {
         like: "liked your post",
         comment: "commented on your post",
-        follow: "started following you",
+        follow: "wants to add you as a friend",
       }[type];
       await pushToUser(user.toString(), "social", {
         title: "Commune",

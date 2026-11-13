@@ -155,6 +155,20 @@ export async function unreadCount(req: Request, res: Response) {
   res.json({ count });
 }
 
+async function markConversationRead(convo: LeanConversation, me: string, otherId: string) {
+  const unread = convo.unread?.[me] ?? 0;
+  if (!unread) return;
+  const conversationId = str(convo._id);
+  const counter = `unread.${me}`;
+  const result = await Conversation.updateOne(
+    { _id: conversationId, [counter]: unread, lastMessageAt: convo.lastMessageAt },
+    { $set: { [counter]: 0 } },
+  );
+  if (result.modifiedCount) {
+    await emitToUsers([otherId], "message:read", { conversationId, readerId: me });
+  }
+}
+
 /** GET /messages/:id: a page of messages (newest page first request; older via cursor). */
 export async function getMessages(req: Request, res: Response) {
   const me = req.userId!;
@@ -174,10 +188,7 @@ export async function getMessages(req: Request, res: Response) {
   const nextCursor = hasMore ? page[page.length - 1]!.createdAt.toISOString() : null;
 
   // Opening the latest page counts as reading the conversation.
-  if (!cursor && Number(convo.unread?.[me] ?? 0) > 0) {
-    await Conversation.updateOne({ _id: str(convo._id) }, { $set: { [`unread.${me}`]: 0 } });
-    await emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me });
-  }
+  if (!cursor) await markConversationRead(convo, me, otherId);
 
   const other = (await User.findById(otherId)
     .select(USER_FIELDS)
@@ -224,9 +235,6 @@ export async function start(req: Request, res: Response) {
 export async function markRead(req: Request, res: Response) {
   const me = req.userId!;
   const { convo, otherId } = await loadConversation(req.params.id, me);
-  if (Number(convo.unread?.[me] ?? 0) > 0) {
-    await Conversation.updateOne({ _id: str(convo._id) }, { $set: { [`unread.${me}`]: 0 } });
-    await emitToUsers([otherId], "message:read", { conversationId: str(convo._id), readerId: me });
-  }
+  await markConversationRead(convo, me, otherId);
   res.status(204).end();
 }

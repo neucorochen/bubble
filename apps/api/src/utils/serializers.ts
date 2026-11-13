@@ -102,8 +102,9 @@ export function toProfileDTO(
   u: UserLike,
   counts: { followerCount: number; followingCount: number },
   followedByMe: boolean,
+  followsMe: boolean,
 ): ProfileDTO {
-  return { ...toPublicUser(u), ...counts, followedByMe, banned: Boolean(u.banned) };
+  return { ...toPublicUser(u), ...counts, followedByMe, followsMe, banned: Boolean(u.banned) };
 }
 
 /**

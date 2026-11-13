@@ -73,7 +73,7 @@
           var hint = localStorage.getItem("commune_session");
           var path = location.pathname;
           start("/news?topic=top", "/api/news?topic=top");
-          if (hint !== "0")
+          if (hint !== "guest")
             start("/auth/refresh", "/api/auth/refresh", { method: "POST", credentials: "include" });
           else if (path === "/" || path === "/explore") start("/public/posts", "/api/public/posts");
         } catch (e) {}

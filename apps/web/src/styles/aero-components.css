@@ -1,5 +1,17 @@
 .profile-avatar-link { display: inline-flex; flex-shrink: 0; align-self: start; width: fit-content; border-radius: 50%; }
 .profile-avatar-link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.profile-friends-preview { margin-top: 16px; padding-top: 12px; border-top: 1px solid var(--aero-color-border); }
+.profile-friends-heading { font-weight: 700; }
+.friends-preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(66px, 1fr)); gap: 12px; margin-top: 12px; max-width: 520px; }
+.friend-preview { display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 0; font-size: 12px; text-align: center; overflow-wrap: anywhere; }
+.friend-preview .avatar { flex-shrink: 0; }
+.friends-page .friend-list-row { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; margin-bottom: 8px; }
+.friend-person-link { display: flex; align-items: center; gap: 10px; min-width: 0; overflow-wrap: anywhere; }
+.aero-home .feed-tabs.friends-tabs { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr) 44px; align-items: stretch; }
+.aero-home .friends-tabs .tab { display: flex; align-items: center; justify-content: center; align-self: stretch; height: auto; min-height: 44px; white-space: normal; overflow-wrap: anywhere; padding: 8px; line-height: 1.25; }
+.friends-settings-note { flex-basis: 100%; margin: 0; }
+.friends-visibility, .friends-search { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-bottom: 12px; }
+.friends-search input { min-width: 0; max-width: 100%; }
 .comments-disclosure { display: grid; grid-template-rows: 0fr; visibility: hidden; transition: grid-template-rows 180ms ease-out, visibility 0s linear 180ms; }
 .comments-disclosure.is-open { grid-template-rows: 1fr; visibility: visible; transition: grid-template-rows 180ms ease-out, visibility 0s; }
 .comments-disclosure-inner { min-height: 0; overflow: hidden; }

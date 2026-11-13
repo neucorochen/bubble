@@ -109,6 +109,22 @@ export const searchQuerySchema = z.object({
   page: z.coerce.number().int().min(1).max(10).default(1),
 });
 
+export const friendsQuerySchema = z.object({
+  q: z.string().trim().max(50).default(""),
+  cursor: z.string().max(64).optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+export const relationshipsQuerySchema = friendsQuerySchema.extend({
+  type: z.enum(["friends", "following", "followers", "outgoing", "incoming"]),
+});
+export const friendsVisibilitySchema = z.enum(["everyone", "friends", "only_me"]);
+export type FriendsVisibility = z.infer<typeof friendsVisibilitySchema>;
+export const updateFriendsVisibilitySchema = z
+  .object({ friendsVisibility: friendsVisibilitySchema })
+  .strict();
+export type FriendsAccessDTO =
+  { canView: false } | { canView: true; count: number; friendsVisibility?: FriendsVisibility };
+
 export const createCommentSchema = z.object({
   content: z.string().trim().min(1).max(300),
 });
@@ -357,6 +373,7 @@ export interface ProfileDTO extends PublicUser {
   followerCount: number;
   followingCount: number;
   followedByMe: boolean;
+  followsMe: boolean;
   banned: boolean;
 }
 

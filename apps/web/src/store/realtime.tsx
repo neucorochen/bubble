@@ -1,10 +1,11 @@
-import { useEffect, type ReactNode } from "react";
+import { useEffect, useRef, type ReactNode } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import type { MessageDTO } from "@commune/shared";
 import type { ThreadPage } from "../hooks/useMessages";
 import { realtimeEnabled, startRealtime, stopRealtime } from "../lib/realtime";
 import { isViewingConversation, playSound } from "../lib/sound";
 import { useAuth } from "./auth";
+import { useUnreadCount } from "../hooks/useSocial";
 
 /** Adds a message to a loaded conversation unless it is already there (own sends arrive twice). */
 export function appendUnique(page: ThreadPage, message: MessageDTO): ThreadPage {
@@ -20,13 +21,40 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   const qc = useQueryClient();
   const userId = user?.id;
+  const unread = useUnreadCount(Boolean(userId));
+  const previous = useRef<{ userId: string; count: number } | null>(null);
+
+  useEffect(() => {
+    if (!userId || unread.data === undefined) { previous.current = null; return; }
+    const count = unread.data.count;
+    if (previous.current?.userId === userId && previous.current.count !== count) {
+      for (const key of ["relationships", "friends-access", "friends-list", "profile", "notifications"]) void qc.invalidateQueries({ queryKey: [key] });
+    }
+    previous.current = { userId, count };
+  }, [userId, unread.data, qc]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const refresh = () => {
+      if (document.visibilityState !== "visible") return;
+      for (const key of ["thread", "conversations", "unread-messages", "notifications", "unread-count", "relationships", "friends-access", "friends-list", "profile", "feed"]) void qc.invalidateQueries({ queryKey: [key] });
+    };
+    document.addEventListener("visibilitychange", refresh);
+    window.addEventListener("online", refresh);
+    return () => { document.removeEventListener("visibilitychange", refresh); window.removeEventListener("online", refresh); };
+  }, [userId, qc]);
 
   useEffect(() => {
     if (!realtimeEnabled || !userId) return;
 
     startRealtime({
       onMessage: ({ message }) => {
-        qc.setQueryData<ThreadPage>(["thread", message.conversationId], (old) => {
+        const key = ["thread", message.conversationId];
+        const fetching = qc.getQueryState(key)?.fetchStatus === "fetching";
+        // An older REST snapshot must never overwrite this event. This also covers
+        // the first GET, when there is no conversation in the cache to append to yet.
+        if (fetching) void qc.cancelQueries({ queryKey: key, exact: true });
+        qc.setQueryData<ThreadPage>(key, (old) => {
           if (!old) return old;
           const next = appendUnique(old, message);
           // A new message from me means the other person has not seen it yet.
@@ -35,6 +63,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           }
           return next;
         });
+        if (fetching) void qc.invalidateQueries({ queryKey: key, exact: true });
         void qc.invalidateQueries({ queryKey: ["conversations"] });
         if (message.senderId !== userId) {
           void qc.invalidateQueries({ queryKey: ["unread-messages"] });
@@ -58,6 +87,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
         }
         void qc.invalidateQueries({ queryKey: ["notifications"] });
         void qc.invalidateQueries({ queryKey: ["unread-count"] });
+        for (const key of ["relationships", "friends-access", "friends-list", "profile"]) void qc.invalidateQueries({ queryKey: [key] });
       },
       onResync: () => {
         // Events sent while the connection was down are gone, so ask the server what changed.
@@ -67,6 +97,7 @@ export function RealtimeProvider({ children }: { children: ReactNode }) {
           "unread-messages",
           "notifications",
           "unread-count",
+          "relationships", "friends-access", "friends-list", "profile",
         ]) {
           void qc.invalidateQueries({ queryKey: [key] });
         }

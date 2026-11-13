@@ -10,7 +10,7 @@ import { useMarkAllRead, useNotifications } from "../hooks/useSocial";
 const TEXT: Record<NotificationDTO["type"], string> = {
   like: "понравилась ваша запись",
   comment: "прокомментировал вашу запись",
-  follow: "подписался на вас",
+  follow: "хочет добавить вас в друзья",
 };
 
 export default function NotificationsPage() {
@@ -20,10 +20,12 @@ export default function NotificationsPage() {
 
   // Mark everything read once the list has loaded. The page keeps the original
   // "read" flags, so new items stay highlighted while you are looking at them.
-  const hasUnread = list.data?.some((n) => !n.read) ?? false;
+  // A new notification can arrive before the previous read has refreshed the badge.
+  // Likes and follows reuse an ID and advance createdAt when they are raised again.
+  const unreadVersion = list.data?.filter((n) => !n.read).map((n) => `${n.id}/${n.createdAt}`).join(",");
   useEffect(() => {
-    if (hasUnread) mutate();
-  }, [hasUnread, mutate]);
+    if (unreadVersion) mutate();
+  }, [unreadVersion, mutate]);
 
   return (
     <>
@@ -33,7 +35,7 @@ export default function NotificationsPage() {
       {list.isLoading && <RowsSkeleton count={5} avatar={36} card />}
       {list.isError && <p className="error center">{list.error.message}</p>}
       {list.isSuccess && list.data.length === 0 && (
-        <p className="muted center">Здесь пока пусто. Здесь появятся отметки «Нравится», комментарии и новые подписчики.</p>
+        <p className="muted center">Здесь пока пусто. Здесь появятся отметки «Нравится», комментарии и заявки в друзья.</p>
       )}
       {list.data?.map((n) => (
         <Link
