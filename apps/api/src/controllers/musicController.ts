@@ -13,9 +13,28 @@ import {
 import {
   addTrackToLibrary,
   getMusicPlaybackUrl,
+  getMusicDownloadUrl,
   listMusic,
   removeTrackFromLibrary,
+  listPickerMusic,
 } from "../services/musicService.js";
+import { UserMusic } from "../models/UserMusic.js";
+
+export async function libraryStatus(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  res.json({ added: Boolean(await UserMusic.exists({ userId: req.userId!, trackId: req.params.id! })) });
+}
+
+export async function libraryStatuses(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  const entries = await UserMusic.find({ userId: req.userId!, trackId: { $in: req.body.ids } }).select("trackId").lean();
+  res.json({ ids: entries.map((entry) => entry.trackId.toString()) });
+}
+
+export async function picker(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  res.json(await listPickerMusic(req.userId!, res.locals.query));
+}
 
 export async function signUpload(req: Request, res: Response) {
   res.set("Cache-Control", "no-store");
@@ -29,9 +48,9 @@ export async function signUpload(req: Request, res: Response) {
 }
 
 export async function completeUpload(req: Request, res: Response) {
-  const { uploadId } = req.body as MusicUploadCompleteInput;
+  const { uploadId, duration } = req.body as MusicUploadCompleteInput;
 
-  const body = await completeMusicUpload(req.userId!, uploadId);
+  const body = await completeMusicUpload(req.userId!, uploadId, duration);
 
   res.status(201).json(body);
 }
@@ -63,4 +82,9 @@ export async function play(req: Request, res: Response) {
   const url = await getMusicPlaybackUrl(req.params.id!);
 
   res.json({ url });
+}
+
+export async function download(req: Request, res: Response) {
+  res.set("Cache-Control", "no-store");
+  res.json({ url: await getMusicDownloadUrl(req.params.id!) });
 }

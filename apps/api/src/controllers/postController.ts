@@ -13,6 +13,7 @@ import { unlockedPostIds } from "../services/purchaseService.js";
 import { removePost } from "../services/moderationService.js";
 import { PostView } from "../models/PostView.js";
 import { User } from "../models/User.js";
+import { loadPostMusic, validateMusicTrackIds } from "../services/postMusic.js";
 import { isPlusActive } from "../utils/plan.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import {
@@ -51,7 +52,9 @@ async function loadPost(id: string): Promise<PopulatedPost> {
 async function withViewer(userId: string, post: PopulatedPost, liked: Set<string>) {
   const unlocked = await unlockedPostIds(userId, [post]);
   const key = post._id.toString();
-  return toPostDTO(post, liked.has(key), unlocked.has(key) || post.priceCents == null);
+  const allowed = unlocked.has(key) || post.priceCents == null;
+  const music = await loadPostMusic(allowed ? [post] : []);
+  return toPostDTO(post, liked.has(key), allowed, music.get(key));
 }
 
 /** Turns loaded posts into DTOs for one viewer (likes and paid-content access included). */
@@ -63,9 +66,10 @@ export async function presentPosts(userId: string, posts: PopulatedPost[]): Prom
     ),
     unlockedPostIds(userId, posts),
   ]);
+  const music = await loadPostMusic(posts.filter((post) => post.priceCents == null || unlocked.has(post._id.toString())));
   return posts.map((p) => {
     const key = p._id.toString();
-    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null, music.get(key));
   });
 }
 
@@ -97,10 +101,11 @@ export async function sendPostPage(
   );
 
   const unlocked = await unlockedPostIds(req.userId!, posts);
+  const music = await loadPostMusic(posts.filter((post) => post.priceCents == null || unlocked.has(post._id.toString())));
   const body: Page<PostDTO> = {
     items: posts.map((p) => {
       const key = p._id.toString();
-      return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+      return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null, music.get(key));
     }),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
@@ -143,17 +148,21 @@ export async function createPost(req: Request, res: Response) {
     }
     communityId = community._id.toString();
   }
+  const musicTrackIds: string[] = req.body.musicTrackIds ?? [];
+  await validateMusicTrackIds(musicTrackIds);
   const created = await Post.create({
     author: req.userId,
     community: communityId,
     content: req.body.content,
     imageUrl: req.body.imageUrl ?? null,
+    musicTrackIds,
     priceCents: req.body.priceCents ?? null,
     premiumContent: req.body.priceCents != null ? req.body.premiumContent : null,
   });
   const post = await loadPost(created._id.toString());
   // The author can always read their own paid content.
-  res.status(201).json(toPostDTO(post, false, true));
+  const music = await loadPostMusic([post]);
+  res.status(201).json(toPostDTO(post, false, true, music.get(post._id.toString())));
 }
 
 export async function deletePost(req: Request, res: Response) {

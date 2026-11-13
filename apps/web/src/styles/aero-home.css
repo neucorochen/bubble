@@ -76,6 +76,10 @@
 .aero-home .feed-post .post-meta { min-width: 0; padding-right: 36px; flex-wrap: wrap; overflow-wrap: anywhere; }
 .aero-home .feed-post .post-main > :not(.post-meta) { grid-column: 1 / -1; min-width: 0; }
 .aero-home .feed-post .post-image { max-width: 100%; height: auto; }
+.aero-home .post-main > .music-attachments { margin: 8px 0; }
+.aero-home .post-main > a:has(> .post-image):has(+ .music-attachments) > .post-image { margin-bottom: 0; }
+.aero-home .feed-post:has(.post-main > .music-attachments) { row-gap: 8px; }
+.aero-home .feed-post .post-main > .music-attachments { margin: 0; }
 .aero-home .post-head { position: relative; }
 .aero-home .post-head:has(.post-report) .post-meta { padding-right: 44px; }
 .aero-home .post-report { position: absolute; top: 8px; right: 8px; min-width: 44px; min-height: 44px; padding: 8px; }

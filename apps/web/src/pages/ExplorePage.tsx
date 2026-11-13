@@ -78,6 +78,7 @@ export default function ExplorePage() {
                   loading="lazy"
                 />
               )}
+              {post.musicAttachments?.map((track) => <p className="muted" key={track.id}>{track.unavailable ? "Трек недоступен" : `${track.artist} — ${track.title}`}</p>)}
               <p className="post-foot muted">
                 <span className="metric">
                   <Icon name="heart" size={17} /> {post.likeCount}

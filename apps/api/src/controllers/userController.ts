@@ -7,6 +7,7 @@ import { deleteUploadIfUnused } from "../services/uploadService.js";
 import { badRequest, notFound } from "../utils/errors.js";
 import { toProfileDTO, toPublicUser } from "../utils/serializers.js";
 import { sendPostPage } from "./postController.js";
+import { listProfileMusic } from "../services/musicService.js";
 
 /** Usernames are case-insensitive, so lookups use the same collation as the unique index. */
 export async function findByUsername(raw: string | undefined) {
@@ -32,6 +33,30 @@ export async function me(req: Request, res: Response) {
   const user = await User.findById(req.userId).lean();
   if (!user) throw notFound("User not found");
   res.json(toPublicUser(user));
+}
+
+export async function getMusicSettings(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  const user = await User.findById(req.userId).select("musicLibraryVisibility").lean();
+  if (!user) throw notFound("User not found");
+  res.json({ visibility: user.musicLibraryVisibility ?? "everyone" });
+}
+
+export async function updateMusicSettings(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  const user = await User.findByIdAndUpdate(req.userId, { musicLibraryVisibility: req.body.visibility }, { new: true, runValidators: true }).lean();
+  if (!user) throw notFound("User not found");
+  res.json({ visibility: user.musicLibraryVisibility });
+}
+
+export async function userMusic(req: Request, res: Response) {
+  res.set("Cache-Control", "private, no-store");
+  const owner = await findByUsername(req.params.username);
+  if (owner._id.toString() !== req.userId && owner.musicLibraryVisibility === "private") {
+    res.json({ status: "hidden" });
+    return;
+  }
+  res.json(await listProfileMusic(owner._id.toString(), req.userId!, res.locals.query.cursor));
 }
 
 /** Updates the fields that were sent: bio and/or avatarUrl (null removes the avatar). */

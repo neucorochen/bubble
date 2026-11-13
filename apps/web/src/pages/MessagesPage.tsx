@@ -2,8 +2,10 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RowsSkeleton, ThreadSkeleton } from "../components/Skeleton";
 import type { FormEvent, KeyboardEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
-import { MESSAGE_MAX_LENGTH, type MessageDTO } from "@commune/shared";
+import { MESSAGE_MAX_LENGTH, type MessageDTO, type MusicTrackDTO } from "@commune/shared";
 import Avatar from "../components/Avatar";
+import MusicAttachmentPicker from "../components/MusicAttachmentPicker";
+import MusicAttachments from "../components/MusicAttachments";
 import PlusBadge from "../components/PlusBadge";
 import { timeAgo } from "../components/PostCard";
 import {
@@ -14,6 +16,7 @@ import {
   useSendMessage,
   useStartChat,
   useThread,
+  type MessageDraft,
 } from "../hooks/useMessages";
 import { joinConversation, noteTyping, stopTyping, useRealtime } from "../lib/realtime";
 import { useAuth } from "../store/auth";
@@ -27,7 +30,7 @@ function Composer({
   onTyping,
   onStopTyping,
 }: {
-  onSend: (text: string) => Promise<unknown>;
+  onSend: (draft: MessageDraft) => Promise<unknown>;
   busy: boolean;
   error?: string | null;
   placeholder: string;
@@ -35,18 +38,23 @@ function Composer({
   onStopTyping?: () => void;
 }) {
   const [text, setText] = useState("");
+  const [tracks, setTracks] = useState<MusicTrackDTO[]>([]);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const sending = useRef(false);
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     const value = text.trim();
-    if (!value || busy) return;
-    // Clear at once so the next message can be typed while this one is sent; give the text
-    // back if sending fails so nothing is lost.
-    setText("");
+    if ((!value && !tracks.length) || busy || sending.current || pickerOpen) return;
+    sending.current = true;
     onStopTyping?.();
     try {
-      await onSend(value);
+      await onSend({ text: value, tracks, clientMessageId: crypto.randomUUID() });
+      setText("");
+      setTracks([]);
     } catch {
-      setText((current) => current || value);
+      // Keep the draft available for correction or retry.
+    } finally {
+      sending.current = false;
     }
   };
   const onKey = (e: KeyboardEvent<HTMLTextAreaElement>) => {
@@ -56,10 +64,18 @@ function Composer({
     }
   };
   return (
+    <>
     <form className="chat-form" onSubmit={(e) => void submit(e)}>
       {error && <p className="error small">{error}</p>}
+      {tracks.length > 0 && <div className="chat-draft-tracks" aria-label="Выбранная музыка">
+        {tracks.map((track) => <div className="chat-draft-track" key={track.id}>
+          <span>{track.title} — {track.artist}</span>
+          <button type="button" className="btn btn-ghost" disabled={busy} aria-label={`Убрать ${track.title}`} onClick={() => setTracks((current) => current.filter((item) => item.id !== track.id))}>×</button>
+        </div>)}
+      </div>}
       <div className="chat-form-row">
         <textarea
+          disabled={busy}
           value={text}
           onChange={(e) => {
             setText(e.target.value);
@@ -71,7 +87,8 @@ function Composer({
           maxLength={MESSAGE_MAX_LENGTH}
           aria-label="Сообщение"
         />
-        <button className="btn" disabled={busy || !text.trim()}>
+        <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setPickerOpen(true)}>Музыка</button>
+        <button className="btn" disabled={busy || (!text.trim() && !tracks.length)}>
 
           Отправить
         </button>
@@ -82,6 +99,8 @@ function Composer({
         </span>
       )}
     </form>
+    {pickerOpen && <MusicAttachmentPicker selected={tracks} onChange={setTracks} onClose={() => setPickerOpen(false)} />}
+    </>
   );
 }
 
@@ -216,8 +235,9 @@ function Thread({ id }: { id: string }) {
               key={m.id}
               className={`bubble-row${mine ? " mine" : ""}${pending ? " pending" : ""}`}
             >
-              <div className="bubble">
-                <span>{m.text}</span>
+              <div className={`bubble${m.musicAttachments?.length ? " bubble--music" : ""}`}>
+                {m.text && <span>{m.text}</span>}
+                {(m.musicAttachments?.length ?? 0) > 0 && <MusicAttachments attachments={m.musicAttachments!} source={`message:${m.senderId}:${m.clientMessageId ?? m.id}`} />}
                 <time
                   className="bubble-time"
                   dateTime={m.createdAt}
@@ -249,7 +269,7 @@ function Thread({ id }: { id: string }) {
 
       <Composer
         placeholder="Напишите сообщение…"
-        busy={false}
+        busy={send.isPending}
         error={send.isError ? send.error.message : null}
         onTyping={() => noteTyping(id)}
         onStopTyping={() => stopTyping(id)}

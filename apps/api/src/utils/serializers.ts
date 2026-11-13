@@ -36,6 +36,7 @@ export interface PopulatedPost {
   _id: Types.ObjectId;
   content: string;
   imageUrl?: string | null;
+  musicTrackIds?: Types.ObjectId[];
   priceCents?: number | null;
   premiumContent?: string | null;
   community?: { slug: string; name: string } | null;
@@ -110,13 +111,14 @@ export function toProfileDTO(
  * `unlocked` must be true for the author and for buyers. This is the single place that decides
  * whether premium content leaves the server, so it never defaults to true.
  */
-export function toPostDTO(p: PopulatedPost, likedByMe: boolean, unlocked: boolean): PostDTO {
+export function toPostDTO(p: PopulatedPost, likedByMe: boolean, unlocked: boolean, musicAttachments: PostDTO["musicAttachments"] = []): PostDTO {
   const paid = p.priceCents != null;
   const locked = paid && !unlocked;
   return {
     id: p._id.toString(),
     content: p.content,
     imageUrl: p.imageUrl ?? null,
+    musicAttachments: locked ? [] : musicAttachments,
     author: toAuthor(p.author),
     likeCount: p.likeCount,
     commentCount: p.commentCount,

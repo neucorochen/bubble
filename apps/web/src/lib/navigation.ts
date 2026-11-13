@@ -1,4 +1,4 @@
-export const navigationImages: Partial<Record<IconName, string>> = { user: "/icons/navigation/profile.png", home: "/icons/navigation/feed.png", search: "/icons/navigation/search.png", mail: "/icons/navigation/messages.png", users: "/icons/navigation/communities.png", bell: "/icons/navigation/notifications.png" };
+export const navigationImages: Partial<Record<IconName, string>> = { user: "/icons/navigation/profile.png", home: "/icons/navigation/feed.png", search: "/icons/navigation/search.png", mail: "/icons/navigation/messages.png", music: "/icons/navigation/music.png", users: "/icons/navigation/communities.png", bell: "/icons/navigation/notifications.png" };
 import type { IconName } from "../components/Icon";
 
 export type NavigationItem = { id: string; label: string; guestLabel?: string; to: (username: string) => string; icon: IconName; audience: "member" | "guest"; surfaces: readonly ("desktop" | "drawer" | "bottom" | "header")[]; end?: boolean };

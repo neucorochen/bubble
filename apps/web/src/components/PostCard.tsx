@@ -13,6 +13,7 @@ import PlusBadge from "./PlusBadge";
 import { hueFor } from "../lib/hue";
 import ReportForm from "./ReportForm";
 import InlineComments from "./InlineComments";
+import MusicAttachments from "./MusicAttachments";
 
 const relativeTime = new Intl.RelativeTimeFormat("ru", { numeric: "always" });
 export function timeAgo(iso: string): string {
@@ -75,6 +76,7 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
             />
           </a>
         )}
+        {!post.locked && post.musicAttachments?.length > 0 && <MusicAttachments attachments={post.musicAttachments} source={`post:${post.id}`} />}
         {post.locked && post.priceCents != null && (
           <div className="paywall">
             <p>

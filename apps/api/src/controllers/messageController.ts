@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 import type { ConversationDTO, MessageDTO, MessagePage } from "@commune/shared";
 import { Conversation } from "../models/Conversation.js";
 import { Message } from "../models/Message.js";
+import { loadPostMusic, validateMusicTrackIds } from "../services/postMusic.js";
 import { User } from "../models/User.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import { pushConfigured, pushToUser } from "../services/pushService.js";
@@ -33,18 +34,22 @@ interface LeanMessage {
   conversation: unknown;
   sender: unknown;
   text: string;
+  musicTrackIds?: unknown[];
+  clientMessageId?: string;
   createdAt: Date;
 }
 
 const str = (v: unknown) => String(v);
 const pairKey = (a: string, b: string) => [a, b].sort().join(":");
 
-function toMessageDTO(m: LeanMessage): MessageDTO {
+function toMessageDTO(m: LeanMessage, musicAttachments: MessageDTO["musicAttachments"] = []): MessageDTO {
   return {
     id: str(m._id),
     conversationId: str(m.conversation),
     senderId: str(m.sender),
     text: m.text,
+    musicAttachments,
+    ...(m.clientMessageId ? { clientMessageId: m.clientMessageId } : {}),
     createdAt: m.createdAt.toISOString(),
   };
 }
@@ -101,24 +106,27 @@ async function notifyByPush(convoId: string, me: string, otherId: string, text: 
   });
 }
 
-async function saveMessage(convoId: string, me: string, otherId: string, text: string) {
-  const message = await Message.create({ conversation: convoId, sender: me, text });
+async function saveMessage(convoId: string, me: string, otherId: string, text: string, musicTrackIds: string[], clientMessageId?: string) {
+  const message = await Message.create({ conversation: convoId, sender: me, text, musicTrackIds, clientMessageId });
+  const preview = text || "Музыка";
   await Conversation.updateOne(
     { _id: convoId },
     {
       $set: {
-        lastMessageText: text.slice(0, PREVIEW_LENGTH),
+        lastMessageText: preview.slice(0, PREVIEW_LENGTH),
         lastMessageSender: me,
         lastMessageAt: message.createdAt,
       },
       $inc: { [`unread.${otherId}`]: 1 },
     },
   );
-  const dto = toMessageDTO(message.toObject() as unknown as LeanMessage);
+  const row = message.toObject() as unknown as LeanMessage;
+  const music = await loadPostMusic([row]);
+  const dto = toMessageDTO(row, music.get(str(row._id)) ?? []);
   // Live delivery to the recipient, and to the sender's other tabs and devices.
   await Promise.all([
     emitToUsers([me, otherId], "message:new", { message: dto }),
-    notifyByPush(convoId, me, otherId, text),
+    notifyByPush(convoId, me, otherId, preview),
   ]);
   return dto;
 }
@@ -182,8 +190,9 @@ export async function getMessages(req: Request, res: Response) {
   const other = (await User.findById(otherId)
     .select(USER_FIELDS)
     .lean()) as unknown as LeanUser | null;
+  const music = await loadPostMusic(page);
   const result: MessagePage & { conversation?: ConversationDTO } = {
-    items: page.reverse().map(toMessageDTO), // oldest first for display
+    items: page.reverse().map((row) => toMessageDTO(row, music.get(str(row._id)) ?? [])), // oldest first for display
     nextCursor,
   };
   if (!cursor && other) result.conversation = toConversationDTO(convo, me, other);
@@ -198,7 +207,9 @@ export async function send(req: Request, res: Response) {
     banned?: boolean;
   } | null;
   if (!other || other.banned) throw forbidden("You can't message this account");
-  res.status(201).json(await saveMessage(str(convo._id), me, otherId, req.body.text));
+  const musicTrackIds = req.body.musicTrackIds ?? [];
+  await validateMusicTrackIds(musicTrackIds);
+  res.status(201).json(await saveMessage(str(convo._id), me, otherId, req.body.text, musicTrackIds, req.body.clientMessageId));
 }
 
 /** POST /messages/with/:username: send to a person, creating the conversation if needed. */
@@ -209,6 +220,8 @@ export async function start(req: Request, res: Response) {
   if (targetId === me) throw badRequest("You can't message yourself");
   if (target.banned) throw forbidden("You can't message this account");
 
+  const musicTrackIds = req.body.musicTrackIds ?? [];
+  await validateMusicTrackIds(musicTrackIds);
   const key = pairKey(me, targetId);
   const convo = (await Conversation.findOneAndUpdate(
     { key },
@@ -216,7 +229,7 @@ export async function start(req: Request, res: Response) {
     { upsert: true, new: true },
   ).lean()) as unknown as LeanConversation;
 
-  const message = await saveMessage(str(convo._id), me, targetId, req.body.text);
+  const message = await saveMessage(str(convo._id), me, targetId, req.body.text, musicTrackIds, req.body.clientMessageId);
   res.status(201).json({ conversationId: str(convo._id), message });
 }
 

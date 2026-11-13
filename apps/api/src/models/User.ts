@@ -19,6 +19,7 @@ const userSchema = new Schema(
     // Which push notifications this person wants (they can still be turned off per device).
     pushMessages: { type: Boolean, default: true },
     pushSocial: { type: Boolean, default: true },
+    musicLibraryVisibility: { type: String, enum: ["everyone", "private"], default: "everyone" },
     // Brute-force protection: consecutive wrong passwords, and the end of a temporary lock.
     failedLogins: { type: Number, default: 0, select: false },
     lockUntil: { type: Date, default: null, select: false },

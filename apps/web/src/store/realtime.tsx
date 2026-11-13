@@ -9,6 +9,14 @@ import { useAuth } from "./auth";
 /** Adds a message to a loaded conversation unless it is already there (own sends arrive twice). */
 export function appendUnique(page: ThreadPage, message: MessageDTO): ThreadPage {
   if (page.items.some((m) => m.id === message.id)) return page;
+  if (message.clientMessageId) {
+    const index = page.items.findIndex((item) => item.id.startsWith("tmp-") && item.senderId === message.senderId && item.clientMessageId === message.clientMessageId);
+    if (index !== -1) {
+      const items = [...page.items];
+      items[index] = message;
+      return { ...page, items };
+    }
+  }
   return { ...page, items: [...page.items, message] };
 }
 

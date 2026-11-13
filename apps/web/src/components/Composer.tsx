@@ -14,11 +14,15 @@ import {
 import { useAuth } from "../store/auth";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
+import MusicAttachmentPicker from "./MusicAttachmentPicker";
+import type { MusicTrackDTO } from "@commune/shared";
 
 export default function Composer({ communitySlug, allowPaid = true }: { communitySlug?: string; allowPaid?: boolean }) {
   const { user } = useAuth();
   const MAX = user?.plus ? PLUS_POST_LENGTH : FREE_POST_LENGTH;
   const [content, setContent] = useState("");
+  const [music, setMusic] = useState<MusicTrackDTO[]>([]);
+  const [musicPickerOpen, setMusicPickerOpen] = useState(false);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [imageError, setImageError] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null); // local copy, shown instantly
@@ -101,7 +105,7 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
   const priceCents = Math.round(Number(price) * 100);
   const priceOk = priceCents >= MIN_PRICE_CENTS && priceCents <= MAX_PRICE_CENTS;
   const paidOk = !allowPaid || !paid || (priceOk && premium.trim().length > 0);
-  const canPost = (content.trim().length > 0 || imageUrl !== null) && !upload.isPending && paidOk;
+  const canPost = (content.trim().length > 0 || imageUrl !== null || music.length > 0) && !upload.isPending && paidOk;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -110,12 +114,14 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
       {
         content,
         imageUrl,
+        musicTrackIds: music.map((track) => track.id),
         ...(communitySlug ? { community: communitySlug } : {}),
         ...(allowPaid && paid ? { priceCents, premiumContent: premium } : {}),
       },
       {
         onSuccess: () => {
           setContent("");
+          setMusic([]);
           setImageUrl(null);
           setPreview(null);
           setPaid(false);
@@ -217,6 +223,8 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
         </p>
       )}
 
+      {music.length > 0 && <div className="music-attachments">{music.map((track) => <div className="music-attachments__row" key={track.id}><div className="music-page__track-info"><strong>{track.title}</strong><span>{track.artist}</span></div><button type="button" className="btn btn-ghost" aria-label={`Удалить ${track.title}`} onClick={() => setMusic((tracks) => tracks.filter((item) => item.id !== track.id))}>×</button></div>)}</div>}
+      {musicPickerOpen && <MusicAttachmentPicker selected={music} onChange={setMusic} onClose={() => setMusicPickerOpen(false)} />}
       <div className="composer-footer">
         <span className="row">
           <input
@@ -235,6 +243,7 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
           >
             <Icon name="image" size={20} /> Фото
           </button>
+          <button type="button" className="btn btn-ghost" onClick={() => setMusicPickerOpen(true)}><Icon name="music" size={20} /> Музыка</button>
           {allowPaid && (<>
           <label className="row paid-toggle">
             <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />

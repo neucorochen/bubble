@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RequestHandler } from "express";
 import {
   banUserSchema,
   clientErrorSchema,
@@ -10,7 +11,11 @@ import {
   musicUploadSignSchema,
   musicUploadCompleteSchema,
   musicListQuerySchema,
+  musicPickerQuerySchema,
   musicTrackIdSchema,
+  musicLibraryStatusSchema,
+  musicSettingsSchema,
+  profileMusicQuerySchema,
   newsQuerySchema,
   sendMessageSchema,
   communityListSchema,
@@ -75,6 +80,10 @@ import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
 
 export const router = Router();
+const privateMusicResponse: RequestHandler = (_req, res, next) => {
+  res.set("Cache-Control", "private, no-store");
+  next();
+};
 
 /**
  * Middleware order on write routes:  requireAuth -> (limiter) -> validate -> requireActive.
@@ -174,6 +183,8 @@ router.post(
   asyncHandler(music.completeUpload),
 );
 
+router.get("/music/picker", requireAuth, validate(musicPickerQuerySchema, "query"), asyncHandler(music.picker));
+router.post("/music/library/status", requireAuth, validate(musicLibraryStatusSchema), asyncHandler(music.libraryStatuses));
 router.get(
   "/music",
   requireAuth,
@@ -189,12 +200,26 @@ router.post(
   asyncHandler(music.addToLibrary),
 );
 
+router.get(
+  "/music/:id/library",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  asyncHandler(music.libraryStatus),
+);
+
 router.delete(
   "/music/:id/library",
   requireAuth,
   validate(musicTrackIdSchema, "params"),
   requireActive,
   asyncHandler(music.removeFromLibrary),
+);
+
+router.get(
+  "/music/:id/download",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  asyncHandler(music.download),
 );
 
 router.get(
@@ -206,6 +231,9 @@ router.get(
 
 // Users. "/users/me" must be declared before "/users/:username".
 router.get("/users/me", requireAuth, asyncHandler(users.me));
+router.get("/users/me/music-settings", privateMusicResponse, requireAuth, asyncHandler(users.getMusicSettings));
+router.patch("/users/me/music-settings", privateMusicResponse, requireAuth, validate(musicSettingsSchema), requireActive, asyncHandler(users.updateMusicSettings));
+router.get("/users/:username/music", privateMusicResponse, requireAuth, validate(profileMusicQuerySchema, "query"), asyncHandler(users.userMusic));
 router.patch(
   "/users/me",
   requireAuth,
