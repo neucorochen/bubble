@@ -1,3 +1,5 @@
+import OnlineStatus from "../components/OnlineStatus";
+import { displayNameOf } from "@commune/shared";
 import { Fragment } from "react";
 import { Link } from "react-router-dom";
 import Avatar from "../components/Avatar";
@@ -62,10 +64,11 @@ export default function ExplorePage() {
       {posts.map((post, i) => (
         <Fragment key={post.id}>
           <article className="card post post-head">
-            <Avatar username={post.author.username} url={post.author.avatarUrl} />
+            <Avatar username={post.author.username} displayName={post.author.displayName} url={post.author.avatarUrl} frame={post.author.avatarFrame} />
             <div className="post-main">
               <div className="post-meta">
-                <strong className="user-link">@{post.author.username}</strong>
+                <strong className="user-link">{displayNameOf(post.author)}</strong>
+                <OnlineStatus online={user?.id === post.author.id || post.author.online} />
                 <PlusBadge plus={post.author.plus} />
                 <span className="muted">· {timeAgo(post.createdAt)}</span>
               </div>
@@ -74,7 +77,7 @@ export default function ExplorePage() {
                 <img
                   className="post-image"
                   src={assetUrl(post.imageUrl)}
-                  alt={`Изображение пользователя @${post.author.username}`}
+                  alt={`Изображение пользователя ${displayNameOf(post.author)}`}
                   loading="lazy"
                 />
               )}

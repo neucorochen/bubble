@@ -3,7 +3,7 @@ import cors from "cors";
 import express from "express";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
-import { uploadUrlSchema } from "@commune/shared";
+import { fontUploadUrlSchema, uploadUrlSchema } from "@commune/shared";
 import { env } from "./config/env.js";
 import { logger } from "./config/logger.js";
 import { asyncHandler } from "./utils/errors.js";
@@ -52,7 +52,7 @@ export function createApp() {
   app.use(cors({ origin: env.CLIENT_ORIGIN, credentials: true, exposedHeaders: ["Retry-After"] }));
   app.use(globalLimiter);
 
-  // Uploaded images. File names are random, so they can be cached for a long time.
+  // Uploaded images and fonts. File names are random, so they can be cached for a long time.
   // Helmet already sets X-Content-Type-Options: nosniff on these responses.
 
   app.get(
@@ -60,7 +60,8 @@ export function createApp() {
     asyncHandler(async (req, res) => {
       const file = req.params.file ?? "";
 
-      if (!uploadUrlSchema.safeParse(`/uploads/${file}`).success) {
+      if (!uploadUrlSchema.safeParse(`/uploads/${file}`).success &&
+          !fontUploadUrlSchema.safeParse(`/uploads/${file}`).success) {
         res.status(404).json({ error: "Not found" });
         return;
       }

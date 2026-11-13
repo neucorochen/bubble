@@ -6,7 +6,7 @@ import { env } from "../config/env.js";
 import { RefreshToken } from "../models/RefreshToken.js";
 import { User } from "../models/User.js";
 import { AppError, conflict, forbidden, unauthorized } from "../utils/errors.js";
-import { toPublicUser } from "../utils/serializers.js";
+import { toAccountUser } from "../utils/serializers.js";
 import { verifyGoogleIdToken, type GoogleProfile } from "./googleAuth.js";
 import { sendVerificationEmailInBackground } from "./accountService.js";
 import { generateRefreshToken, hashToken, signAccessToken } from "../utils/tokens.js";
@@ -34,7 +34,7 @@ export function clearRefreshCookie(res: Response) {
   res.clearCookie(REFRESH_COOKIE, refreshCookieOptions);
 }
 
-async function issueSession(res: Response, user: Parameters<typeof toPublicUser>[0]) {
+async function issueSession(res: Response, user: Parameters<typeof toAccountUser>[0]) {
   const { token, hash } = generateRefreshToken();
   await RefreshToken.create({
     user: user._id,
@@ -43,7 +43,7 @@ async function issueSession(res: Response, user: Parameters<typeof toPublicUser>
   });
   setRefreshCookie(res, token);
   const body: AuthResponse = {
-    user: toPublicUser(user),
+    user: toAccountUser(user),
     accessToken: signAccessToken(user._id.toString()),
   };
   return body;

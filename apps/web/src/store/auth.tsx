@@ -1,6 +1,6 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import type { AuthResponse, LoginInput, PublicUser, RegisterInput } from "@commune/shared";
+import type { AccountUser, AuthResponse, LoginInput, RegisterInput, UpdateAppearanceInput } from "@commune/shared";
 import { releasePushOnLogout } from "../lib/push";
 import { api, bootSession, readSessionHint, SessionRestoreError, setAccessToken, writeSessionHint } from "../lib/api";
 import { PageSkeleton } from "../components/Skeleton";
@@ -8,16 +8,16 @@ import { useQueryClient } from "@tanstack/react-query";
 
 // The last known profile, shown instantly on the next visit while the session is re-checked.
 const USER_KEY = "commune_user";
-function readCachedUser(): PublicUser | null {
+function readCachedUser(): AccountUser | null {
   if (readSessionHint() !== "1") return null;
   try {
     const raw = localStorage.getItem(USER_KEY);
-    return raw ? (JSON.parse(raw) as PublicUser) : null;
+    return raw ? (JSON.parse(raw) as AccountUser) : null;
   } catch {
     return null;
   }
 }
-function cacheUser(user: PublicUser | null) {
+function cacheUser(user: AccountUser | null) {
   try {
     if (user) localStorage.setItem(USER_KEY, JSON.stringify(user));
     else localStorage.removeItem(USER_KEY);
@@ -27,28 +27,44 @@ function cacheUser(user: PublicUser | null) {
 }
 
 interface AuthState {
-  user: PublicUser | null;
+  user: AccountUser | null;
   loading: boolean;
   login: (input: LoginInput) => Promise<void>;
   register: (input: RegisterInput) => Promise<void>;
   loginWithGoogle: (credential: string) => Promise<void>;
   logout: () => Promise<void>;
-  setUser: (user: PublicUser | null) => void;
+  setUser: (user: AccountUser | null) => void;
+  isCurrentAccount: (userId: string) => boolean;
+  applyAppearance: (userId: string, changes: UpdateAppearanceInput) => void;
 }
 
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const qc = useQueryClient();
-  const [user, setUserState] = useState<PublicUser | null>(readCachedUser);
+  const [user, setUserState] = useState<AccountUser | null>(readCachedUser);
+  const currentUser = useRef(user);
   const [loading, setLoading] = useState(() => readSessionHint() !== "guest");
   const [restoreAttempt, setRestoreAttempt] = useState(0);
   const [restoreFailed, setRestoreFailed] = useState(false);
 
-  const setUser = useCallback((next: PublicUser | null) => {
+  const setUser = useCallback((next: AccountUser | null) => {
+    currentUser.current = next;
     cacheUser(next);
     setUserState(next);
   }, []);
+
+  const isCurrentAccount = useCallback((userId: string) => currentUser.current?.id === userId, []);
+
+  const applyAppearance = useCallback((userId: string, changes: UpdateAppearanceInput) => {
+    const active = currentUser.current;
+    if (active?.id !== userId) return;
+    setUser({
+      ...active,
+      appearance: { ...active.appearance, ...changes.appearance },
+      avatarFrame: changes.avatarFrame === undefined ? active.avatarFrame : changes.avatarFrame ?? undefined,
+    });
+  }, [setUser]);
 
   useEffect(() => {
     let alive = true;
@@ -132,8 +148,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [setUser, qc]);
 
   const value = useMemo(
-    () => ({ user, loading, login, register, loginWithGoogle, logout, setUser }),
-    [user, loading, login, register, loginWithGoogle, logout, setUser],
+    () => ({ user, loading, login, register, loginWithGoogle, logout, setUser, applyAppearance, isCurrentAccount }),
+    [user, loading, login, register, loginWithGoogle, logout, setUser, applyAppearance, isCurrentAccount],
   );
   if (restoreFailed) return (
     <main role="alert" className="card">

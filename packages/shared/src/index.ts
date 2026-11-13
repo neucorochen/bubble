@@ -129,8 +129,49 @@ export const createCommentSchema = z.object({
   content: z.string().trim().min(1).max(300),
 });
 
+export const appearanceColorSchema = z.string().regex(/^#[0-9a-f]{6}$/i).transform((color) => color.toLowerCase());
+
+export const avatarFrameSchema = z.object({
+  effect: z.enum(["glow", "pulse"]),
+  color: appearanceColorSchema,
+  intensity: z.number().int().min(1).max(5),
+}).strict();
+export type AvatarFrame = z.infer<typeof avatarFrameSchema>;
+
+export const SITE_FONTS = ["arial", "verdana", "georgia", "times", "consolas"] as const;
+export const MAX_FONT_BYTES = 2 * 1024 * 1024;
+export const fontUploadUrlSchema = z.string().regex(/^\/uploads\/[a-f0-9]{24}-[a-f0-9]{32}\.(woff2?|ttf|otf)$/);
+export const siteFontSchema = z.union([z.enum(SITE_FONTS), fontUploadUrlSchema]);
+export type SiteFont = z.infer<typeof siteFontSchema>;
+
+export const siteAppearanceSchema = z.object({
+  backgroundUrl: uploadUrlSchema.nullable(),
+  primaryColor: appearanceColorSchema.nullable(),
+  accentColor: appearanceColorSchema.nullable(),
+  font: siteFontSchema.nullable().optional(),
+}).strict();
+export type SiteAppearance = z.infer<typeof siteAppearanceSchema>;
+
+export const updateAppearanceSchema = z.object({
+  appearance: siteAppearanceSchema.partial().optional(),
+  avatarFrame: avatarFrameSchema.nullable().optional(),
+}).strict().refine(({ appearance, avatarFrame }) =>
+  avatarFrame !== undefined || (appearance && Object.keys(appearance).length > 0),
+);
+export type UpdateAppearanceInput = z.infer<typeof updateAppearanceSchema>;
+
+export const DISPLAY_NAME_MAX_LENGTH = 40;
+export const displayNameSchema = z.string().trim().min(1, "Display name is required")
+  .max(DISPLAY_NAME_MAX_LENGTH, "Display name is too long")
+  .regex(/^[^\p{Cc}\p{Bidi_Control}]+$/u, "Invalid display name");
+
+export function displayNameOf(person: { username: string; displayName?: string | null }): string {
+  return person.displayName || person.username;
+}
+
 export const updateProfileSchema = z.object({
   bio: z.string().trim().max(160).optional(),
+  displayName: displayNameSchema.optional(),
   avatarUrl: uploadUrlSchema.nullable().optional(),
 });
 
@@ -139,6 +180,36 @@ export const paginationSchema = z.object({
   limit: z.coerce.number().int().min(1).max(50).default(20),
   feed: z.enum(["all", "following"]).default("all"),
 });
+
+// ---- Wallpaper workshop ----
+
+export const WALLPAPER_NAME_MAX_LENGTH = 80;
+export const wallpaperNameSchema = z.string().trim().min(1, "Wallpaper name is required").max(WALLPAPER_NAME_MAX_LENGTH, "Wallpaper name is too long");
+export const unnamedWallpaper = "Без названия";
+export const wallpaperViewSchema = z.enum(["popular", "new", "friends", "favorites"]);
+export type WallpaperView = z.infer<typeof wallpaperViewSchema>;
+export const wallpaperQuerySchema = z.object({
+  view: wallpaperViewSchema.default("popular"),
+  q: z.string().trim().max(WALLPAPER_NAME_MAX_LENGTH).default(""),
+  page: z.coerce.number().int().min(1).max(1_000_000).default(1),
+});
+
+export interface WallpaperDTO {
+  id: string;
+  name: string;
+  imageUrl: string;
+  author: string;
+  mine: boolean;
+  likeCount: number;
+  liked: boolean;
+  favorite: boolean;
+  usedByFriends: boolean;
+}
+
+export interface WallpaperPage {
+  items: WallpaperDTO[];
+  totalPages: number;
+}
 
 // ---- Moderation ----
 
@@ -243,8 +314,10 @@ export type Role = "user" | "admin";
 export interface PublicUser {
   id: string;
   username: string;
+  displayName?: string;
   bio: string;
   avatarUrl: string | null;
+  avatarFrame?: AvatarFrame;
   role: Role;
   /** Has an active Commune Plus subscription. */
   plus: boolean;
@@ -252,10 +325,17 @@ export interface PublicUser {
   createdAt: string;
 }
 
+export interface AccountUser extends PublicUser {
+  appearance?: Partial<SiteAppearance>;
+}
+
 export interface AuthorDTO {
+  online?: boolean;
   id: string;
   username: string;
+  displayName?: string;
   avatarUrl: string | null;
+  avatarFrame?: AvatarFrame;
   /** Has an active Commune Plus subscription. */
   plus: boolean;
 }
@@ -282,8 +362,10 @@ export interface PostDTO {
 export interface UserSummaryDTO {
   id: string;
   username: string;
+  displayName?: string;
   bio: string;
   avatarUrl: string | null;
+  avatarFrame?: AvatarFrame;
   plus: boolean;
 }
 
@@ -360,7 +442,7 @@ export interface CommentDTO {
 }
 
 export interface AuthResponse {
-  user: PublicUser;
+  user: AccountUser;
   accessToken: string;
 }
 
@@ -370,6 +452,7 @@ export interface Page<T> {
 }
 
 export interface ProfileDTO extends PublicUser {
+  online?: boolean;
   followerCount: number;
   followingCount: number;
   followedByMe: boolean;
@@ -382,7 +465,7 @@ export type NotificationType = "like" | "comment" | "follow";
 export interface NotificationDTO {
   id: string;
   type: NotificationType;
-  actor: Pick<PublicUser, "id" | "username">;
+  actor: Pick<PublicUser, "id" | "username" | "displayName">;
   postId: string | null;
   read: boolean;
   createdAt: string;
@@ -416,7 +499,7 @@ export interface ReportDTO {
   reason: ReportReason;
   details: string;
   status: ReportStatus;
-  reporter: Pick<PublicUser, "id" | "username">;
+  reporter: Pick<PublicUser, "id" | "username" | "displayName">;
   /** null when the reported post has since been deleted */
   post: { id: string; content: string; imageUrl: string | null; author: AuthorDTO } | null;
   createdAt: string;

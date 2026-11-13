@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import { Link } from "react-router-dom";
 import Avatar from "./Avatar";
 import { useFriends, useFriendsAccess } from "../hooks/useSocial";
@@ -47,8 +48,8 @@ export default function ProfileFriends({ username, isMe }: { username: string; i
               key={person.id}
               to={`/u/${encodeURIComponent(person.username)}`}
             >
-              <Avatar username={person.username} url={person.avatarUrl} size={48} />
-              <span>@{person.username}</span>
+              <Avatar username={person.username} displayName={person.displayName} url={person.avatarUrl} frame={person.avatarFrame} size={48} />
+              <span>{displayNameOf(person)}</span>
             </Link>
           ))}
         </div>

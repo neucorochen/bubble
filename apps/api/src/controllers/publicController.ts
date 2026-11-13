@@ -1,6 +1,7 @@
 import mongoose from "mongoose";
 import type { Request, Response } from "express";
 import type { Page, PostDTO } from "@commune/shared";
+import { onlineUsers } from "../services/realtime.js";
 import { Post } from "../models/Post.js";
 import { badRequest } from "../utils/errors.js";
 import { toPostDTO, type PopulatedPost } from "../utils/serializers.js";
@@ -17,17 +18,17 @@ export async function listPosts(_req: Request, res: Response) {
   const rows = (await Post.find(filter)
     .sort({ _id: -1 })
     .limit(limit + 1)
-    .populate("author", "username avatarUrl plusUntil")
+    .populate("author", "username displayName avatarUrl avatarFrame plusUntil")
     .populate("community", "slug name")
     .lean()) as unknown as PopulatedPost[];
 
   const hasMore = rows.length > limit;
   const posts = hasMore ? rows.slice(0, limit) : rows;
+  const online = await onlineUsers(posts.map((post) => post.author._id.toString()));
   const body: Page<PostDTO> = {
-    items: posts.map((p) => toPostDTO(p, false, true)),
+    items: posts.map((p) => toPostDTO(p, false, true, online.has(p.author._id.toString()))),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
-  // Everyone gets the same answer, so the CDN may serve it for a minute and refresh in the background.
-  res.set("Cache-Control", "public, max-age=30, s-maxage=60, stale-while-revalidate=300");
+  res.set("Cache-Control", "no-store");
   res.json(body);
 }

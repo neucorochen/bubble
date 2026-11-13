@@ -63,6 +63,14 @@ export async function activeUsers(userIds: string[]): Promise<Set<string>> {
   return new Set(Array.isArray(res?.active) ? res.active : []);
 }
 
+/** Users with at least one open socket, including background tabs. */
+export async function onlineUsers(ids: string[]): Promise<Set<string>> {
+  const userIds = [...new Set(ids)];
+  if (!userIds.length) return new Set();
+  const res = await post<{ online?: string[] }>("/internal/online", { userIds });
+  return new Set(Array.isArray(res?.online) ? res.online : []);
+}
+
 /** For tests. */
 export function resetRealtimeBreaker() {
   skipUntil = 0;

@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import { Link, useSearchParams } from "react-router-dom";
 import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
@@ -53,9 +54,9 @@ export default function SearchPage() {
           )}
           {people.map((u) => (
             <Link key={u.id} to={`/u/${u.username}`} className="card person">
-              <Avatar username={u.username} url={u.avatarUrl} size={44} />
+              <Avatar username={u.username} displayName={u.displayName} url={u.avatarUrl} frame={u.avatarFrame} size={44} />
               <div>
-                <strong>@{u.username}</strong> <PlusBadge plus={u.plus} />
+                <strong>{displayNameOf(u)}</strong> <PlusBadge plus={u.plus} />
                 {u.bio && <p className="muted">{u.bio}</p>}
               </div>
             </Link>

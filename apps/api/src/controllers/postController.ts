@@ -8,6 +8,7 @@ import { Community } from "../models/Community.js";
 import { Like } from "../models/Like.js";
 import { Membership } from "../models/Membership.js";
 import { Post } from "../models/Post.js";
+import { onlineUsers } from "../services/realtime.js";
 import { notify } from "../services/notificationService.js";
 import { unlockedPostIds } from "../services/purchaseService.js";
 import { removePost } from "../services/moderationService.js";
@@ -22,7 +23,7 @@ import {
   type PopulatedPost,
 } from "../utils/serializers.js";
 
-const AUTHOR_FIELDS = "username avatarUrl plusUntil";
+const AUTHOR_FIELDS = "username displayName avatarUrl avatarFrame plusUntil";
 const COMMUNITY_FIELDS = "slug name";
 
 const param = (req: Request, name: string): string => {
@@ -49,23 +50,24 @@ async function loadPost(id: string): Promise<PopulatedPost> {
 
 /** Builds the DTO for a single post as seen by this viewer (paid content only if unlocked). */
 async function withViewer(userId: string, post: PopulatedPost, liked: Set<string>) {
-  const unlocked = await unlockedPostIds(userId, [post]);
+  const [unlocked, online] = await Promise.all([unlockedPostIds(userId, [post]), onlineUsers([post.author._id.toString()])]);
   const key = post._id.toString();
-  return toPostDTO(post, liked.has(key), unlocked.has(key) || post.priceCents == null);
+  return toPostDTO(post, liked.has(key), unlocked.has(key) || post.priceCents == null, online.has(post.author._id.toString()));
 }
 
 /** Turns loaded posts into DTOs for one viewer (likes and paid-content access included). */
 export async function presentPosts(userId: string, posts: PopulatedPost[]): Promise<PostDTO[]> {
-  const [liked, unlocked] = await Promise.all([
+  const [liked, unlocked, online] = await Promise.all([
     likedSet(
       userId,
       posts.map((p) => p._id),
     ),
     unlockedPostIds(userId, posts),
+    onlineUsers(posts.map((post) => post.author._id.toString())),
   ]);
   return posts.map((p) => {
     const key = p._id.toString();
-    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
+    return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null, online.has(p.author._id.toString()));
   });
 }
 
@@ -91,17 +93,8 @@ export async function sendPostPage(
 
   const hasMore = rows.length > limit;
   const posts = hasMore ? rows.slice(0, limit) : rows;
-  const liked = await likedSet(
-    req.userId!,
-    posts.map((p) => p._id),
-  );
-
-  const unlocked = await unlockedPostIds(req.userId!, posts);
   const body: Page<PostDTO> = {
-    items: posts.map((p) => {
-      const key = p._id.toString();
-      return toPostDTO(p, liked.has(key), unlocked.has(key) || p.priceCents == null);
-    }),
+    items: await presentPosts(req.userId!, posts),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
   res.json(body);
@@ -153,7 +146,8 @@ export async function createPost(req: Request, res: Response) {
   });
   const post = await loadPost(created._id.toString());
   // The author can always read their own paid content.
-  res.status(201).json(toPostDTO(post, false, true));
+  const online = await onlineUsers([post.author._id.toString()]);
+  res.status(201).json(toPostDTO(post, false, true, online.has(post.author._id.toString())));
 }
 
 export async function deletePost(req: Request, res: Response) {

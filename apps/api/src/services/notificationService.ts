@@ -38,10 +38,11 @@ export async function notify({ user, actor, type, post }: NotifyInput): Promise<
     // A hint only (no content): the client refetches its notifications.
     await emitToUsers([user], "notification:new");
     if (pushConfigured()) {
-      const actorUser = (await User.findById(actor).select("username").lean()) as {
+      const actorUser = (await User.findById(actor).select("username displayName").lean()) as {
         username?: string;
+        displayName?: string;
       } | null;
-      const name = `@${actorUser?.username ?? "Someone"}`;
+      const name = actorUser?.displayName || actorUser?.username || "Someone";
       const text = {
         like: "liked your post",
         comment: "commented on your post",

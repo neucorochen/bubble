@@ -3,11 +3,12 @@ import { api } from "./api";
 
 /**
  * Uploads one prepared image through the API.
- * Resolves with the reference to store on a post or profile.
+ * Resolves with the reference to store on a post, profile or wallpaper.
  */
 export async function uploadImage(
   file: File,
   onProgress?: (percent: number) => void,
+
 ): Promise<UploadResponse> {
   const form = new FormData();
   form.append("file", file);

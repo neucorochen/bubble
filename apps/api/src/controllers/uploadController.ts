@@ -1,17 +1,20 @@
 import type { Request, Response } from "express";
 import type { UploadResponse } from "@commune/shared";
-import { confirmDirectUpload, createUploadTicket, saveImage } from "../services/uploadService.js";
+import { confirmDirectUpload, createUploadTicket, saveFont, saveImage } from "../services/uploadService.js";
 import { badRequest } from "../utils/errors.js";
 import { detectImageType } from "../utils/images.js";
 
-export async function upload(req: Request, res: Response) {
-  const file = req.file;
+export async function storeUploadedImage(file: Request['file']) {
   if (!file) throw badRequest("No file uploaded");
 
   const ext = detectImageType(file.buffer);
   if (!ext) throw badRequest("Only PNG, JPEG, GIF and WebP images are allowed");
 
-  const body: UploadResponse = { url: await saveImage(file.buffer, ext) };
+  return saveImage(file.buffer, ext);
+}
+
+export async function upload(req: Request, res: Response) {
+  const body: UploadResponse = { url: await storeUploadedImage(req.file) };
   res.status(201).json(body);
 }
 
@@ -25,5 +28,11 @@ export async function sign(_req: Request, res: Response) {
 export async function complete(req: Request, res: Response) {
   const { id, format } = req.body as { id: string; format: string };
   const body: UploadResponse = { url: await confirmDirectUpload(id, format) };
+  res.status(201).json(body);
+}
+
+export async function uploadFont(req: Request, res: Response) {
+  if (!req.file) throw badRequest("No file uploaded");
+  const body: UploadResponse = { url: await saveFont(req.userId!, req.file.buffer) };
   res.status(201).json(body);
 }

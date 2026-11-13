@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import { useState } from "react";
 import { PostListSkeleton } from "../components/Skeleton";
 import type { FormEvent } from "react";
@@ -48,11 +49,11 @@ export default function PostPage() {
 
       {comments.data?.map((c) => (
         <div key={c.id} className="card comment post-head">
-          <ProfileAvatar username={c.author.username} url={c.author.avatarUrl} size={32} />
+          <ProfileAvatar username={c.author.username} displayName={c.author.displayName} url={c.author.avatarUrl} frame={c.author.avatarFrame} size={32} />
           <div className="post-main">
             <div className="post-meta">
               <Link to={`/u/${c.author.username}`} className="user-link">
-                @{c.author.username}
+                {displayNameOf(c.author)}
               </Link>
               <PlusBadge plus={c.author.plus} />
               <span className="muted">· {timeAgo(c.createdAt)}</span>

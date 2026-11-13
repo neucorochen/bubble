@@ -21,7 +21,7 @@ export async function verifyEmail(req: Request, res: Response) {
 }
 
 export async function resendVerification(req: Request, res: Response) {
-  const user = await User.findById(req.userId).select("email username emailVerified banned").lean();
+  const user = await User.findById(req.userId).select("email username displayName emailVerified banned").lean();
   if (!user) throw notFound("User not found");
   if (user.banned) throw forbidden("This account has been suspended");
   if (!user.emailVerified) await accountService.sendVerificationEmail(user);

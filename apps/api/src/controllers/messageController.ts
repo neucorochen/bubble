@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import mongoose from "mongoose";
-import type { ConversationDTO, MessageDTO, MessagePage } from "@commune/shared";
+import type { AvatarFrame, ConversationDTO, MessageDTO, MessagePage } from "@commune/shared";
 import { Conversation } from "../models/Conversation.js";
 import { Message } from "../models/Message.js";
 import { User } from "../models/User.js";
@@ -11,13 +11,15 @@ import { isPlusActive } from "../utils/plan.js";
 import { findByUsername } from "./userController.js";
 
 const PREVIEW_LENGTH = 120;
-const USER_FIELDS = "username bio avatarUrl plusUntil banned";
+const USER_FIELDS = "username displayName bio avatarUrl avatarFrame plusUntil banned";
 
 interface LeanUser {
   _id: unknown;
   username: string;
+  displayName?: string | null;
   bio?: string;
   avatarUrl?: string | null;
+  avatarFrame?: AvatarFrame | null;
   plusUntil?: Date | null;
 }
 interface LeanConversation {
@@ -58,8 +60,10 @@ function toConversationDTO(c: LeanConversation, me: string, other: LeanUser): Co
     other: {
       id: str(other._id),
       username: other.username,
+      displayName: other.displayName ?? undefined,
       bio: other.bio ?? "",
       avatarUrl: other.avatarUrl ?? null,
+      avatarFrame: other.avatarFrame ?? undefined,
       plus: isPlusActive(other.plusUntil),
     },
     lastMessage: c.lastMessageText
@@ -90,11 +94,12 @@ async function loadConversation(id: string | undefined, me: string) {
 /** Push notification for the recipient when they are not looking at the site. Never throws. */
 async function notifyByPush(convoId: string, me: string, otherId: string, text: string) {
   if (!pushConfigured()) return;
-  const sender = (await User.findById(me).select("username").lean()) as {
+  const sender = (await User.findById(me).select("username displayName").lean()) as {
     username?: string;
+    displayName?: string;
   } | null;
   await pushToUser(otherId, "message", {
-    title: `@${sender?.username ?? "Someone"}`,
+    title: sender?.displayName || sender?.username || "Someone",
     body: text,
     url: `/messages/${convoId}`,
     tag: `msg-${convoId}`,

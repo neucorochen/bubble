@@ -230,8 +230,8 @@ describe("conversations, typing and presence", () => {
 });
 
 describe("active users (for push notifications)", () => {
-  const activeVia = (userIds: string[]) =>
-    fetch(`${base}/internal/active`, {
+  const activeVia = (userIds: string[], path = "active") =>
+    fetch(`${base}/internal/${path}`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -249,6 +249,7 @@ describe("active users (for push notifications)", () => {
     await new Promise((r) => setTimeout(r, 100));
     const res = await activeVia([ALICE, BOB, EVE]);
     expect(await res.json()).toEqual({ active: [ALICE] });
+    expect(await (await activeVia([ALICE, BOB, EVE], "online")).json()).toEqual({ online: [ALICE, BOB] });
   });
 
   it("stops counting a user when the tab closes", async () => {
@@ -259,6 +260,7 @@ describe("active users (for push notifications)", () => {
     alice.close();
     await new Promise((r) => setTimeout(r, 150));
     expect(await (await activeVia([ALICE])).json()).toEqual({ active: [] });
+    expect(await (await activeVia([ALICE], "online")).json()).toEqual({ online: [] });
   });
 
   it("needs the secret and valid ids", async () => {

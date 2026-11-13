@@ -69,7 +69,7 @@ export default function AuthForm({ mode }: { mode: "login" | "register" }) {
       {mode === "register" && (
         <label>
 
-          Имя пользователя
+          ID профиля
           <input value={fields.username} onChange={set("username")} autoComplete="username" />
         </label>
       )}
