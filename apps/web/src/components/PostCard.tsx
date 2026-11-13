@@ -6,7 +6,6 @@ import type { PostDTO } from "@commune/shared";
 import { useAuth } from "../store/auth";
 import { useDeletePost, useToggleLike } from "../hooks/usePosts";
 import { formatPrice, useCheckout } from "../hooks/usePayments";
-import { assetUrl } from "../lib/api";
 import { ProfileAvatar } from "./Avatar";
 import Icon from "./Icon";
 import PlusBadge from "./PlusBadge";
@@ -14,6 +13,8 @@ import { hueFor } from "../lib/hue";
 import ReportForm from "./ReportForm";
 import InlineComments from "./InlineComments";
 import MusicAttachments from "./MusicAttachments";
+import ImageGallery from "./ImageGallery";
+import { LinkedText, LinkPreview } from "./LinkContent";
 
 const relativeTime = new Intl.RelativeTimeFormat("ru", { numeric: "always" });
 export function timeAgo(iso: string): string {
@@ -64,18 +65,8 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
             <span className="price-badge">{formatPrice(post.priceCents)}</span>
           )}
         </div>
-        {post.content && <p className="post-body">{post.content}</p>}
-        {post.imageUrl && (
-          <a href={assetUrl(post.imageUrl)} target="_blank" rel="noopener noreferrer">
-            <img
-              className="post-image"
-              src={assetUrl(post.imageUrl)}
-              alt={`Изображение пользователя @${post.author.username}`}
-              loading="lazy"
-              decoding="async"
-            />
-          </a>
-        )}
+        {post.content && <><p className="post-body"><LinkedText text={post.content} /></p><LinkPreview text={post.content} /></>}
+        {(post.imageUrls?.length || post.imageUrl) && <ImageGallery images={post.imageUrls?.length ? post.imageUrls : [post.imageUrl!]} alt={`Изображение пользователя @${post.author.username}`} />}
         {!post.locked && post.musicAttachments?.length > 0 && <MusicAttachments attachments={post.musicAttachments} source={`post:${post.id}`} />}
         {post.locked && post.priceCents != null && (
           <div className="paywall">
@@ -97,7 +88,7 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
         {post.premiumContent && (
           <div className="premium">
             <span className="premium-label">Открытое содержимое</span>
-            <p className="post-body">{post.premiumContent}</p>
+            <p className="post-body"><LinkedText text={post.premiumContent} /></p><LinkPreview text={post.premiumContent} />
           </div>
         )}
         <div className="post-actions">

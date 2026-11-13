@@ -55,6 +55,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       queryClient.removeQueries({ queryKey: ["music-settings"] });
       queryClient.removeQueries({ queryKey: ["music"] });
       queryClient.removeQueries({ queryKey: ["music-picker"] });
+      queryClient.removeQueries({ queryKey: ["link-preview"] });
       previousUserId.current = next?.id;
     }
     cacheUser(next);

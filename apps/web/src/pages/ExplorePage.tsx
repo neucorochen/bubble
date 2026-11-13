@@ -8,7 +8,8 @@ import { timeAgo } from "../components/PostCard";
 import { PostListSkeleton } from "../components/Skeleton";
 import { useLoadMoreOnVisible } from "../hooks/useInfiniteScroll";
 import { usePublicPosts } from "../hooks/usePublic";
-import { assetUrl } from "../lib/api";
+import ImageGallery from "../components/ImageGallery";
+import { LinkedText, LinkPreview } from "../components/LinkContent";
 import { useAuth } from "../store/auth";
 
 /** One ad after every N posts. */
@@ -69,15 +70,8 @@ export default function ExplorePage() {
                 <PlusBadge plus={post.author.plus} />
                 <span className="muted">· {timeAgo(post.createdAt)}</span>
               </div>
-              {post.content && <p className="post-body">{post.content}</p>}
-              {post.imageUrl && (
-                <img
-                  className="post-image"
-                  src={assetUrl(post.imageUrl)}
-                  alt={`Изображение пользователя @${post.author.username}`}
-                  loading="lazy"
-                />
-              )}
+              {post.content && <><p className="post-body"><LinkedText text={post.content} /></p><LinkPreview text={post.content} /></>}
+              {(post.imageUrls?.length || post.imageUrl) && <ImageGallery images={post.imageUrls?.length ? post.imageUrls : [post.imageUrl!]} alt={`Изображение пользователя @${post.author.username}`} />}
               {post.musicAttachments?.map((track) => <p className="muted" key={track.id}>{track.unavailable ? "Трек недоступен" : `${track.artist} — ${track.title}`}</p>)}
               <p className="post-foot muted">
                 <span className="metric">

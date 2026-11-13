@@ -53,10 +53,11 @@ export function loadOlder(id: string, cursor: string) {
 
 /** Ids of messages that are still being sent start with this. */
 export const PENDING_PREFIX = "tmp-";
-export type MessageDraft = { text: string; tracks: MusicTrackDTO[]; clientMessageId: string };
+export type MessageDraft = { text: string; tracks: MusicTrackDTO[]; clientMessageId: string; imageIds: string[] };
 const messageBody = (draft: MessageDraft) => ({
   text: draft.text,
   musicTrackIds: draft.tracks.map((track) => track.id),
+  imageIds: draft.imageIds,
   clientMessageId: draft.clientMessageId,
 });
 
@@ -80,6 +81,7 @@ export function useSendMessage(id: string) {
         senderId: user?.id ?? "",
         text: draft.text,
         clientMessageId: draft.clientMessageId,
+        imageIds: draft.imageIds,
         musicAttachments: draft.tracks.map(({ id, title, artist, duration }) => ({ id, title, artist, duration, unavailable: false })),
         createdAt: new Date().toISOString(),
       };

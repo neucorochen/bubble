@@ -36,6 +36,7 @@ export interface PopulatedPost {
   _id: Types.ObjectId;
   content: string;
   imageUrl?: string | null;
+  imageUrls?: string[];
   musicTrackIds?: Types.ObjectId[];
   priceCents?: number | null;
   premiumContent?: string | null;
@@ -118,6 +119,7 @@ export function toPostDTO(p: PopulatedPost, likedByMe: boolean, unlocked: boolea
     id: p._id.toString(),
     content: p.content,
     imageUrl: p.imageUrl ?? null,
+    imageUrls: p.imageUrls?.length ? p.imageUrls : p.imageUrl ? [p.imageUrl] : [],
     musicAttachments: locked ? [] : musicAttachments,
     author: toAuthor(p.author),
     likeCount: p.likeCount,

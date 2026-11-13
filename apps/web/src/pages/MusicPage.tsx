@@ -11,8 +11,8 @@ import type { MusicSettings } from "@commune/shared";
 type MusicScope = "all" | "mine" | "settings";
 
 const MUSIC_TABS = [
-  { scope: "all", label: "Вся музыка" },
   { scope: "mine", label: "Моя библиотека" },
+  { scope: "all", label: "Вся музыка" },
   { scope: "settings", label: "Настройки музыкальной библиотеки" },
 ] as const;
 
@@ -57,7 +57,7 @@ export default function MusicPage() {
   const queryClient = useQueryClient();
   const { user } = useAuth();
 
-  const [scope, setScope] = useState<MusicScope>("all");
+  const [scope, setScope] = useState<MusicScope>("mine");
   const [search, setSearch] = useState("");
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
@@ -212,7 +212,7 @@ export default function MusicPage() {
           nextScope = MUSIC_TABS[(index + (event.key === "ArrowRight" ? 1 : MUSIC_TABS.length - 1)) % MUSIC_TABS.length]!.scope; }
         break;
       case "Home":
-        nextScope = "all";
+        nextScope = "mine";
         break;
       case "End":
         nextScope = "settings";
@@ -250,7 +250,7 @@ export default function MusicPage() {
             fileInputRef.current?.focus();
           }}
         >
-          Добавить музыку
+          Загрузить музыку
         </button>
       </div>
 
@@ -288,7 +288,7 @@ export default function MusicPage() {
         }}
       >
         <header className="music-page__upload-header">
-          <h2 id="music-upload-title">Добавить музыку</h2>
+          <h2 id="music-upload-title">Загрузить музыку</h2>
           <button
             type="button"
             className="aero-button music-page__upload-close"

@@ -59,7 +59,7 @@ export default function CommunityPage() {
       </section>
 
       {c.joinedByMe ? (
-        <Composer communitySlug={c.slug} />
+        <Composer communitySlug={c.slug} allowPaid={false} />
       ) : (
         <p className="muted center">Вступите в сообщество, чтобы публиковать записи.</p>
       )}

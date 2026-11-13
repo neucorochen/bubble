@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RowsSkeleton, ThreadSkeleton } from "../components/Skeleton";
 import type { FormEvent, KeyboardEvent } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
@@ -6,6 +6,12 @@ import { MESSAGE_MAX_LENGTH, type MessageDTO, type MusicTrackDTO } from "@commun
 import Avatar from "../components/Avatar";
 import MusicAttachmentPicker from "../components/MusicAttachmentPicker";
 import MusicAttachments from "../components/MusicAttachments";
+import MessageImages from "../components/MessageImages";
+import { LinkedText, LinkPreview, splitLinks } from "../components/LinkContent";
+import { useImageDraft } from "../hooks/useImageDraft";
+import { useImageDrop } from "../hooks/useImageDrop";
+import ImageDropHint from "../components/ImageDropHint";
+import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
 import { timeAgo } from "../components/PostCard";
 import {
@@ -40,17 +46,31 @@ function Composer({
   const [text, setText] = useState("");
   const [tracks, setTracks] = useState<MusicTrackDTO[]>([]);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [attachmentsOpen, setAttachmentsOpen] = useState(false);
+  const attachmentsRef = useRef<HTMLDivElement>(null);
+  const attachmentsButton = useRef<HTMLButtonElement>(null);
+  const attachmentsId = useId();
+  const images = useImageDraft(true);
+  const drop = useImageDrop(images.add, busy);
+  const imageInput = useRef<HTMLInputElement>(null);
   const sending = useRef(false);
+  useEffect(() => {
+    if (!attachmentsOpen) return;
+    const closeOutside = (event: PointerEvent) => { if (!attachmentsRef.current?.contains(event.target as Node)) setAttachmentsOpen(false); };
+    document.addEventListener("pointerdown", closeOutside);
+    return () => document.removeEventListener("pointerdown", closeOutside);
+  }, [attachmentsOpen]);
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     const value = text.trim();
-    if ((!value && !tracks.length) || busy || sending.current || pickerOpen) return;
+    if ((!value && !tracks.length && !images.images.length) || busy || images.busy || !images.ready || sending.current || pickerOpen) return;
     sending.current = true;
     onStopTyping?.();
     try {
-      await onSend({ text: value, tracks, clientMessageId: crypto.randomUUID() });
+      await onSend({ text: value, tracks, imageIds: images.images.map((image) => image.url!), clientMessageId: crypto.randomUUID() });
       setText("");
       setTracks([]);
+      images.clear();
     } catch {
       // Keep the draft available for correction or retry.
     } finally {
@@ -65,8 +85,11 @@ function Composer({
   };
   return (
     <>
-    <form className="chat-form" onSubmit={(e) => void submit(e)}>
+    <form className="chat-form" onSubmit={(e) => void submit(e)} {...drop.handlers}>
       {error && <p className="error small">{error}</p>}
+      <LinkPreview text={text} />
+      {images.images.length > 0 && <div className="image-draft">{images.images.map((image) => <div className="image-preview" key={image.id}><img src={image.preview} alt="Предпросмотр вложения" /><button type="button" className="image-remove" disabled={busy} aria-label="Удалить изображение" onClick={() => images.remove(image.id)}>×</button>{image.pending && <span role="status">Загрузка…</span>}{image.error && <p className="error" role="alert">{image.error} <button type="button" onClick={() => images.retry(image)}>Повторить</button></p>}</div>)}</div>}
+      {images.error && <p className="error" role="alert">{images.error}</p>}
       {tracks.length > 0 && <div className="chat-draft-tracks" aria-label="Выбранная музыка">
         {tracks.map((track) => <div className="chat-draft-track" key={track.id}>
           <span>{track.title} — {track.artist}</span>
@@ -74,6 +97,7 @@ function Composer({
         </div>)}
       </div>}
       <div className="chat-form-row">
+        <div className="image-drop-field">
         <textarea
           disabled={busy}
           value={text}
@@ -87,10 +111,22 @@ function Composer({
           maxLength={MESSAGE_MAX_LENGTH}
           aria-label="Сообщение"
         />
-        <button type="button" className="btn btn-ghost" disabled={busy} onClick={() => setPickerOpen(true)}>Музыка</button>
-        <button className="btn" disabled={busy || (!text.trim() && !tracks.length)}>
-
-          Отправить
+        {drop.dragging && <ImageDropHint />}
+        </div>
+        <input ref={imageInput} type="file" accept="image/png,image/jpeg,image/gif,image/webp" multiple hidden onChange={(event) => { const files = Array.from(event.target.files ?? []); event.target.value = ""; if (files.length) images.add(files); }} />
+        <div ref={attachmentsRef} className="chat-attachments" onBlur={(event) => { if (!event.currentTarget.contains(event.relatedTarget)) setAttachmentsOpen(false); }} onKeyDown={(event) => { if (event.key === "Escape" && attachmentsOpen) { event.preventDefault(); event.stopPropagation(); setAttachmentsOpen(false); attachmentsButton.current?.focus(); } }}>
+          <button ref={attachmentsButton} type="button" className="btn btn-ghost chat-attachments__toggle" disabled={busy} aria-label="Вложения" aria-expanded={attachmentsOpen} aria-controls={attachmentsOpen ? attachmentsId : undefined} title="Вложения" onClick={() => setAttachmentsOpen((open) => !open)}>
+            {/* Google Material Icons: attach_file, Apache-2.0. */}
+            <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M16.5 6v11.5c0 2.21-1.79 4-4 4s-4-1.79-4-4V5a2.5 2.5 0 0 1 5 0v10.5c0 .55-.45 1-1 1s-1-.45-1-1V6H10v9.5a2.5 2.5 0 0 0 5 0V5c0-2.21-1.79-4-4-4S7 2.79 7 5v12.5c0 3.04 2.46 5.5 5.5 5.5s5.5-2.46 5.5-5.5V6h-1.5z" /></svg>
+          </button>
+          {attachmentsOpen && <div id={attachmentsId} className="chat-attachments__menu" role="group" aria-label="Выберите вложение">
+            <button type="button" disabled={busy || images.images.length >= 10} onClick={() => { setAttachmentsOpen(false); imageInput.current?.click(); }}><Icon name="image" size={18} /> Фото</button>
+            <button type="button" disabled={busy} onClick={() => { setAttachmentsOpen(false); setPickerOpen(true); }}><Icon name="music" size={18} /> Музыка</button>
+          </div>}
+        </div>
+        <button type="submit" className="btn chat-form__send" aria-label="Отправить" title="Отправить" disabled={busy || images.busy || !images.ready || (!text.trim() && !tracks.length && !images.images.length)}>
+          {/* Google Material Icons: send, Apache-2.0. */}
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M2.01 21 23 12 2.01 3 2 10l15 2-15 2z" /></svg>
         </button>
       </div>
       {text.length > MESSAGE_MAX_LENGTH - 200 && (
@@ -235,8 +271,9 @@ function Thread({ id }: { id: string }) {
               key={m.id}
               className={`bubble-row${mine ? " mine" : ""}${pending ? " pending" : ""}`}
             >
-              <div className={`bubble${m.musicAttachments?.length ? " bubble--music" : ""}`}>
-                {m.text && <span>{m.text}</span>}
+              <div className={`bubble${m.musicAttachments?.length || m.imageIds?.length || splitLinks(m.text).some((part) => part.href) ? " bubble--music" : ""}`}>
+                {m.text && <><span><LinkedText text={m.text} /></span><LinkPreview text={m.text} /></>}
+                {(m.imageIds?.length ?? 0) > 0 && <MessageImages ids={m.imageIds!} />}
                 {(m.musicAttachments?.length ?? 0) > 0 && <MusicAttachments attachments={m.musicAttachments!} source={`message:${m.senderId}:${m.clientMessageId ?? m.id}`} />}
                 <time
                   className="bubble-time"

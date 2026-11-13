@@ -108,7 +108,7 @@ export default function MusicPlayer() {
     >
       <div className="music-player__controls">
         <button type="button" className="music-player__mode music-player__library" disabled={!membership.data || membership.isFetching || libraryBusy} onClick={() => membership.data && library.mutate({ id: track.id, added: membership.data.added })} aria-label={!membership.data ? "Проверка библиотеки" : membership.data.added ? "Убрать из библиотеки" : "Добавить в библиотеку"} title={membership.isError ? "Не удалось проверить библиотеку" : !membership.data ? "Проверка библиотеки" : membership.data.added ? "Убрать из библиотеки" : "Добавить в библиотеку"}>
-          {membership.data && <svg viewBox="0 0 24 24" aria-hidden="true"><path d={membership.data.added ? "M6 6l12 12M18 6 6 18" : "M12 5v14M5 12h14"} /></svg>}
+          {membership.data && <svg viewBox="0 0 24 24" aria-hidden="true"><path transform={membership.data.added ? "translate(2.4 2.4) scale(.8)" : undefined} d={membership.data.added ? "M4 7h16M9.5 7V4.5h5V7M6.5 7l1 13h9l1-13" : "M12 5v14M5 12h14"} /></svg>}
         </button>
         <button
           type="button"

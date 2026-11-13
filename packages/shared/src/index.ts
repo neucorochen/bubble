@@ -85,6 +85,7 @@ export const createPostSchema = z
     // accounts is enforced on the server, because it depends on the account's plan.
     content: z.string().trim().max(PLUS_POST_LENGTH),
     imageUrl: uploadUrlSchema.nullish(),
+    imageUrls: z.array(uploadUrlSchema).max(10).optional(),
     musicTrackIds: musicTrackIdsSchema.optional(),
     // Setting a price makes the post paid: premiumContent is shown only after purchase.
     // Slug of a community the author belongs to; the post then appears in that community.
@@ -92,7 +93,7 @@ export const createPostSchema = z
     priceCents: z.number().int().min(MIN_PRICE_CENTS).max(MAX_PRICE_CENTS).nullish(),
     premiumContent: z.string().trim().max(MAX_PREMIUM_LENGTH).nullish(),
   })
-  .refine((v) => v.content.length > 0 || Boolean(v.imageUrl) || (v.musicTrackIds?.length ?? 0) > 0, {
+  .refine((v) => v.content.length > 0 || Boolean(v.imageUrl) || (v.imageUrls?.length ?? 0) > 0 || (v.musicTrackIds?.length ?? 0) > 0, {
     message: "Write something or attach an image",
     path: ["content"],
   })
@@ -152,11 +153,13 @@ export const reportQuerySchema = paginationSchema.omit({ feed: true }).extend({
 // ---- Direct messages, news and contact ----
 
 export const MESSAGE_MAX_LENGTH = 1000;
+export const linkPreviewSchema = z.object({ url: z.string().max(2048).url() });
 export const sendMessageSchema = z.object({
   text: z.string().trim().max(MESSAGE_MAX_LENGTH).default(""),
   musicTrackIds: musicTrackIdsSchema.optional(),
+  imageIds: z.array(z.string().regex(/^[a-f0-9]{24}$/i).transform((id) => id.toLowerCase())).max(10).refine((ids) => new Set(ids).size === ids.length).optional(),
   clientMessageId: z.string().uuid().optional(),
-}).refine((value) => Boolean(value.text || value.musicTrackIds?.length), { message: "Write a message or attach music", path: ["text"] });
+}).refine((value) => Boolean(value.text || value.musicTrackIds?.length || value.imageIds?.length), { message: "Write a message or attach a file", path: ["text"] });
 export const messagesQuerySchema = z.object({
   /** ISO timestamp of the oldest message already loaded; returns older ones. */
   cursor: z.string().datetime().optional(),
@@ -183,6 +186,7 @@ export interface MessageDTO {
   senderId: string;
   text: string;
   musicAttachments?: MusicAttachmentDTO[];
+  imageIds?: string[];
   clientMessageId?: string;
   createdAt: string;
 }
@@ -255,6 +259,7 @@ export interface PostDTO {
   id: string;
   content: string;
   imageUrl: string | null;
+  imageUrls?: string[];
   musicAttachments: MusicAttachmentDTO[];
   author: AuthorDTO;
   likeCount: number;
