@@ -7,6 +7,10 @@ import {
   pushUnsubscribeSchema,
   contactSchema,
   messagesQuerySchema,
+  musicUploadSignSchema,
+  musicUploadCompleteSchema,
+  musicListQuerySchema,
+  musicTrackIdSchema,
   newsQuerySchema,
   sendMessageSchema,
   communityListSchema,
@@ -29,6 +33,7 @@ import {
   updateProfileSchema,
   verifyEmailSchema,
 } from "@commune/shared";
+import * as music from "../controllers/musicController.js";
 import * as account from "../controllers/accountController.js";
 import * as push from "../controllers/pushController.js";
 import * as internal from "../controllers/internalController.js";
@@ -153,6 +158,54 @@ router.post(
   parseImageUpload,
   requireActive,
   asyncHandler(uploads.upload),
+);
+
+router.post(
+  "/music/uploads/sign",
+  requireAuth,
+  uploadLimiter,
+  validate(musicUploadSignSchema),
+  requireActive,
+  asyncHandler(music.signUpload),
+);
+
+router.post(
+  "/music/uploads/complete",
+  requireAuth,
+  uploadLimiter,
+  validate(musicUploadCompleteSchema),
+  requireActive,
+  asyncHandler(music.completeUpload),
+);
+
+router.get(
+  "/music",
+  requireAuth,
+  validate(musicListQuerySchema, "query"),
+  asyncHandler(music.list),
+);
+
+router.post(
+  "/music/:id/library",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  requireActive,
+  asyncHandler(music.addToLibrary),
+);
+
+router.delete(
+  "/music/:id/library",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  requireActive,
+  asyncHandler(music.removeFromLibrary),
+);
+
+router.get(
+  "/music/:id/play",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  asyncHandler(music.play),
 );
 
 // Users. "/users/me" must be declared before "/users/:username".

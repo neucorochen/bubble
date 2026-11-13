@@ -10,6 +10,7 @@ export const navigation: readonly NavigationItem[] = [
   { ...friends, icon: "friends", surfaces: ["desktop", "bottom"] },
   { id: "search", label: "Поиск", to: () => "/search", icon: "search", audience: "member", surfaces: ["drawer", "header"] },
   { id: "messages", label: "Сообщения", to: () => "/messages", icon: "mail", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
+  { id: "music", label: "Музыка", to: () => "/music", icon: "music", audience: "member", surfaces: ["desktop", "drawer"],},
   { id: "communities", label: "Группы", to: () => "/communities", icon: "users", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
   { id: "notifications", label: "События", to: () => "/notifications", icon: "bell", audience: "member", surfaces: ["desktop", "drawer", "bottom"] },
   { id: "explore", label: "Обзор", to: () => "/explore", icon: "compass", audience: "guest", surfaces: ["header", "drawer"] },

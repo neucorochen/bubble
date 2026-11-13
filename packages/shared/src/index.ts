@@ -392,6 +392,67 @@ export interface UploadResponse {
   url: string;
 }
 
+
+/** Supported audio formats for the music library. */
+export const ALLOWED_MUSIC_TYPES = [
+  "audio/mpeg",
+  "audio/flac",
+  "audio/x-flac",
+  "audio/wav",
+  "audio/x-wav",
+  "audio/wave",
+  "audio/vnd.wave",
+  "audio/mp4",
+  "audio/x-m4a",
+  "audio/ogg",
+] as const;
+
+/** Maximum audio file size: 100 MB. */
+export const MAX_MUSIC_BYTES = 100 * 1024 * 1024;
+
+export const musicUploadSignSchema = z.object({
+  title: z.string().trim().min(1).max(200),
+  artist: z.string().trim().min(1).max(200),
+  mimeType: z.enum(ALLOWED_MUSIC_TYPES),
+  size: z.number().int().min(1).max(MAX_MUSIC_BYTES),
+});
+
+export const musicUploadCompleteSchema = z.object({
+  uploadId: z.string().regex(/^[a-f0-9]{24}$/i, "Invalid upload ID"),
+});
+
+export const musicListQuerySchema = z.object({
+  scope: z.enum(["all", "mine"]).default("all"),
+  q: z.string().trim().max(100).optional(),
+  limit: z.coerce.number().int().min(1).max(50).default(20),
+});
+
+export const musicTrackIdSchema = z.object({
+  id: z.string().regex(/^[a-f0-9]{24}$/i, "Invalid track ID"),
+});
+
+export type MusicUploadSignInput = z.infer<typeof musicUploadSignSchema>;
+export type MusicUploadCompleteInput = z.infer<typeof musicUploadCompleteSchema>;
+export type MusicListQuery = z.infer<typeof musicListQuerySchema>;
+
+export interface MusicUploadTicket {
+  uploadId: string;
+  url: string;
+  fields: Record<string, string>;
+}
+
+export interface MusicTrackDTO {
+  id: string;
+  title: string;
+  artist: string;
+  mimeType: string;
+  size: number;
+  duration: number | null;
+  addedAt: string | null;
+  addedByMe: boolean;
+}
+
+
 /** Step two of a direct-to-storage upload: tell the API which file the browser uploaded. */
 export const completeUploadSchema = z.object({
   id: z.string().regex(/^[a-f0-9]{32}$/, "Invalid upload id"),

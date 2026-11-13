@@ -9,9 +9,27 @@ const credentials =
     }
     : undefined;
 
-export const s3Client = new S3Client({
-  region: env.S3_REGION,
-  endpoint: env.S3_ENDPOINT,
-  forcePathStyle: env.S3_FORCE_PATH_STYLE,
-  ...(credentials ? { credentials } : {}),
-});
+function createClient(endpoint?: string) {
+  return new S3Client({
+    region: env.S3_REGION,
+    ...(endpoint ? { endpoint } : {}),
+    forcePathStyle: env.S3_FORCE_PATH_STYLE,
+    ...(credentials ? { credentials } : {}),
+  });
+}
+
+/**
+ * Клиент для операций API с хранилищем.
+ * Использует внутренний endpoint, если он настроен.
+ */
+export const s3Client = createClient(env.S3_ENDPOINT);
+
+/**
+ * Клиент для создания ссылок, которыми будет пользоваться браузер.
+ * Его endpoint должен быть доступен с компьютера пользователя.
+ */
+export const s3PresignClient =
+  env.S3_PUBLIC_ENDPOINT &&
+  env.S3_PUBLIC_ENDPOINT !== env.S3_ENDPOINT
+    ? createClient(env.S3_PUBLIC_ENDPOINT)
+    : s3Client;

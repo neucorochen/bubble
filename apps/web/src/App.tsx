@@ -14,6 +14,7 @@ import Brand from "./components/BrandMark";
 import Icon from "./components/Icon";
 import { PageSkeleton } from "./components/Skeleton";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
+import MusicPlayer from "./components/MusicPlayer";
 
 const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
@@ -33,6 +34,7 @@ const MessagesPage = lazy(() => import("./pages/MessagesPage"));
 const NewsPage = lazy(() => import("./pages/NewsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
+const MusicPage = lazy(() => import("./pages/MusicPage"));
 
 const TITLES: Record<string, string> = {
   "/": "Bubble — открытая платформа сообществ",
@@ -51,6 +53,7 @@ const TITLES: Record<string, string> = {
   "/forgot-password": "Восстановление пароля",
   "/reset-password": "Сброс пароля",
   "/admin": "Администрирование",
+  "/music": "Музыка",
 };
 
 /** Per-page browser title and canonical link, so tabs, history and search engines get real names. */
@@ -166,6 +169,14 @@ function AppRoutes() {
           element={
             <Protected>
               <SearchPage />
+            </Protected>
+          }
+        />
+        <Route
+          path="/music"
+          element={
+            <Protected>
+              <MusicPage />
             </Protected>
           }
         />
@@ -301,6 +312,7 @@ export default function App() {
         {!wide && <RightRail />}
       </div>
       <BottomNav />
+      <MusicPlayer />
       </div>
     </div>
   );

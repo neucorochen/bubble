@@ -14,6 +14,8 @@
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.1165.0",
+    "@aws-sdk/s3-presigned-post": "^3.1166.0",
+    "@aws-sdk/s3-request-presigner": "^3.1166.0",
     "@commune/shared": "*",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
