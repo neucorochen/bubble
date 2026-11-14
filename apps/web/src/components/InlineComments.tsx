@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import { useState, type FormEvent } from "react";
 import { Link } from "react-router-dom";
 import { useAddComment, useComments } from "../hooks/usePosts";
@@ -20,8 +21,8 @@ export default function InlineComments({ postId }: { postId: string }) {
       {comments.isSuccess && comments.data.length === 0 && <p className="muted">Комментариев пока нет.</p>}
       {comments.data?.map((comment) => (
         <div className="inline-comment" key={comment.id}>
-          <ProfileAvatar username={comment.author.username} url={comment.author.avatarUrl} size={28} />
-          <div><Link to={`/u/${comment.author.username}`}>@{comment.author.username}</Link>{" "}<time className="muted" dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleString("ru-RU")}</time><p>{comment.content}</p></div>
+          <ProfileAvatar username={comment.author.username} displayName={comment.author.displayName} url={comment.author.avatarUrl} frame={comment.author.avatarFrame} size={28} />
+          <div><Link to={`/u/${comment.author.username}`}>{displayNameOf(comment.author)}</Link>{" "}<time className="muted" dateTime={comment.createdAt}>{new Date(comment.createdAt).toLocaleString("ru-RU")}</time><p>{comment.content}</p></div>
         </div>
       ))}
       <form onSubmit={submit}>

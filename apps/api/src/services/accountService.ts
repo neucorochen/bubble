@@ -42,12 +42,13 @@ interface Recipient {
   _id: unknown;
   email: string;
   username: string;
+  displayName?: string | null;
 }
 
 export async function sendVerificationEmail(user: Recipient) {
   const token = await createToken(user._id, "verify_email");
   const link = `${env.CLIENT_ORIGIN}/verify-email?token=${token}`;
-  await sendMail(verifyEmailMail(user.email, user.username, link));
+  await sendMail(verifyEmailMail(user.email, user.displayName || user.username, link));
 }
 
 /** For flows where the caller must not wait on, or learn about, email delivery. */
@@ -64,11 +65,11 @@ export async function verifyEmail(raw: string) {
 
 /** Always resolves, whether or not the email belongs to an account (no account discovery). */
 export async function requestPasswordReset(email: string) {
-  const user = await User.findOne({ email }).select("email username banned").lean();
+  const user = await User.findOne({ email }).select("email username displayName banned").lean();
   if (!user || user.banned) return;
   const token = await createToken(user._id, "reset_password");
   const link = `${env.CLIENT_ORIGIN}/reset-password?token=${token}`;
-  sendMail(resetPasswordMail(user.email, user.username, link)).catch((err: unknown) =>
+  sendMail(resetPasswordMail(user.email, user.displayName || user.username, link)).catch((err: unknown) =>
     logger.error({ err }, "Could not send password reset email"),
   );
 }

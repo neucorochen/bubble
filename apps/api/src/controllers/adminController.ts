@@ -28,11 +28,11 @@ export async function listReports(_req: Request, res: Response) {
   const rows = (await Report.find(filter)
     .sort({ _id: -1 })
     .limit(limit + 1)
-    .populate("reporter", "username")
+    .populate("reporter", "username displayName")
     .populate({
       path: "post",
       select: "content imageUrl author",
-      populate: { path: "author", select: "username avatarUrl" },
+      populate: { path: "author", select: "username displayName avatarUrl avatarFrame" },
     })
     .lean()) as unknown as PopulatedReport[];
 

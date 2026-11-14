@@ -109,7 +109,7 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
 
     if (
       req.method === "POST" &&
-      (path === "/internal/emit" || path === "/internal/disconnect" || path === "/internal/active")
+      (path === "/internal/emit" || path === "/internal/disconnect" || path === "/internal/active" || path === "/internal/online")
     ) {
       if (!safeEqual(bearer(req.headers.authorization), config.internalSecret)) {
         return send(res, 401, { error: "Unauthorized" });
@@ -125,7 +125,7 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
         unknown
       >;
 
-      if (path === "/internal/active") {
+      if (path === "/internal/active" || path === "/internal/online") {
         const ids = input.userIds;
         if (
           !Array.isArray(ids) ||
@@ -134,6 +134,9 @@ export function createRealtimeServer(config: Config, membership?: Membership) {
           !ids.every((id) => typeof id === "string" && OBJECT_ID.test(id))
         ) {
           return send(res, 400, { error: "Invalid users" });
+        }
+        if (path === "/internal/online") {
+          return send(res, 200, { online: (ids as string[]).filter((id) => online.has(id)) });
         }
         return send(res, 200, { active: (ids as string[]).filter((id) => visible.has(id)) });
       }

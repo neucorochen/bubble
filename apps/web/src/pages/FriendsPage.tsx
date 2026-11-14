@@ -1,15 +1,15 @@
+import { useProfile } from "../hooks/useSocial";
+import { displayNameOf } from "@commune/shared";
 import { useEffect, useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
-import type { FriendsVisibility, UserSummaryDTO } from "@commune/shared";
+import type { UserSummaryDTO } from "@commune/shared";
 import Avatar from "../components/Avatar";
 import PlusBadge from "../components/PlusBadge";
-import Icon from "../components/Icon";
 import {
   useFriendRequests,
   useFriends,
   useFriendsAccess,
-  useFriendsVisibility,
   useToggleFollow,
   useRelationshipCounts,
 } from "../hooks/useSocial";
@@ -34,8 +34,8 @@ function PersonRow({ person, tab, isMe }: { person: UserSummaryDTO; tab: Tab; is
   return (
     <div className="card person friend-list-row">
       <Link className="friend-person-link" to={`/u/${encodeURIComponent(person.username)}`}>
-        <Avatar username={person.username} url={person.avatarUrl} size={44} />
-        <strong>@{person.username}</strong>
+        <Avatar username={person.username} displayName={person.displayName} url={person.avatarUrl} frame={person.avatarFrame} size={44} />
+        <strong>{displayNameOf(person)}</strong>
         <PlusBadge plus={person.plus} />
       </Link>
       {isMe && (
@@ -67,8 +67,8 @@ export default function FriendsPage() {
   const { user } = useAuth();
   const username = param ?? user?.username ?? "";
   const isMe = username.toLowerCase() === user?.username.toLowerCase();
-  const [tab, setTab] = useState<Tab | "settings">("friends");
-  const [choice, setChoice] = useState<FriendsVisibility>("everyone");
+  const { data: owner } = useProfile(username, !isMe && Boolean(username));
+  const [tab, setTab] = useState<Tab>("friends");
   const [input, setInput] = useState("");
   const [q, setQ] = useState("");
   useEffect(() => {
@@ -87,7 +87,6 @@ export default function FriendsPage() {
   const friends = useFriends(username, q, tab === "friends" && canView);
   const outgoing = useFriendRequests("outgoing", q, isMe && tab === "outgoing");
   const incoming = useFriendRequests("incoming", q, isMe && tab === "incoming");
-  const visibility = useFriendsVisibility();
   const counts = useRelationshipCounts(isMe);
   const qc = useQueryClient();
   const previousCounts = useRef<string | null>(null);
@@ -102,12 +101,12 @@ export default function FriendsPage() {
   const activeTab = isMe ? tab : "friends";
   const query = activeTab === "friends" ? friends : activeTab === "outgoing" ? outgoing : incoming;
   const denied = friends.error instanceof ApiError && friends.error.status === 403;
-  const showList = activeTab !== "settings" && (activeTab !== "friends" || (canView && !denied));
+  const showList = activeTab !== "friends" || (canView && !denied);
   const people = query.data?.pages.flatMap((page) => page.items) ?? [];
   const empty = tabs.find((item) => item.id === activeTab)?.empty;
   return (
     <>
-      <h1 className="page-title">{isMe ? "Друзья" : `Друзья @${username}`}</h1>
+      <h1 className="page-title">{owner ? `Друзья · ${displayNameOf(owner)}` : "Друзья"}</h1>
       {isMe && (
         <div className="tabs feed-tabs friends-tabs" aria-label="Разделы друзей">
           {tabs.map((item) => (
@@ -121,35 +120,16 @@ export default function FriendsPage() {
               {item.label} ({counts.isFetching || counts.isPending ? "…" : counts.isError ? "—" : counts.data[item.id]})
             </button>
           ))}
-          <button type="button" className={`tab ${activeTab === "settings" ? "active" : ""}`} aria-pressed={activeTab === "settings"} aria-label="Настройки" title="Настройки" onClick={() => setTab("settings")}><Icon name="settings" size={22} /></button>
         </div>
       )}
       <section className="card friends-page">
         {isMe && counts.isError && <p className="error">Не удалось загрузить количества. <button type="button" className="btn btn-ghost" onClick={() => void counts.refetch()}>Повторить</button></p>}
-        {activeTab === "settings" && isMe && access.data?.canView && access.isFetchedAfterMount && !access.isFetching && !access.isError && (
-          <div className="friends-visibility">
-            <label htmlFor="friends-visibility">Кто видит моих друзей</label>
-            <select
-              id="friends-visibility"
-              value={access.data.friendsVisibility ?? "everyone"}
-              disabled={visibility.isPending}
-              onChange={(e) => { const value = e.target.value as FriendsVisibility; setChoice(value); visibility.mutate(value); }}
-            >
-              <option value="everyone">Все пользователи</option>
-              <option value="friends">Только друзья</option>
-              <option value="only_me">Только я</option>
-            </select>
-            {visibility.isPending && <span role="status">Сохранение…</span>}
-            <p className="muted friends-settings-note">Изменения сохраняются автоматически после выбора настройки</p>
-            {visibility.isError && <p className="error">{visibility.error.message} <button type="button" className="btn btn-outline" onClick={() => visibility.mutate(choice)}>Повторить сохранение</button></p>}
-          </div>
-        )}
-        {(activeTab === "friends" || activeTab === "settings") && access.isFetching && (
+        {activeTab === "friends" && access.isFetching && (
           <p className="muted" role="status">
             Загрузка…
           </p>
         )}
-        {(activeTab === "friends" || activeTab === "settings") && access.isError && (
+        {activeTab === "friends" && access.isError && (
           <p className="error">
             {access.error.message}{" "}
             <button type="button" className="btn btn-outline" onClick={() => void access.refetch()}>

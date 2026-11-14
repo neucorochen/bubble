@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import NavigationIcon from "./NavigationIcon";
 import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
@@ -82,7 +83,7 @@ export default function Header() {
           {user && (
             <>
               <Link to={`/u/${user.username}`} className="nav-link nav-profile">
-                <Avatar username={user.username} url={user.avatarUrl} size={26} /><span className="nav-profile-name">@{user.username}</span>
+                <Avatar username={user.username} displayName={user.displayName} url={user.avatarUrl} frame={user.avatarFrame} size={26} /><span className="nav-profile-name">{displayNameOf(user)}</span>
                 <PlusBadge plus={user.plus} />
               </Link>
               <button className="btn btn-ghost" onClick={confirmLogout}>

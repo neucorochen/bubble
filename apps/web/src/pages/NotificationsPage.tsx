@@ -1,8 +1,7 @@
+import { displayNameOf } from "@commune/shared";
 import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import type { NotificationDTO } from "@commune/shared";
-import PushSettings from "../components/PushSettings";
-import SoundSettings from "../components/SoundSettings";
 import { RowsSkeleton } from "../components/Skeleton";
 import { timeAgo } from "../components/PostCard";
 import { useMarkAllRead, useNotifications } from "../hooks/useSocial";
@@ -30,8 +29,6 @@ export default function NotificationsPage() {
   return (
     <>
       <h1 className="page-title">Уведомления</h1>
-      <SoundSettings />
-      <PushSettings />
       {list.isLoading && <RowsSkeleton count={5} avatar={36} card />}
       {list.isError && <p className="error center">{list.error.message}</p>}
       {list.isSuccess && list.data.length === 0 && (
@@ -44,7 +41,7 @@ export default function NotificationsPage() {
           className={`card notification ${n.read ? "" : "unread"}`}
         >
           <span>
-            <strong>@{n.actor.username}</strong> {TEXT[n.type]}
+            <strong>{displayNameOf(n.actor)}</strong> {TEXT[n.type]}
           </span>
           <span className="muted">{timeAgo(n.createdAt)}</span>
         </Link>

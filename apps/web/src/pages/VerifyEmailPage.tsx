@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useSearchParams } from "react-router-dom";
-import type { PublicUser } from "@commune/shared";
+import type { AccountUser } from "@commune/shared";
 import { verifyEmailSchema } from "@commune/shared";
 import { api } from "../lib/api";
 import { useAuth } from "../store/auth";
@@ -28,7 +28,7 @@ export default function VerifyEmailPage() {
       .then(async () => {
         setStatus("done");
         // Refresh the cached account so the "confirm your email" banner disappears.
-        if (user) setUser(await api<PublicUser>("/users/me"));
+        if (user) setUser(await api<AccountUser>("/users/me"));
       })
       .catch((err: unknown) => {
         setStatus("failed");

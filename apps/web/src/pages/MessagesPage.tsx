@@ -1,3 +1,5 @@
+import { useProfile } from "../hooks/useSocial";
+import { displayNameOf } from "@commune/shared";
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { RowsSkeleton, ThreadSkeleton } from "../components/Skeleton";
 import type { FormEvent, KeyboardEvent } from "react";
@@ -180,10 +182,10 @@ function Thread({ id }: { id: string }) {
         </Link>
         {other && (
           <Link to={`/u/${other.username}`} className="person">
-            <Avatar username={other.username} url={other.avatarUrl} size={36} />
+            <Avatar username={other.username} displayName={other.displayName} url={other.avatarUrl} frame={other.avatarFrame} size={36} />
             <span className="person-text">
               <strong>
-                @{other.username} <PlusBadge plus={other.plus} />
+                {displayNameOf(other)} <PlusBadge plus={other.plus} />
               </strong>
               {typing ? (
                 <span className="chat-status typing-label">печатает…</span>
@@ -266,19 +268,21 @@ function Thread({ id }: { id: string }) {
 function NewChat({ username }: { username: string }) {
   const navigate = useNavigate();
   const start = useStartChat(username);
+  const { data: recipient } = useProfile(username);
+  const name = recipient ? displayNameOf(recipient) : "";
   return (
     <>
       <div className="chat-head">
         <Link to="/messages" className="icon-btn chat-back" aria-label="К списку переписок">
           ←
         </Link>
-        <strong>Новое сообщение для @{username}</strong>
+        <strong>{name ? `Новое сообщение для ${name}` : "Новое сообщение"}</strong>
       </div>
       <div className="chat-messages">
-        <p className="muted center">Поздоровайтесь с @{username}. Соблюдайте правила общения: пользователи могут пожаловаться на нарушения.</p>
+        <p className="muted center">{name && `Поздоровайтесь с ${name}. `} Соблюдайте правила общения: пользователи могут пожаловаться на нарушения.</p>
       </div>
       <Composer
-        placeholder={`Сообщение для @${username}…`}
+        placeholder={name ? `Сообщение для ${name}…` : "Сообщение…"}
         busy={start.isPending}
         error={start.isError ? start.error.message : null}
         onSend={async (text) => {
@@ -328,11 +332,11 @@ export default function MessagesPage() {
             to={`/messages/${c.id}`}
             className={`convo${c.id === id ? " active" : ""}${c.unread > 0 ? " unread" : ""}`}
           >
-            <Avatar username={c.other.username} url={c.other.avatarUrl} size={44} />
+            <Avatar username={c.other.username} displayName={c.other.displayName} url={c.other.avatarUrl} frame={c.other.avatarFrame} size={44} />
             <span className="convo-main">
               <span className="convo-top">
                 <strong>
-                  @{c.other.username} <PlusBadge plus={c.other.plus} />
+                  {displayNameOf(c.other)} <PlusBadge plus={c.other.plus} />
                 </strong>
                 <span className="muted small">{timeAgo(c.lastMessageAt)}</span>
               </span>

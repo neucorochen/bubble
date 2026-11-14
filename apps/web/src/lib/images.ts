@@ -32,6 +32,7 @@ export interface PrepareOptions {
 }
 
 export const POST_PHOTO: PrepareOptions = { maxSide: 1600 };
+export const WALLPAPER_PHOTO: PrepareOptions = { maxSide: 2560 };
 export const AVATAR_PHOTO: PrepareOptions = { maxSide: 512, square: true };
 
 const KEEP_BELOW_BYTES = 600 * 1024;

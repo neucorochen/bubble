@@ -68,7 +68,10 @@ describe("GET /api/search/users", () => {
     const res = await request(app).get("/api/search/users?q=sa.m").set(auth);
     expect(res.status).toBe(200);
     expect(find).toHaveBeenCalledWith({
-      username: { $regex: "^sa\\.m", $options: "i" },
+      $or: [
+        { displayName: { $regex: "^sa\\.m", $options: "i" } },
+        { username: { $regex: "^sa\\.m", $options: "i" } },
+      ],
       banned: { $ne: true },
     });
     expect(res.body.items).toEqual([

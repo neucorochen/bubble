@@ -5,9 +5,13 @@
  * Nesting theme hosts is supported through inherited tokens.
  */
 [data-theme="aero-blue"] {
-  --aero-color-highlight-positive: #bfec67;
+  --aero-chosen-primary: initial;
+  --aero-chosen-accent: initial;
+  --aero-chosen-accent-ink: initial;
+  --aero-wallpaper: initial;
+  --aero-color-highlight-positive: var(--aero-chosen-accent, #bfec67);
   --gold: var(--aero-color-highlight-positive);
-  --gold-ink: #23410d;
+  --gold-ink: var(--aero-chosen-accent-ink, #23410d);
   --aero-color-primary: #349af4;
   --aero-color-secondary: #123b60;
   --aero-color-link: #165c93;
@@ -45,6 +49,28 @@
   --aero-color-warning-surface: #fff7df;
   --aero-color-warning-border: #976500;
 
+  --aero-color-raised: #d7effc;
+  --aero-color-action: #075b92;
+  --aero-color-action-soft: #c8edff;
+  --aero-color-wallpaper-fallback: #1473ad;
+  --aero-color-frame-outline: #00558c;
+  --aero-color-frame-shadow: #00365b99;
+  --aero-color-header-ink: #101318;
+  --aero-color-header-border: #5296c1;
+  --aero-color-composer: #eaf8ff;
+  --aero-color-frame-reflection: #d9f7ff25;
+  --aero-color-scrollbar-track: rgb(193 227 246 / 65%);
+  --aero-color-scrollbar-thumb: #bedff3;
+  --aero-color-hero: #1b2559;
+  --aero-color-hero-muted: #d3d9ff;
+  --aero-color-hero-decoration: #2d9cff;
+  --aero-wallpaper-image: var(--aero-wallpaper, url('/bubble-background.jpg'));
+
+  --aero-gradient-header: linear-gradient(#c4f1ff, #90d4fb 49%, #69b7ee 51%, #9bdbfa);
+  --aero-gradient-rail: linear-gradient(135deg, #edfaff, #c3ebfb);
+  --aero-gradient-scrollbar: linear-gradient(90deg, #f6fcff, #d3eafa 48%, var(--aero-color-scrollbar-thumb) 51%, #e8f8ff);
+  --aero-gradient-scrollbar-hover: linear-gradient(90deg, #fff, #b8e3fa);
+  --aero-gradient-frame: linear-gradient(135deg, rgb(222 249 255 / 28%), rgb(52 154 244 / 22%) 48%, rgb(52 154 244 / 28%));
   --aero-gradient-glass: linear-gradient(135deg, rgb(222 249 255 / 44%), rgb(52 154 244 / 36%) 48%, rgb(52 154 244 / 44%));
   --aero-gradient-window-close: linear-gradient(#f8c5bd, #d55b48 48%, #a82516 51%, #df6650);
   --aero-color-window-symbol: #ffffff;
@@ -54,4 +80,73 @@
   --aero-gradient-button-hover: linear-gradient(#fff, #d5efff 48%, #a9d4ee 49%, #dff5ff);
   --aero-gradient-button-active: linear-gradient(#b5d9ef, #d7effc);
   --aero-gradient-tab-active: linear-gradient(#f6fdff, #d2efff 48%, #b4e4fa 51%, #d5f3ff);
+}
+
+/* Build readable ink and pale surfaces from the chosen color, including extreme swatches. */
+[data-theme="aero-blue"][data-custom-primary] {
+  --aero-color-primary: var(--aero-chosen-primary);
+  --aero-primary-light: color-mix(in srgb, var(--aero-color-primary) 12%, white);
+  --aero-primary-tint: color-mix(in srgb, var(--aero-color-primary) 27%, white);
+  --aero-primary-mid: color-mix(in srgb, var(--aero-color-primary) 58%, #50545a);
+  --aero-primary-dark: color-mix(in srgb, var(--aero-color-primary) 29%, #202329);
+  --aero-primary-deep: color-mix(in srgb, var(--aero-color-primary) 20%, #101318);
+
+  --aero-color-secondary: var(--aero-primary-dark);
+  --aero-color-link: var(--aero-primary-dark);
+  --aero-color-text: var(--aero-primary-deep);
+  --aero-color-text-muted: color-mix(in srgb, var(--aero-color-primary) 24%, #42464c);
+  --aero-color-text-control: var(--aero-primary-deep);
+  --aero-color-canvas: var(--aero-primary-light);
+  --aero-color-surface: color-mix(in srgb, var(--aero-color-primary) 6%, white);
+  --aero-color-surface-solid: var(--aero-color-surface);
+  --aero-color-border: color-mix(in srgb, var(--aero-primary-mid) 58%, white);
+  --aero-color-border-strong: var(--aero-primary-mid);
+  --aero-color-highlight: color-mix(in srgb, var(--aero-primary-light) 70%, transparent);
+  --aero-color-shadow: color-mix(in srgb, var(--aero-primary-deep) 18%, transparent);
+
+  --aero-color-focus: var(--aero-primary-dark);
+  --aero-color-hover-border: var(--aero-primary-dark);
+  --aero-color-active-border: var(--aero-primary-dark);
+  --aero-color-disabled-text: var(--aero-color-text-muted);
+  --aero-color-disabled-surface: color-mix(in srgb, var(--aero-primary-mid) 12%, white);
+  --aero-color-disabled-border: var(--aero-color-border);
+  --aero-color-notice-text: var(--aero-color-text);
+  --aero-color-notice-surface: var(--aero-color-canvas);
+  --aero-color-notice-border: var(--aero-color-border-strong);
+
+  --aero-color-raised: var(--aero-primary-tint);
+  --aero-color-action: var(--aero-primary-dark);
+  --aero-color-action-soft: var(--aero-primary-tint);
+  --aero-color-wallpaper-fallback: var(--aero-primary-mid);
+  --aero-color-frame-outline: var(--aero-primary-dark);
+  --aero-color-frame-shadow: var(--aero-color-shadow);
+  --aero-color-header-border: var(--aero-color-border-strong);
+  --aero-color-composer: var(--aero-color-surface);
+  --aero-color-frame-reflection: color-mix(in srgb, var(--aero-primary-light) 15%, transparent);
+  --aero-color-scrollbar-track: color-mix(in srgb, var(--aero-primary-tint) 65%, transparent);
+  --aero-color-scrollbar-thumb: var(--aero-primary-tint);
+  --aero-color-hero: var(--aero-primary-deep);
+  --aero-color-hero-muted: var(--aero-primary-light);
+  --aero-color-hero-decoration: var(--aero-color-primary);
+
+  --aero-gradient-header: linear-gradient(
+    color-mix(in srgb, var(--aero-color-primary) 27%, white),
+    color-mix(in srgb, var(--aero-color-primary) 40%, white) 49%,
+    color-mix(in srgb, var(--aero-color-primary) 50%, white) 51%,
+    color-mix(in srgb, var(--aero-color-primary) 36%, white)
+  );
+  --aero-gradient-rail: linear-gradient(135deg, var(--aero-color-surface), var(--aero-primary-tint));
+  --aero-gradient-scrollbar: linear-gradient(90deg, white, var(--aero-primary-light) 48%, var(--aero-primary-tint) 51%, var(--aero-color-surface));
+  --aero-gradient-scrollbar-hover: linear-gradient(90deg, white, var(--aero-primary-tint));
+  --aero-gradient-frame: linear-gradient(135deg,
+    color-mix(in srgb, var(--aero-primary-light) 28%, transparent),
+    color-mix(in srgb, var(--aero-color-primary) 22%, transparent) 48%,
+    color-mix(in srgb, var(--aero-color-primary) 28%, transparent));
+  --aero-gradient-glass: var(--aero-gradient-frame);
+  --aero-gradient-panel: linear-gradient(135deg, var(--aero-color-surface), var(--aero-primary-tint));
+  --aero-gradient-card: linear-gradient(135deg, #ffffffd9, color-mix(in srgb, var(--aero-primary-tint) 80%, transparent));
+  --aero-gradient-button: linear-gradient(white, var(--aero-primary-light) 48%, var(--aero-primary-tint) 49%, var(--aero-color-surface));
+  --aero-gradient-button-hover: linear-gradient(white, var(--aero-primary-light) 48%, color-mix(in srgb, var(--aero-color-primary) 38%, white) 49%, var(--aero-primary-light));
+  --aero-gradient-button-active: linear-gradient(var(--aero-primary-tint), var(--aero-primary-light));
+  --aero-gradient-tab-active: linear-gradient(var(--aero-color-surface), var(--aero-primary-light) 48%, var(--aero-primary-tint) 51%, var(--aero-primary-light));
 }

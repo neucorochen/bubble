@@ -1,7 +1,8 @@
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
-import { Suspense, lazy, useEffect } from "react";
+import { Link, Navigate, Route, Routes, matchPath, useLocation } from "react-router-dom";
+import { Suspense, lazy, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
+import AeroTitlebar from "./components/AeroTitlebar";
 import Header, { AUTH_PATHS } from "./components/Header";
 import FeedPage from "./pages/FeedPage";
 import VerifyBanner from "./components/VerifyBanner";
@@ -13,8 +14,12 @@ import BottomNav from "./components/BottomNav";
 import Brand from "./components/BrandMark";
 import Icon from "./components/Icon";
 import { PageSkeleton } from "./components/Skeleton";
+import { useProfile } from "./hooks/useSocial";
+import { useStoredFont } from "./lib/siteFont";
+import { appearanceStyle } from "./lib/appearance";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
 
+const SettingsPage = lazy(() => import("./pages/SettingsPage"));
 const PostPage = lazy(() => import("./pages/PostPage"));
 const LoginPage = lazy(() => import("./pages/LoginPage"));
 const RegisterPage = lazy(() => import("./pages/RegisterPage"));
@@ -46,6 +51,7 @@ const TITLES: Record<string, string> = {
   "/notifications": "Уведомления",
   "/search": "Поиск",
   "/friends": "Друзья",
+  "/settings": "Настройки",
   "/login": "Вход",
   "/register": "Регистрация",
   "/forgot-password": "Восстановление пароля",
@@ -62,7 +68,7 @@ function RouteMeta() {
     const name =
       TITLES[pathname] ??
       (user
-        ? `@${decodeURIComponent(user)}`
+        ? "Профиль"
         : community
           ? `c/${decodeURIComponent(community)}`
           : pathname.startsWith("/messages")
@@ -70,7 +76,7 @@ function RouteMeta() {
             : pathname.startsWith("/posts/")
               ? "Запись"
               : "Bubble");
-    document.title = pathname === "/" ? name : `${name} · Bubble`;
+    if (!user) document.title = pathname === "/" ? name : `${name} · Bubble`;
 
     let link = document.querySelector<HTMLLinkElement>('link[rel="canonical"]');
     if (!link) {
@@ -99,7 +105,7 @@ function Home() {
   return user ? <FeedPage /> : <ExplorePage />;
 }
 
-function AppRoutes() {
+function AppRoutes({ onWallpaperPreview }: { onWallpaperPreview?: (path?: string | null) => void } = {}) {
   return (
     <Suspense fallback={<PageSkeleton />}>
       <Routes>
@@ -126,6 +132,7 @@ function AppRoutes() {
             </Protected>
           }
         />
+        <Route path="/settings" element={<Protected><SettingsPage onWallpaperPreview={onWallpaperPreview} /></Protected>} />
         <Route path="/friends" element={<Protected><FriendsPage /></Protected>} />
         <Route path="/friends/:username" element={<Protected><FriendsPage /></Protected>} />
         <Route
@@ -240,6 +247,16 @@ export default function App() {
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
   const signedIn = Boolean(user);
+  const [wallpaperPreview, setWallpaperPreview] = useState<string | null>();
+  const profileName = matchPath("/u/:username", pathname)?.params.username;
+  const visitingProfile = Boolean(user && profileName && profileName.toLowerCase() !== user.username.toLowerCase());
+  const { data: profile, isError: profileError } = useProfile(profileName ?? "", visitingProfile);
+  const profileTheme = visitingProfile && !profileError ? profile?.profileAppearance : undefined;
+  const appearance = profileTheme ?? user?.appearance;
+  const fontFamily = useStoredFont(appearance?.font);
+  const preview = pathname === "/settings" ? wallpaperPreview : undefined;
+  const localWallpaper = preview?.startsWith("blob:") ? preview : undefined;
+  const backgroundUrl = preview === undefined ? appearance?.backgroundUrl : preview;
   // Once signed in, quietly download the most-used pages so tapping them is instant.
   useEffect(() => {
     if (signedIn) prefetchLikelyRoutes();
@@ -273,16 +290,17 @@ export default function App() {
   }
 
   return (
-    <div className="aero-app aero-home" data-theme="aero-blue">
+    <div
+      className="aero-app aero-home"
+      data-theme="aero-blue"
+      data-custom-font={Boolean(fontFamily) || undefined}
+      data-custom-primary={Boolean(appearance?.primaryColor) || undefined}
+      data-custom-wallpaper={Boolean(backgroundUrl) || undefined}
+      style={appearanceStyle({ ...appearance, backgroundUrl }, fontFamily, localWallpaper)}
+    >
       <div className="aero-fixed-frame" aria-hidden="true" />
       <div className="aero-window">
-      {(
-        <div className="aero-titlebar" aria-hidden="true">
-          <span className="aero-window-controls">
-            <span><i className="aero-control-minimize" /></span><span><i className="aero-control-maximize" /></span><span className="aero-window-close"><i className="aero-control-close" /></span>
-          </span>
-        </div>
-      )}
+      <AeroTitlebar />
       {skip}
       <RouteMeta />
       <Header />
@@ -296,7 +314,7 @@ export default function App() {
       >
         {user && <LeftNav />}
         <main id="main" tabIndex={-1} className="container">
-          <AppRoutes />
+          <AppRoutes onWallpaperPreview={setWallpaperPreview} />
         </main>
         {!wide && <RightRail />}
       </div>

@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import { useState } from "react";
 import type { FormEvent } from "react";
 import { contactSchema } from "@commune/shared";
@@ -7,7 +8,7 @@ import { useAuth } from "../store/auth";
 export default function ContactPage() {
   const { user } = useAuth();
   const [fields, setFields] = useState({
-    name: user?.username ?? "",
+    name: user ? displayNameOf(user) : "",
     email: "",
     message: "",
     website: "",

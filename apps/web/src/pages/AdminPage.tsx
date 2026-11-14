@@ -1,3 +1,4 @@
+import { displayNameOf } from "@commune/shared";
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 import type { ReportDTO, ReportStatus } from "@commune/shared";
@@ -29,7 +30,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
   const removeAndSuspend = () => {
     if (
       report.post &&
-      window.confirm(`Удалить запись и заблокировать @${report.post.author.username}?`)
+      window.confirm(`Удалить запись и заблокировать ${displayNameOf(report.post.author)}?`)
     ) {
       resolve.mutate({ id: report.id, action: "remove_post_and_ban" });
     }
@@ -41,7 +42,7 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
         <strong>{REASON_LABELS[report.reason]}</strong>
         <span className="muted">
 
-          пожаловался @{report.reporter.username} · {timeAgo(report.createdAt)}
+          пожаловался {displayNameOf(report.reporter)} · {timeAgo(report.createdAt)}
         </span>
       </div>
       {report.details && <p className="report-details">“{report.details}”</p>}
@@ -49,12 +50,12 @@ function ReportItem({ report, actionable }: { report: ReportDTO; actionable: boo
       {report.post ? (
         <div className="report-post post-head">
           <Avatar
-            username={report.post.author.username}
-            url={report.post.author.avatarUrl}
+            username={report.post.author.username} displayName={report.post.author.displayName}
+            url={report.post.author.avatarUrl} frame={report.post.author.avatarFrame}
             size={32}
           />
           <div className="post-main">
-            <strong>@{report.post.author.username}</strong>
+            <strong>{displayNameOf(report.post.author)}</strong>
             {report.post.content && <p className="post-body">{report.post.content}</p>}
             {report.post.imageUrl && (
               <img

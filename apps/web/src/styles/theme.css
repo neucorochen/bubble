@@ -488,7 +488,7 @@ h3,
   overflow: hidden;
   padding: 28px 24px 30px;
   border-radius: var(--radius);
-  background: #1b2559;
+  background: var(--aero-color-hero, #1b2559);
   color: #fff;
 }
 
@@ -506,7 +506,7 @@ h3,
   position: relative;
   max-width: 34ch;
   margin: 0 0 18px;
-  color: #d3d9ff;
+  color: var(--aero-color-hero-muted, #d3d9ff);
 }
 
 .explore-hero .row {
@@ -540,7 +540,7 @@ h3,
   height: 104px;
   right: -26px;
   top: -26px;
-  background: #2d9cff;
+  background: var(--aero-color-hero-decoration, #2d9cff);
   transform: rotate(14deg);
 }
 
@@ -567,7 +567,7 @@ h3,
     height: 96px;
     right: 92px;
     bottom: -34px;
-    background: #ffb224;
+    background: var(--gold);
     transform: rotate(-10deg);
   }
 
@@ -648,7 +648,7 @@ h3,
     flex-direction: column;
     overflow: hidden;
     padding: 40px 56px;
-    background: #1b2559;
+    background: var(--aero-color-hero, #1b2559);
     color: #fff;
   }
 
@@ -682,7 +682,7 @@ h3,
     margin: 0;
     padding: 0;
     list-style: none;
-    color: #d3d9ff;
+    color: var(--aero-color-hero-muted, #d3d9ff);
     font-size: 1.05rem;
   }
 
@@ -697,7 +697,7 @@ h3,
     height: 360px;
     right: -100px;
     bottom: -80px;
-    background: #2d9cff;
+    background: var(--aero-color-hero-decoration, #2d9cff);
     transform: rotate(12deg);
   }
 
@@ -706,7 +706,7 @@ h3,
     height: 230px;
     right: 170px;
     bottom: -120px;
-    background: #ffb224;
+    background: var(--gold);
     transform: rotate(-8deg);
   }
 

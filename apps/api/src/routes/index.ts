@@ -26,8 +26,10 @@ import {
   resetPasswordSchema,
   resolveReportSchema,
   searchQuerySchema,
+  updateAppearanceSchema,
   updateProfileSchema,
   verifyEmailSchema,
+  wallpaperQuerySchema,
 } from "@commune/shared";
 import * as account from "../controllers/accountController.js";
 import * as push from "../controllers/pushController.js";
@@ -48,6 +50,7 @@ import * as reports from "../controllers/reportController.js";
 import * as publicApi from "../controllers/publicController.js";
 import * as search from "../controllers/searchController.js";
 import * as uploads from "../controllers/uploadController.js";
+import * as wallpapers from "../controllers/wallpaperController.js";
 import * as users from "../controllers/userController.js";
 import * as relationships from "../controllers/relationshipController.js";
 import { requireActive, requireAdmin, requireAuth, requirePlus } from "../middleware/auth.js";
@@ -69,7 +72,7 @@ import {
   uploadLimiter,
   viewLimiter,
 } from "../middleware/rateLimit.js";
-import { parseImageUpload } from "../middleware/upload.js";
+import { parseFontUpload, parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
 
@@ -155,6 +158,16 @@ router.post(
   asyncHandler(uploads.upload),
 );
 
+router.post("/uploads/font", requireAuth, uploadLimiter, requireActive, parseFontUpload, asyncHandler(uploads.uploadFont));
+
+router.get("/wallpapers", requireAuth, validate(wallpaperQuerySchema, "query"), asyncHandler(wallpapers.list));
+router.post("/wallpapers", requireAuth, uploadLimiter, requireActive, parseImageUpload, asyncHandler(wallpapers.publish));
+for (const kind of ["like", "favorite"] as const) {
+  router.put(`/wallpapers/:id/${kind}`, requireAuth, requireActive, asyncHandler(wallpapers.reactToWallpaper(kind, true)));
+  router.delete(`/wallpapers/:id/${kind}`, requireAuth, requireActive, asyncHandler(wallpapers.reactToWallpaper(kind, false)));
+}
+router.post("/wallpapers/:id/report", requireAuth, reportLimiter, validate(createReportSchema), requireActive, asyncHandler(wallpapers.report));
+
 // Users. "/users/me" must be declared before "/users/:username".
 router.get("/users/me", requireAuth, asyncHandler(users.me));
 router.patch(
@@ -163,6 +176,13 @@ router.patch(
   validate(updateProfileSchema),
   requireActive,
   asyncHandler(users.updateMe),
+);
+router.patch(
+  "/users/me/appearance",
+  requireAuth,
+  validate(updateAppearanceSchema),
+  requireActive,
+  asyncHandler(users.updateAppearance),
 );
 router.get("/users/me/earnings", requireAuth, asyncHandler(payments.earnings));
 router.patch(

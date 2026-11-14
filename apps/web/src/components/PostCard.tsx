@@ -1,3 +1,5 @@
+import OnlineStatus from "./OnlineStatus";
+import { displayNameOf } from "@commune/shared";
 import { pluralRu } from "../lib/plural";
 import { useState } from "react";
 import type { CSSProperties } from "react";
@@ -36,17 +38,18 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
 
   return (
     <article className={`card post post-head${inlineComments ? " feed-post" : ""}`}>
-      <ProfileAvatar username={post.author.username} url={post.author.avatarUrl} />
+      <ProfileAvatar username={post.author.username} displayName={post.author.displayName} url={post.author.avatarUrl} frame={post.author.avatarFrame} />
       {!mine && <button type="button" className="btn btn-ghost post-report" title="Пожаловаться" aria-label="Пожаловаться" aria-expanded={reporting} onClick={() => setReporting((r) => !r)}><Icon name="flag" size={18} /></button>}
       {inlineComments && mine && <button type="button" className="btn btn-ghost danger feed-delete" title="Удалить запись" aria-label="Удалить запись" disabled={del.isPending} onClick={() => window.confirm(mine ? "Удалить эту запись?" : "Удалить эту запись как администратор?") && del.mutate(post.id)}><Icon name="trash" size={18} /></button>}
       <div className="post-main">
         <div className="post-meta">
           <Link to={`/u/${post.author.username}`} className="user-link">
-            @{post.author.username}
+            {displayNameOf(post.author)}
           </Link>
+          <OnlineStatus online={mine || post.author.online} />
           <PlusBadge plus={post.author.plus} />
           {inlineComments ? (
-            <span className="muted">· <Link className="feed-post-time" to={`/posts/${post.id}`} aria-label={`Открыть публикацию @${post.author.username} от ${new Date(post.createdAt).toLocaleString("ru-RU")}`}>
+            <span className="muted">· <Link className="feed-post-time" to={`/posts/${post.id}`} aria-label={`Открыть публикацию ${displayNameOf(post.author)} от ${new Date(post.createdAt).toLocaleString("ru-RU")}`}>
               <time dateTime={post.createdAt}>{timeAgo(post.createdAt)}</time>
             </Link></span>
           ) : <span className="muted">· {timeAgo(post.createdAt)}</span>}
@@ -69,7 +72,7 @@ export default function PostCard({ post, inlineComments = false }: { post: PostD
             <img
               className="post-image"
               src={assetUrl(post.imageUrl)}
-              alt={`Изображение пользователя @${post.author.username}`}
+              alt={`Изображение пользователя ${displayNameOf(post.author)}`}
               loading="lazy"
               decoding="async"
             />

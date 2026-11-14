@@ -24,17 +24,18 @@ function paginate<T>(rows: T[], page: number) {
   };
 }
 
-/** People whose username starts with the text (case-insensitive). Suspended accounts are hidden. */
+/** People whose display name or username starts with the text (case-insensitive). Suspended accounts are hidden. */
 export async function users(_req: Request, res: Response) {
   const { q, page } = readQuery(res);
+  const prefix = { $regex: `^${escapeRegex(q)}`, $options: "i" };
   const rows = await User.find({
-    username: { $regex: `^${escapeRegex(q)}`, $options: "i" },
+    $or: [{ displayName: prefix }, { username: prefix }],
     banned: { $ne: true },
   })
     .sort({ username: 1 })
     .skip((page - 1) * SEARCH_PAGE_SIZE)
     .limit(SEARCH_PAGE_SIZE + 1)
-    .select("username bio avatarUrl plusUntil")
+    .select("username displayName bio avatarUrl avatarFrame plusUntil")
     .lean();
 
   const { items, nextCursor } = paginate(rows, page);
@@ -42,8 +43,10 @@ export async function users(_req: Request, res: Response) {
     items: items.map((u) => ({
       id: u._id.toString(),
       username: u.username,
+      displayName: u.displayName ?? undefined,
       bio: u.bio ?? "",
       avatarUrl: u.avatarUrl ?? null,
+      avatarFrame: u.avatarFrame ?? undefined,
       plus: isPlusActive(u.plusUntil),
     })),
     nextCursor,
@@ -58,7 +61,7 @@ export async function posts(req: Request, res: Response) {
     .sort({ score: { $meta: "textScore" } })
     .skip((page - 1) * SEARCH_PAGE_SIZE)
     .limit(SEARCH_PAGE_SIZE + 1)
-    .populate("author", "username avatarUrl plusUntil")
+    .populate("author", "username displayName avatarUrl avatarFrame plusUntil")
     .populate("community", "slug name")
     .lean()) as unknown as PopulatedPost[];
 

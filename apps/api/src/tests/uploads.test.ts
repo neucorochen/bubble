@@ -1,9 +1,12 @@
 
+import { readFileSync } from "node:fs";
 import { Readable } from "node:stream";
 import request from "supertest";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createPostSchema,
+  fontUploadUrlSchema,
+  updateAppearanceSchema,
   updateProfileSchema,
   uploadUrlSchema,
 } from "@commune/shared";
@@ -219,5 +222,25 @@ describe("shared schemas for images", () => {
       updateProfileSchema.safeParse({ avatarUrl: null }).success,
     ).toBe(true);
     expect(updateProfileSchema.safeParse({}).success).toBe(true);
+  });
+});
+
+describe("custom site fonts", () => {
+  it("requires authentication and rejects non-font files", async () => {
+    expect((await request(app).post("/api/uploads/font")).status).toBe(401);
+    const response = await request(app).post("/api/uploads/font").set(auth).attach("file", png, "fake.ttf");
+    expect(response.status).toBe(400);
+    expect(storage.uploadObject).not.toHaveBeenCalled();
+  });
+
+  it("stores a WOFF2 with a font MIME type and account-scoped path", async () => {
+    const font = readFileSync(new URL("../../../../node_modules/@fontsource-variable/bricolage-grotesque/files/bricolage-grotesque-latin-wght-normal.woff2", import.meta.url));
+    const response = await request(app).post("/api/uploads/font").set(auth).attach("file", font, "font.woff2");
+    expect(response.status).toBe(201);
+    expect(response.body.url).toMatch(/^\/uploads\/507f1f77bcf86cd799439011-[a-f0-9]{32}\.woff2$/);
+    expect(storage.uploadObject).toHaveBeenCalledWith(response.body.url.slice(1), font, "font/woff2");
+    expect(fontUploadUrlSchema.safeParse(response.body.url).success).toBe(true);
+    expect(updateAppearanceSchema.safeParse({ appearance: { font: response.body.url } }).success).toBe(true);
+    expect(updateAppearanceSchema.safeParse({ appearance: { font: "https://example.org/font.woff2" } }).success).toBe(false);
   });
 });

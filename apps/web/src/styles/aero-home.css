@@ -1,25 +1,27 @@
 /* The authenticated home is the first Aero reference; other routes retain their theme. */
 .aero-app.aero-home {
+  --font-display: var(--aero-site-font, "Bricolage Grotesque Variable", ui-rounded, "Segoe UI", system-ui, sans-serif);
   --bg: var(--aero-color-canvas);
   --surface: var(--aero-color-surface-solid);
-  --surface-2: #d7effc;
+  --surface-2: var(--aero-color-raised);
   --text: var(--aero-color-text);
   --muted: var(--aero-color-text-muted);
   --border: var(--aero-color-border);
-  --accent: #075b92;
-  --accent-hover: #123b60;
+  --accent: var(--aero-color-action);
+  --accent-hover: var(--aero-color-secondary);
   --accent-contrast: #fff;
-  --accent-soft: #c8edff;
+  --accent-soft: var(--aero-color-action-soft);
   --danger: var(--aero-color-error-text);
   --like: #b12440;
   color: var(--text);
   font-family: var(--aero-font-body);
-  background: #1473ad url('/bubble-background.jpg') center / cover fixed;
+  background: var(--aero-color-wallpaper-fallback) var(--aero-wallpaper-image) center / cover fixed;
   border: 0 !important;
   /* The page backdrop is not a window: its inherited inset highlight drew a viewport-top line. */
   box-shadow: 0 4px 20px var(--aero-color-shadow);
   padding: 16px 12px 0;
 }
+.aero-home[data-custom-font] :is(button, input, textarea, select) { font-family: var(--aero-font-body); }
 .aero-home .aero-window {
   max-width: 1120px;
   min-height: calc(100dvh - 16px);
@@ -29,21 +31,21 @@
   position: relative;
   border-radius: 9px 9px 0 0;
   background: var(--aero-gradient-panel);
-  box-shadow: 0 0 0 1px #00558c, inset 0 0 0 1px white, 0 8px 30px #00365b99;
+  box-shadow: 0 0 0 1px var(--aero-color-frame-outline), inset 0 0 0 1px white, 0 8px 30px var(--aero-color-frame-shadow);
 }
 .aero-home .header {
-  background: linear-gradient(#19beef, #0076c8 49%, #0056a6 51%, #008ed0);
-  color: white;
-  border-bottom: 1px solid #005f9f;
+  background: var(--aero-gradient-header);
+  color: var(--aero-color-header-ink);
+  border-bottom: 1px solid var(--aero-color-header-border);
 }
-.aero-home .header :is(.brand, .brand-word, .nav-link, .icon-btn, .btn-ghost) { color: white; }
+.aero-home .header :is(.brand, .brand-word, .nav-link, .icon-btn, .btn-ghost) { color: var(--aero-color-header-ink); }
 .aero-home .header-search { max-width: 300px; }
 .aero-home .header-search .search-box { position: relative; }
 .aero-home .header-search .search-field-icon { position: absolute; left: 9px; top: 50%; transform: translateY(-50%); color: var(--aero-color-link); pointer-events: none; }
 .aero-home .header-search input { width: 100%; height: 30px; min-height: 0; padding: 4px 10px 4px 31px; border: 1px solid var(--aero-color-border-strong); border-radius: var(--aero-radius-control); background: var(--aero-gradient-button); box-shadow: inset 0 1px var(--aero-color-highlight-solid); font-size: 13px; }
 .aero-home .shell { background: var(--aero-color-canvas); }
 .aero-home .shell { max-width: none; gap: 0; padding: 0; }
-.aero-home .left-nav, .aero-home .right-rail { background: linear-gradient(135deg, #edfaff, #c3ebfb); }
+.aero-home .left-nav, .aero-home .right-rail { background: var(--aero-gradient-rail); }
 .aero-home .left-nav { padding: 12px 8px; }
 .aero-home .left-nav a[href="/news"] { display: none; }
 .aero-home .side-brand { display: none; }
@@ -58,7 +60,7 @@
 }
 .aero-home .container > .post { margin: 0; padding: 12px; }
 .aero-home .composer { padding: 12px; }
-.aero-home .composer textarea { background: #eaf8ff; border: 1px solid var(--border); padding: 10px; }
+.aero-home .composer textarea { background: var(--aero-color-composer); border: 1px solid var(--border); padding: 10px; }
 .aero-home .feed-tabs { margin: 0; padding: 0; display: flex; gap: 2px; background: transparent; }
 .aero-home .feed-tabs .tab { flex: 1; min-width: 0; border: 1px solid var(--border); border-radius: 6px 6px 0 0; background: var(--aero-gradient-button); color: var(--text); }
 .aero-home .feed-tabs .tab.active { background: var(--aero-gradient-tab-active); border-color: var(--aero-color-border-strong); }
@@ -90,33 +92,41 @@
 .aero-home .feed-post-time:hover { color: var(--aero-color-link); background: var(--aero-gradient-button-hover); }
 .aero-home .feed-post-time:focus-visible { outline: var(--aero-focus-width) solid var(--aero-color-focus); outline-offset: var(--aero-focus-offset); }
 
-/* Window chrome is decorative; account actions remain in the real Header. */
+/* Shared Aero window chrome. The shell owns positioning; the dialog uses the same controls. */
 .aero-home .side-me { display: none; }
-.aero-home .aero-titlebar {
+.aero-titlebar {
   display: flex;
   justify-content: flex-end;
+  flex: none;
   height: 31px;
-  background: transparent;
   border-bottom: var(--aero-border-width) solid var(--aero-color-border-strong);
   box-shadow: var(--aero-shadow-inset-geometry) var(--aero-color-highlight);
 }
-.aero-home .aero-window-controls { display: flex; align-self: flex-start; margin-right: 4px; }
-.aero-home .aero-window-controls > span {
+.aero-window-controls { display: flex; align-self: flex-start; margin-right: 4px; }
+.aero-window-control {
   display: grid;
   place-items: center;
-  width: 27px;
-  height: 19px;
+  position: relative;
+  width: 26px;
+  height: 20px;
+  padding: 0;
   border: var(--aero-border-width) solid var(--aero-color-border-strong);
+  border-left-width: 0;
   background: var(--aero-gradient-glass);
   color: var(--aero-color-window-symbol);
   box-shadow: var(--aero-shadow-inset-geometry) var(--aero-color-highlight);
-  font: 700 16px/1 system-ui;
+  transition: filter var(--aero-motion-duration), box-shadow var(--aero-motion-duration), border-color var(--aero-motion-duration);
 }
-.aero-home .aero-window-controls > .aero-window-close {
+.aero-window-control:first-child { border-left-width: 1px; border-radius: 0 0 0 4px; }
+.aero-window-control.aero-window-close {
   width: 43px;
-  border-radius: 0 0 4px 0;
+  border-bottom-right-radius: 4px;
   background: var(--aero-gradient-window-close);
 }
+.aero-window-control:hover { filter: brightness(1.08); border-color: var(--aero-color-hover-border); box-shadow: 0 0 7px var(--aero-color-primary), inset 0 1px white; }
+.aero-window-control:active { filter: brightness(.94); box-shadow: inset 0 2px 4px var(--aero-color-shadow); }
+.aero-window-control.aero-window-close:hover { box-shadow: 0 0 9px var(--aero-color-error-border), inset 0 1px white; }
+
 @supports (backdrop-filter: blur(1px)) {
   .aero-home .aero-window { background: var(--aero-gradient-glass); backdrop-filter: blur(var(--aero-glass-blur)) saturate(var(--aero-glass-saturation)); }
   .aero-home .aero-titlebar { backdrop-filter: none; }
@@ -177,7 +187,6 @@
 .aero-home .left-nav, .aero-home .right-rail, .aero-home .container { background: transparent; }
 .aero-home .shell .container { max-width: none; }
 .aero-home .aero-window { background: var(--aero-color-surface-solid); }
-.aero-home .aero-titlebar { background: transparent; }
 @supports ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .aero-home .aero-window {
     background: var(--aero-gradient-glass);
@@ -186,20 +195,6 @@
     box-shadow: 0 0 0 1px var(--aero-color-border-strong), inset 0 0 0 1px var(--aero-color-highlight), 0 5px 18px var(--aero-color-shadow);
   }
 }
-.aero-home .aero-window-controls > span {
-  height: 20px;
-  width: 26px;
-  border-left-width: 0;
-  transition: filter var(--aero-motion-duration), box-shadow var(--aero-motion-duration), border-color var(--aero-motion-duration);
-  text-shadow: 0 1px 2px var(--aero-color-secondary);
-}
-.aero-home .aero-window-controls > span:first-child { border-left-width: 1px; border-radius: 0 0 0 4px; }
-.aero-home .aero-window-controls > .aero-window-close { width: 43px; }
-.aero-home .aero-window-controls > span { background: var(--aero-gradient-glass); color: var(--aero-color-window-symbol); position: relative; }
-.aero-home .aero-window-controls > .aero-window-close { color: var(--aero-color-window-symbol); background: var(--aero-gradient-window-close); }
-.aero-home .aero-window-controls > span:hover { filter: brightness(1.08); border-color: var(--aero-color-hover-border); background: var(--aero-gradient-glass); box-shadow: 0 0 7px var(--aero-color-primary), inset 0 1px white; }
-.aero-home .aero-window-controls > span:active { filter: brightness(.94); box-shadow: inset 0 2px 4px var(--aero-color-shadow); }
-.aero-home .aero-window-controls > .aero-window-close:hover { background: var(--aero-gradient-window-close); box-shadow: 0 0 9px var(--aero-color-error-border), inset 0 1px white; }
 .aero-home .feed-tabs { gap: 0; align-items: end; border-bottom: 0; padding-top: 3px; padding-bottom: 0; position: sticky; }
 .aero-home .feed-tabs .tab {
   position: relative; min-height: 30px; padding: 4px 10px; font-size: 13px;
@@ -248,7 +243,7 @@
 .aero-home .aero-window::before {
   content: ""; position: absolute; inset: 0; pointer-events: none; border-radius: inherit;
   background: linear-gradient(90deg, #ffffff52, transparent 70%) top / 100% 2px no-repeat,
-    linear-gradient(180deg, #ffffff35, transparent 30%, #d9f7ff25 70%, transparent) left / 7px 100% no-repeat,
+    linear-gradient(180deg, #ffffff35, transparent 30%, var(--aero-color-frame-reflection) 70%, transparent) left / 7px 100% no-repeat,
     linear-gradient(180deg, transparent, #ffffff30 60%, transparent) right / 7px 100% no-repeat;
 }
 .aero-home .aero-window::after {
@@ -256,17 +251,17 @@
   border: 1px solid var(--aero-color-border-strong); box-shadow: 0 0 0 1px var(--aero-color-highlight);
   pointer-events: none; z-index: 20;
 }
-.aero-home .aero-window-controls i { display: block; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 8px; box-sizing: border-box; }
-.aero-home .aero-window-controls > span:not(:first-child) i { margin-left: .5px; }
-.aero-home .aero-control-minimize::before { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 2px; background: currentColor; }
-.aero-home .aero-control-maximize { border: 1px solid currentColor; border-top-width: 2px; }
-.aero-home .aero-control-close::before, .aero-home .aero-control-close::after { content: ""; position: absolute; left: 0; top: 3px; width: 10px; height: 2px; background: currentColor; transform: rotate(45deg); }
-.aero-home .aero-control-close::after { transform: rotate(-45deg); }
+.aero-window-controls i { display: block; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); width: 10px; height: 8px; box-sizing: border-box; }
+.aero-window-control:not(:first-child) i { margin-left: .5px; }
+.aero-control-minimize::before { content: ""; position: absolute; left: 0; right: 0; top: 3px; height: 2px; background: currentColor; }
+.aero-control-maximize { border: 1px solid currentColor; border-top-width: 2px; }
+.aero-control-close::before, .aero-control-close::after { content: ""; position: absolute; left: 0; top: 3px; width: 10px; height: 2px; background: currentColor; transform: rotate(45deg); }
+.aero-control-close::after { transform: rotate(-45deg); }
 
 /* Window chrome stays outside the native scrollport. */
 .aero-home {
   --aero-frame-top: 16px; --aero-frame-edge: 1px;
-  --aero-gradient-glass: linear-gradient(135deg, rgb(222 249 255 / 28%), rgb(52 154 244 / 22%) 48%, rgb(52 154 244 / 28%));
+  --aero-gradient-glass: var(--aero-gradient-frame);
 }
 .aero-home .aero-window {
   background: transparent; box-shadow: none; border-color: transparent;
@@ -307,7 +302,7 @@
   min-height: 0;
 }
 .aero-home .aero-window > :not(.shell) { flex: none; }
-.aero-home .aero-titlebar { position: sticky; top: calc(var(--aero-frame-top) + var(--aero-frame-edge)); z-index: 41; }
+.aero-home .aero-window > .aero-titlebar { position: sticky; top: calc(var(--aero-frame-top) + var(--aero-frame-edge)); z-index: 41; }
 .aero-home .header { position: sticky; top: calc(var(--aero-frame-top) + var(--aero-frame-edge) + 31px); z-index: 30; backdrop-filter: none; -webkit-backdrop-filter: none; }
 .aero-home .aero-window > .banner { position: sticky; top: calc(var(--aero-frame-top) + var(--aero-frame-edge) + 31px + var(--header-h)); z-index: 25; }
 .aero-home .aero-window > .shell {
@@ -338,16 +333,16 @@
 
 /* WebKit/Blink native scrollbar; no custom scrolling widget. */
 .aero-home .shell::-webkit-scrollbar { width: 16px; }
-.aero-home .shell::-webkit-scrollbar-track { background: rgb(193 227 246 / 65%); border-left: 1px solid #8bbbd7; }
-.aero-home .shell::-webkit-scrollbar-thumb { min-height: 40px; border: 1px solid #8bbbd7; border-radius: 4px; background: linear-gradient(90deg, #f6fcff, #d3eafa 48%, #bedff3 51%, #e8f8ff); box-shadow: inset 0 1px #fff; }
-.aero-home .shell::-webkit-scrollbar-thumb:hover { border-color: #297cb8; background: linear-gradient(90deg, #fff, #b8e3fa); }
+.aero-home .shell::-webkit-scrollbar-track { background: var(--aero-color-scrollbar-track); border-left: 1px solid var(--aero-color-border); }
+.aero-home .shell::-webkit-scrollbar-thumb { min-height: 40px; border: 1px solid var(--aero-color-border); border-radius: 4px; background: var(--aero-gradient-scrollbar); box-shadow: inset 0 1px #fff; }
+.aero-home .shell::-webkit-scrollbar-thumb:hover { border-color: var(--aero-color-border-strong); background: var(--aero-gradient-scrollbar-hover); }
 
 /* Keep the logo, search and account in separate, shrinkable tracks. */
 @media (min-width: 1101px) {
   .aero-home .header { grid-template-columns: minmax(130px, 185px) minmax(0, 1fr) minmax(0, max-content); }
   .aero-home .header > * { min-width: 0; }
   .aero-home .header-right { max-width: min(35vw, 280px); gap: 4px; }
-  .aero-home .nav-profile { min-width: 0; overflow: hidden; }
+  .aero-home .nav-profile { min-width: 0; }
   .aero-home .nav-profile-name { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .aero-home .header-right > button { flex: 0 0 auto; }
 }
@@ -377,5 +372,12 @@
   .aero-home .shell { background: var(--aero-gradient-panel); background-color: var(--aero-color-canvas); }
 }
 @supports not selector(::-webkit-scrollbar) {
-  .aero-home .shell { scrollbar-width: auto; scrollbar-color: #bedff3 #e4f3fc; }
+  .aero-home .shell { scrollbar-width: auto; scrollbar-color: var(--aero-color-scrollbar-thumb) var(--aero-color-canvas); }
+}
+
+/* On narrow screens the window covers the viewport, so show the chosen wallpaper under its content. */
+@media (max-width: 1100px) {
+  .aero-home[data-custom-wallpaper] .shell {
+    background: color-mix(in srgb, var(--surface) 79%, transparent);
+  }
 }

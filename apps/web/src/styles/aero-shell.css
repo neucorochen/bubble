@@ -67,8 +67,8 @@
 .search-field-icon { display: none; }
 .aero-home .header-search .search-field-icon { display: flex; }
 
-/* Russian navigation labels must not enlarge the five mobile grid tracks. */
-.aero-app .bottom-nav { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+/* Each mobile tab occupies one equal-width track. */
+.aero-app .bottom-nav { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); grid-template-columns: none; }
 .aero-app .bottom-nav .tab-link { min-width: 0; overflow-wrap: anywhere; }
 .aero-home .profile .earnings { display: none; }
 .aero-app .bottom-nav > span { min-width: 0; }
@@ -115,10 +115,10 @@
 /* Auth keeps its split layout while using the same light palette. */
 .aero-auth {
   --bg: var(--aero-color-canvas); --surface: var(--aero-color-surface-solid);
-  --surface-2: #d7effc; --text: var(--aero-color-text); --muted: var(--aero-color-text-muted);
+  --surface-2: var(--aero-color-raised); --text: var(--aero-color-text); --muted: var(--aero-color-text-muted);
   --border: var(--aero-color-border); --accent: var(--aero-color-link);
   --accent-hover: var(--aero-color-secondary); --accent-contrast: #fff;
-  --accent-soft: #c8edff; --danger: var(--aero-color-error-text);
+  --accent-soft: var(--aero-color-action-soft); --danger: var(--aero-color-error-text);
   color: var(--text); font-family: var(--aero-font-body);
   background: var(--aero-gradient-panel); border-color: var(--aero-color-border-strong);
 }
@@ -140,14 +140,14 @@
 .aero-home .chat-thread { position: sticky; top: 12px; height: max(220px, calc(100cqb - 24px)); min-height: 0; }
 .aero-home .chat-messages { min-height: 0; overflow-y: auto; }
 .aero-home .chat-messages::-webkit-scrollbar { width: 16px; }
-.aero-home .chat-messages::-webkit-scrollbar-track { background: rgb(193 227 246 / 65%); border-left: 1px solid #8bbbd7; }
-.aero-home .chat-messages::-webkit-scrollbar-thumb { border: 1px solid #8bbbd7; border-radius: 4px; background: linear-gradient(90deg, #f6fcff, #d3eafa 48%, #bedff3 51%, #e8f8ff); box-shadow: inset 0 1px #fff; }
-.aero-home .chat-messages::-webkit-scrollbar-thumb:hover { border-color: #297cb8; background: linear-gradient(90deg, #fff, #b8e3fa); }
+.aero-home .chat-messages::-webkit-scrollbar-track { background: var(--aero-color-scrollbar-track); border-left: 1px solid var(--aero-color-border); }
+.aero-home .chat-messages::-webkit-scrollbar-thumb { border: 1px solid var(--aero-color-border); border-radius: 4px; background: var(--aero-gradient-scrollbar); box-shadow: inset 0 1px #fff; }
+.aero-home .chat-messages::-webkit-scrollbar-thumb:hover { border-color: var(--aero-color-border-strong); background: var(--aero-gradient-scrollbar-hover); }
 @media (max-width: 767px) {
   .aero-home .chat.chat-open { height: auto; }
   .aero-home .chat:not(.chat-open) .chat-list { min-height: calc(100cqb - 24px); }
 }
 
 .aero-app .side-link .side-label, .aero-app .drawer-links .nav-link { white-space: nowrap; }
-.aero-app .bottom-nav .tab-label { white-space: nowrap; font-size: 10px; }
+.aero-app .bottom-nav .tab-label { white-space: normal; text-align: center; font-size: 10px; line-height: 1.15; }
 .aero-app .pill { white-space: nowrap; }

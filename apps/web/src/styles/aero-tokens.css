@@ -6,7 +6,7 @@
  * Nunito is used only if already available; installing it is a separate decision.
  */
 :where([data-theme^="aero-"]) {
-  --aero-font-body: "Nunito", "Segoe UI", system-ui, sans-serif;
+  --aero-font-body: var(--aero-site-font, "Nunito", "Segoe UI", system-ui, sans-serif);
   --aero-font-heading: var(--aero-font-body);
   --aero-font-size: 1rem;
   --aero-line-height: 1.5;

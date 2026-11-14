@@ -1,6 +1,6 @@
 import type { Request, Response } from "express";
 import { Types, type PipelineStage } from "mongoose";
-import type { FriendsAccessDTO, FriendsVisibility, Page, UserSummaryDTO } from "@commune/shared";
+import type { AvatarFrame, FriendsAccessDTO, FriendsVisibility, Page, UserSummaryDTO } from "@commune/shared";
 import { Follow } from "../models/Follow.js";
 import { User } from "../models/User.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
@@ -21,8 +21,10 @@ type Row = {
   person: {
     _id: Types.ObjectId;
     username: string;
+    displayName?: string | null;
     bio?: string;
     avatarUrl?: string | null;
+    avatarFrame?: AvatarFrame | null;
     plusUntil?: Date | null;
   };
 };
@@ -108,7 +110,10 @@ function relationshipPipeline(
     {
       $match: {
         "person.banned": { $ne: true },
-        ...(q ? { "person.username": { $regex: `^${escapeRegex(q)}`, $options: "i" } } : {}),
+        ...(q ? { $or: [
+          { "person.username": { $regex: `^${escapeRegex(q)}`, $options: "i" } },
+          { "person.displayName": { $regex: `^${escapeRegex(q)}`, $options: "i" } },
+        ] } : {}),
       },
     },
   );
@@ -127,8 +132,10 @@ async function page(owner: Types.ObjectId, query: Query): Promise<Page<UserSumma
         friendshipAt: 1,
         "person._id": 1,
         "person.username": 1,
+        "person.displayName": 1,
         "person.bio": 1,
         "person.avatarUrl": 1,
+        "person.avatarFrame": 1,
         "person.plusUntil": 1,
       },
     },
@@ -141,8 +148,10 @@ async function page(owner: Types.ObjectId, query: Query): Promise<Page<UserSumma
     items: selected.map(({ person }) => ({
       id: person._id.toString(),
       username: person.username,
+      displayName: person.displayName ?? undefined,
       bio: person.bio ?? "",
       avatarUrl: person.avatarUrl ?? null,
+      avatarFrame: person.avatarFrame ?? undefined,
       plus: isPlusActive(person.plusUntil),
     })),
     nextCursor:

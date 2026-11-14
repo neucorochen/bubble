@@ -10,6 +10,7 @@ const loaders: Array<[prefix: string, load: () => Promise<unknown>]> = [
   ["/news", () => import("../pages/NewsPage")],
   ["/communities", () => import("../pages/CommunitiesPage")],
   ["/c/", () => import("../pages/CommunityPage")],
+  ["/settings", () => import("../pages/SettingsPage")],
   ["/search", () => import("../pages/SearchPage")],
 ];
 

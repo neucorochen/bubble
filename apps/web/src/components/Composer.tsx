@@ -137,7 +137,7 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
       onDrop={onDrop}
     >
       <div className="composer-row">
-        {user && <Avatar username={user.username} url={user.avatarUrl} size={42} />}
+        {user && <Avatar username={user.username} displayName={user.displayName} url={user.avatarUrl} frame={user.avatarFrame} size={42} />}
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}

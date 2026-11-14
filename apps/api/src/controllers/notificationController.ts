@@ -6,7 +6,7 @@ export async function list(req: Request, res: Response) {
   const rows = (await Notification.find({ user: req.userId })
     .sort({ createdAt: -1 })
     .limit(30)
-    .populate("actor", "username")
+    .populate("actor", "username displayName")
     .lean()) as unknown as PopulatedNotification[];
   res.json(rows.map(toNotificationDTO));
 }
