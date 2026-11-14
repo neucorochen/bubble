@@ -16,6 +16,7 @@ type RepeatMode = 0 | 1 | 2;
 
 interface MusicState {
   track: MusicTrackDTO | null;
+  queue: MusicTrackDTO[];
   queueSource: string | null;
   isPlaying: boolean;
   isLoading: boolean;
@@ -60,6 +61,7 @@ export function MusicPlayerProvider({
   const endedTrackRef = useRef<() => void>(() => {});
 
   const [track, setTrack] = useState<MusicTrackDTO | null>(null);
+  const [queue, setQueue] = useState<MusicTrackDTO[]>([]);
   const [queueSource, setQueueSource] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -101,6 +103,7 @@ export function MusicPlayerProvider({
   const clear = useCallback(() => {
     requestIdRef.current++;
     queueRef.current = [];
+    setQueue([]);
     queueIndexRef.current = -1;
     originalQueueRef.current = [];
 
@@ -223,6 +226,7 @@ export function MusicPlayerProvider({
       }
 
       queueIndexRef.current = index;
+      setQueue(queueRef.current);
 
       const requestId = ++requestIdRef.current;
 
@@ -373,6 +377,7 @@ export function MusicPlayerProvider({
     queueIndexRef.current = queueRef.current.findIndex(
       (item) => item.id === currentTrack.id,
     );
+    setQueue(queueRef.current);
 
     setIsShuffled((previous) => !previous);
   }, [track, isShuffled]);
@@ -391,6 +396,7 @@ export function MusicPlayerProvider({
       ? [track, ...shuffleTracks(queue.filter((item) => item.id !== track.id))]
       : [...queue];
     queueIndexRef.current = queueRef.current.findIndex((item) => item.id === track.id);
+    setQueue(queueRef.current);
   }, [track, isShuffled]);
 
   useEffect(() => {
@@ -446,6 +452,7 @@ export function MusicPlayerProvider({
   const value = useMemo(
     () => ({
       track,
+      queue,
       queueSource,
       nextTrack,
       previousTrack,
@@ -469,6 +476,7 @@ export function MusicPlayerProvider({
     }),
     [
       track,
+      queue,
       queueSource,
       nextTrack,
       previousTrack,

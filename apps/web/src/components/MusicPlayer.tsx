@@ -6,6 +6,7 @@ import { useMusicPlayer } from "../store/music";
 import { useIsMutating, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { api } from "../lib/api";
 import { useAuth } from "../store/auth";
+import MusicPlayerQueue from "./MusicPlayerQueue";
 
 function formatTime(seconds: number): string {
   if (!Number.isFinite(seconds) || seconds < 0) return "0:00";
@@ -18,6 +19,7 @@ function formatTime(seconds: number): string {
 
 export default function MusicPlayer() {
   const [compact, setCompact] = useState(false);
+  const [showQueue, setShowQueue] = useState(false);
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const libraryBusy = useIsMutating({ mutationKey: ["music-library", user?.id] }) > 0;
@@ -101,7 +103,7 @@ export default function MusicPlayer() {
   return (
     <section
       ref={playerRef}
-      className={`music-player${compact ? " music-player--compact" : ""}`}
+      className={`music-player${compact ? " music-player--compact" : ""}${showQueue && !compact ? " music-player--queue" : ""}`}
       data-positioned={style ? "true" : undefined}
       style={style}
       aria-label="Музыкальный плеер"
@@ -216,7 +218,8 @@ export default function MusicPlayer() {
           <span ref={titleTextRef}>{track.artist} — {track.title}</span>
         </div>
         <span className="aero-window-controls music-player__window-controls">
-        <span><button type="button" className="music-player__window-button" onClick={() => { prepareModeSwitch(); setCompact(!compact); }} aria-label={compact ? "Развернуть плеер" : "Свернуть плеер"} title={compact ? "Развернуть" : "Свернуть"}><i className={compact ? "aero-control-maximize" : "aero-control-minimize"} aria-hidden="true" /></button></span>
+        <span><button type="button" className="music-player__window-button" onClick={() => { prepareModeSwitch(); setCompact(!compact); setShowQueue(false); }} aria-label={compact ? "Развернуть плеер" : "Свернуть плеер"} title={compact ? "Развернуть" : "Свернуть"}><i className={compact ? "aero-control-maximize" : "aero-control-minimize"} aria-hidden="true" /></button></span>
+        <span><button type="button" className="music-player__window-button" onClick={() => { if (compact) { prepareModeSwitch(); setCompact(false); } setShowQueue(compact || !showQueue); }} aria-label={showQueue && !compact ? "Скрыть очередь" : "Показать очередь"} aria-pressed={showQueue && !compact} title={showQueue && !compact ? "Скрыть очередь" : "Показать очередь"}><svg className="music-player__queue-icon" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" stroke="none" d="M3 4h2v2H3zm0 7h2v2H3zm0 7h2v2H3zM7 4h14v2H7zm0 7h14v2H7zm0 7h14v2H7z" /></svg></button></span>
         <span className="aero-window-close">
         <button
           type="button"
@@ -231,6 +234,7 @@ export default function MusicPlayer() {
         </span>
       </div>
 
+      {showQueue && !compact && <MusicPlayerQueue />}
       <div className="music-player__timeline">
         <span>{formatTime(currentTime)}</span>
 

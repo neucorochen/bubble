@@ -62,6 +62,8 @@ export default function MusicPage() {
   const [file, setFile] = useState<File | null>(null);
   const [title, setTitle] = useState("");
   const [artist, setArtist] = useState("");
+  const [readingMetadata, setReadingMetadata] = useState(false);
+  const fileSelection = useRef(0);
   const editedFields = useRef({ title: false, artist: false });
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -159,8 +161,10 @@ export default function MusicPage() {
   const tracks = tracksQuery.data ?? [];
 
   function selectFile(selectedFile: File | undefined) {
+    const selection = ++fileSelection.current;
     if (!selectedFile) {
       setFile(null);
+      setReadingMetadata(false);
       return;
     }
 
@@ -175,9 +179,26 @@ export default function MusicPage() {
     if (!editedFields.current.artist) {
       setArtist(separator < 0 ? "" : name.slice(0, separator).trim());
     }
+
+    setReadingMetadata(true);
+    void import("music-metadata")
+      .then(({ parseBlob }) => parseBlob(selectedFile, { skipCovers: true }))
+      .then(({ common }) => {
+        if (fileSelection.current !== selection) return;
+        if (!editedFields.current.title && common.title?.trim()) setTitle(common.title.trim());
+        if (!editedFields.current.artist && common.artist?.trim()) setArtist(common.artist.trim());
+      })
+      .catch(() => {
+        // Missing or unreadable tags leave the filename-based values in place.
+      })
+      .finally(() => {
+        if (fileSelection.current === selection) setReadingMetadata(false);
+      });
   }
 
   function resetUploadForm() {
+    fileSelection.current++;
+    setReadingMetadata(false);
     setFile(null);
     setTitle("");
     setArtist("");
@@ -194,7 +215,7 @@ export default function MusicPage() {
 
   function upload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (!file || !title.trim() || !artist.trim() || uploadMutation.isPending) return;
+    if (!file || !title.trim() || !artist.trim() || readingMetadata || uploadMutation.isPending) return;
 
     uploadMutation.mutate({
       selectedFile: file,
@@ -280,24 +301,22 @@ export default function MusicPage() {
 
       <dialog
         ref={dialogRef}
-        className="aero-panel music-page__upload-dialog"
+        className="music-page__upload-dialog"
         aria-labelledby="music-upload-title"
         onCancel={(event) => {
           event.preventDefault();
           closeUploadDialog();
         }}
       >
-        <header className="music-page__upload-header">
+        <header className="music-attachment-picker__header">
           <h2 id="music-upload-title">Загрузить музыку</h2>
-          <button
-            type="button"
-            className="aero-button music-page__upload-close"
-            onClick={closeUploadDialog}
-            disabled={uploadMutation.isPending}
-            aria-label="Закрыть окно загрузки"
-          >
-            ×
-          </button>
+          <span className="aero-window-controls music-player__window-controls">
+            <span className="aero-window-close">
+              <button type="button" className="music-player__close" onClick={closeUploadDialog} disabled={uploadMutation.isPending} aria-label="Закрыть окно загрузки" title="Закрыть">
+                <i className="aero-control-close" aria-hidden="true" />
+              </button>
+            </span>
+          </span>
         </header>
 
         <form className="music-page__upload-form" onSubmit={upload}>
@@ -360,7 +379,7 @@ export default function MusicPage() {
             <button
               type="submit"
               className="btn btn-primary"
-              disabled={!file || !title.trim() || !artist.trim() || uploadMutation.isPending}
+              disabled={!file || !title.trim() || !artist.trim() || readingMetadata || uploadMutation.isPending}
             >
               {uploadMutation.isPending ? "Загрузка..." : "Загрузить"}
             </button>
@@ -374,7 +393,7 @@ export default function MusicPage() {
             </button>
           </div>
           <span className="music-page__upload-status" role="status">
-            {uploadMutation.isPending ? "Загрузка музыки..." : ""}
+            {uploadMutation.isPending ? "Загрузка музыки..." : readingMetadata ? "Чтение данных трека..." : ""}
           </span>
         </form>
       </dialog>
