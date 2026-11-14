@@ -18,6 +18,8 @@ const userSchema = new Schema(
       }, { _id: false }),
       default: undefined,
     },
+    shareProfileAppearance: { type: Boolean },
+    profileAppearanceVisibility: { type: String, enum: ["everyone", "friends", "only_me"] },
     appearance: {
       backgroundUrl: { type: String, index: true, sparse: true },
       primaryColor: { type: String },

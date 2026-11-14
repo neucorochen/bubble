@@ -118,6 +118,21 @@ describe("account appearance", () => {
     }
   });
 
+  it("saves the sharing preference independently of the theme", async () => {
+    const update = vi.spyOn(User, "findByIdAndUpdate").mockImplementationOnce((() => ({
+      select: () => ({ lean: async () => ({ _id: id }) }),
+    })) as never);
+    try {
+      const res = await request(app).patch("/api/users/me/appearance").set(auth).send({ profileAppearanceVisibility: "friends" });
+      expect(res.status).toBe(200);
+      expect(res.body).toEqual({ profileAppearanceVisibility: "friends" });
+      expect(update).toHaveBeenCalledWith(id.toString(), { $set: { profileAppearanceVisibility: "friends" } },
+        { returnDocument: "before", runValidators: true });
+    } finally {
+      update.mockRestore();
+    }
+  });
+
   it("returns the saved font to the owner", () => {
     const user = { _id: id, username: "alice", createdAt: new Date(), appearance: { font: "georgia" } };
     expect(toAccountUser(user).appearance?.font).toBe("georgia");
@@ -125,7 +140,18 @@ describe("account appearance", () => {
       .not.toHaveProperty("appearance");
   });
 
-  it("returns the avatar frame to profile visitors and keeps the site theme private", () => {
+  it.each([
+    [false, false, false], [true, false, false], [false, true, false], [true, true, true],
+  ])("shares a friends-only theme only on mutual follows (%s, %s)", (following, followedBy, visible) => {
+    const user = { _id: id, username: "alice", createdAt: new Date(),
+      appearance: { font: "georgia" }, profileAppearanceVisibility: "friends" as const,
+      shareProfileAppearance: false,
+    };
+    const profile = toProfileDTO(user, { followerCount: 0, followingCount: 0 }, following, followedBy);
+    expect(profile.profileAppearance?.font).toBe(visible ? "georgia" : undefined);
+  });
+
+  it("shares saved profile appearance unless it is hidden", () => {
     const user = {
       _id: id, username: "alice", createdAt: new Date(), avatarFrame: frame,
       appearance: { primaryColor: "#71368a", backgroundUrl: `/uploads/${"a".repeat(32)}.webp` },
@@ -133,6 +159,14 @@ describe("account appearance", () => {
     expect(toAccountUser(user).appearance).toEqual(user.appearance);
     const profile = toProfileDTO(user, { followerCount: 0, followingCount: 0 }, false, false);
     expect(profile.avatarFrame).toEqual(frame);
+    expect(profile.profileAppearance).toEqual(user.appearance);
     expect(profile).not.toHaveProperty("appearance");
+    const hidden = { ...user, shareProfileAppearance: false };
+    expect(toAccountUser(hidden).profileAppearanceVisibility).toBe("only_me");
+    const hiddenProfile = toProfileDTO(hidden, { followerCount: 0, followingCount: 0 }, false, false);
+    expect(hiddenProfile.profileAppearance).toBeUndefined();
+    expect(hiddenProfile.avatarFrame).toBeUndefined();
+    const standard = { ...user, appearance: { primaryColor: null, font: null } };
+    expect(toProfileDTO(standard, { followerCount: 0, followingCount: 0 }, false, false).profileAppearance).toBeUndefined();
   });
 });

@@ -15,15 +15,16 @@ function contrastInk(color: string) {
   return luminance > 0.195 ? "#000" : "#fff";
 }
 
-export function appearanceStyle(appearance?: Partial<SiteAppearance>, fontFamily?: string): CSSProperties {
+export function appearanceStyle(appearance?: Partial<SiteAppearance>, fontFamily?: string, localWallpaper?: string): CSSProperties {
   const primary = appearanceColorSchema.safeParse(appearance?.primaryColor).data;
   const accent = appearanceColorSchema.safeParse(appearance?.accentColor).data;
   const path = uploadUrlSchema.safeParse(appearance?.backgroundUrl).data;
+  const wallpaper = localWallpaper ?? assetUrl(path);
   return {
     "--aero-site-font": fontFamily,
     "--aero-chosen-primary": primary,
     "--aero-chosen-accent": accent,
     "--aero-chosen-accent-ink": accent && contrastInk(accent),
-    "--aero-wallpaper": path && `url(${JSON.stringify(assetUrl(path))})`,
+    "--aero-wallpaper": wallpaper && `url(${JSON.stringify(wallpaper)})`,
   } as CSSProperties;
 }

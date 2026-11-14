@@ -399,3 +399,5 @@
   border: 1px solid var(--border);
   border-radius: var(--aero-radius-control);
 }
+
+.unsaved-appearance-actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }

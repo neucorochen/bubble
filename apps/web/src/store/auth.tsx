@@ -62,6 +62,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser({
       ...active,
       appearance: { ...active.appearance, ...changes.appearance },
+      profileAppearanceVisibility: changes.profileAppearanceVisibility ?? active.profileAppearanceVisibility,
       avatarFrame: changes.avatarFrame === undefined ? active.avatarFrame : changes.avatarFrame ?? undefined,
     });
   }, [setUser]);

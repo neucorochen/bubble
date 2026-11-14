@@ -1,6 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import type { FormEvent, KeyboardEvent } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useBeforeUnload, useBlocker, useSearchParams } from "react-router-dom";
 import { useMutation } from "@tanstack/react-query";
 import { MAX_FONT_BYTES, type UploadResponse } from "@commune/shared";
 import type {
@@ -12,6 +12,8 @@ import type {
   WallpaperDTO,
 } from "@commune/shared";
 import FriendsPrivacySettings from "../components/FriendsPrivacySettings";
+import ProfileAppearancePrivacy from "../components/ProfileAppearancePrivacy";
+import UnsavedAppearanceDialog from "../components/UnsavedAppearanceDialog";
 import PushSettings from "../components/PushSettings";
 import SoundSettings from "../components/SoundSettings";
 import Avatar from "../components/Avatar";
@@ -125,7 +127,12 @@ function SettingsSections({ user, onWallpaperPreview }: { user: AccountUser } & 
           {id === "appearance" && (tab === id || openedAppearance) && (
             <AppearanceSettings user={user} onWallpaperPreview={onWallpaperPreview} />
           )}
-          {id === "privacy" && tab === id && <FriendsPrivacySettings username={user.username} />}
+          {id === "privacy" && tab === id && (
+            <>
+              <ProfileAppearancePrivacy user={user} />
+              <FriendsPrivacySettings username={user.username} />
+            </>
+          )}
           {id === "notifications" && tab === id && (
             <>
               <SoundSettings />
@@ -160,6 +167,23 @@ function AppearanceSettings({ user, onWallpaperPreview }: { user: AccountUser } 
   const frame = frameDraft === undefined ? (user.avatarFrame ?? null) : frameDraft;
   const dirty = Boolean(
     fontFile || file || frameDraft !== undefined || Object.keys(changes).length,
+  );
+  const blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      (dirty || checkingFont) && currentLocation.pathname !== nextLocation.pathname,
+  );
+  useEffect(() => {
+    if (blocker.state === "blocked" && !dirty && !checkingFont) blocker.proceed();
+  }, [blocker, dirty, checkingFont]);
+  useBeforeUnload(
+    useCallback(
+      (event) => {
+        if (!dirty && !checkingFont) return;
+        event.preventDefault();
+        event.returnValue = "";
+      },
+      [dirty, checkingFont],
+    ),
   );
   const save = useMutation({
     mutationFn: async () => {
@@ -202,8 +226,9 @@ function AppearanceSettings({ user, onWallpaperPreview }: { user: AccountUser } 
     if (!file) return;
     const url = URL.createObjectURL(file);
     setLocalPreview(url);
+    onWallpaperPreview?.(url);
     return () => URL.revokeObjectURL(url);
-  }, [file]);
+  }, [file, onWallpaperPreview]);
 
   useEffect(() => () => onWallpaperPreview?.(), [onWallpaperPreview]);
 
@@ -458,6 +483,16 @@ function AppearanceSettings({ user, onWallpaperPreview }: { user: AccountUser } 
           {save.error && <span role="alert">{save.error.message}</span>}
         </div>
       </form>
+      {blocker.state === "blocked" && (
+        <UnsavedAppearanceDialog
+          busy={save.isPending}
+          canSave={dirty && !checkingFont}
+          error={save.error?.message}
+          onStay={blocker.reset}
+          onDiscard={blocker.proceed}
+          onSave={() => save.mutate()}
+        />
+      )}
       {report && (
         <WallpaperReportDialog
           item={report.item}

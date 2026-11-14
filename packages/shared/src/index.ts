@@ -155,8 +155,9 @@ export type SiteAppearance = z.infer<typeof siteAppearanceSchema>;
 export const updateAppearanceSchema = z.object({
   appearance: siteAppearanceSchema.partial().optional(),
   avatarFrame: avatarFrameSchema.nullable().optional(),
-}).strict().refine(({ appearance, avatarFrame }) =>
-  avatarFrame !== undefined || (appearance && Object.keys(appearance).length > 0),
+  profileAppearanceVisibility: friendsVisibilitySchema.optional(),
+}).strict().refine(({ appearance, avatarFrame, profileAppearanceVisibility }) =>
+  avatarFrame !== undefined || profileAppearanceVisibility !== undefined || (appearance && Object.keys(appearance).length > 0),
 );
 export type UpdateAppearanceInput = z.infer<typeof updateAppearanceSchema>;
 
@@ -326,6 +327,7 @@ export interface PublicUser {
 }
 
 export interface AccountUser extends PublicUser {
+  profileAppearanceVisibility?: FriendsVisibility;
   appearance?: Partial<SiteAppearance>;
 }
 
@@ -452,6 +454,7 @@ export interface Page<T> {
 }
 
 export interface ProfileDTO extends PublicUser {
+  profileAppearance?: Partial<SiteAppearance>;
   online?: boolean;
   followerCount: number;
   followingCount: number;

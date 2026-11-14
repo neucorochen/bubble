@@ -1,4 +1,4 @@
-import { Link, Navigate, Route, Routes, useLocation } from "react-router-dom";
+import { Link, Navigate, Route, Routes, matchPath, useLocation } from "react-router-dom";
 import { Suspense, lazy, useEffect, useState } from "react";
 import type { ReactNode } from "react";
 import { useAuth } from "./store/auth";
@@ -14,6 +14,7 @@ import BottomNav from "./components/BottomNav";
 import Brand from "./components/BrandMark";
 import Icon from "./components/Icon";
 import { PageSkeleton } from "./components/Skeleton";
+import { useProfile } from "./hooks/useSocial";
 import { useStoredFont } from "./lib/siteFont";
 import { appearanceStyle } from "./lib/appearance";
 import { prefetchLikelyRoutes } from "./lib/prefetch";
@@ -246,10 +247,16 @@ export default function App() {
   const { user } = useAuth();
   const authPage = AUTH_PATHS.includes(pathname);
   const signedIn = Boolean(user);
-  const fontFamily = useStoredFont(user?.appearance?.font);
   const [wallpaperPreview, setWallpaperPreview] = useState<string | null>();
-  const backgroundUrl = pathname === "/settings" && wallpaperPreview !== undefined
-    ? wallpaperPreview : user?.appearance?.backgroundUrl;
+  const profileName = matchPath("/u/:username", pathname)?.params.username;
+  const visitingProfile = Boolean(user && profileName && profileName.toLowerCase() !== user.username.toLowerCase());
+  const { data: profile, isError: profileError } = useProfile(profileName ?? "", visitingProfile);
+  const profileTheme = visitingProfile && !profileError ? profile?.profileAppearance : undefined;
+  const appearance = profileTheme ?? user?.appearance;
+  const fontFamily = useStoredFont(appearance?.font);
+  const preview = pathname === "/settings" ? wallpaperPreview : undefined;
+  const localWallpaper = preview?.startsWith("blob:") ? preview : undefined;
+  const backgroundUrl = preview === undefined ? appearance?.backgroundUrl : preview;
   // Once signed in, quietly download the most-used pages so tapping them is instant.
   useEffect(() => {
     if (signedIn) prefetchLikelyRoutes();
@@ -287,9 +294,9 @@ export default function App() {
       className="aero-app aero-home"
       data-theme="aero-blue"
       data-custom-font={Boolean(fontFamily) || undefined}
-      data-custom-primary={Boolean(user?.appearance?.primaryColor) || undefined}
+      data-custom-primary={Boolean(appearance?.primaryColor) || undefined}
       data-custom-wallpaper={Boolean(backgroundUrl) || undefined}
-      style={appearanceStyle({ ...user?.appearance, backgroundUrl }, fontFamily)}
+      style={appearanceStyle({ ...appearance, backgroundUrl }, fontFamily, localWallpaper)}
     >
       <div className="aero-fixed-frame" aria-hidden="true" />
       <div className="aero-window">

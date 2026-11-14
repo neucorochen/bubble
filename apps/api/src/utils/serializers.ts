@@ -2,6 +2,7 @@ import type { Types } from "mongoose";
 import { isPlusActive } from "./plan.js";
 import type {
   AccountUser,
+  FriendsVisibility,
   AvatarFrame,
   SiteAppearance,
   CommentDTO,
@@ -109,10 +110,21 @@ export function toPublicUser(u: UserLike): PublicUser {
   };
 }
 
-export function toAccountUser(u: UserLike & { appearance?: Partial<SiteAppearance> | null }): AccountUser {
+type UserWithAppearance = UserLike & {
+  appearance?: Partial<SiteAppearance> | null;
+  shareProfileAppearance?: boolean | null;
+  profileAppearanceVisibility?: FriendsVisibility | null;
+};
+
+function profileAppearanceVisibility(u: UserWithAppearance): FriendsVisibility {
+  return u.profileAppearanceVisibility ?? (u.shareProfileAppearance === false ? "only_me" : "everyone");
+}
+
+export function toAccountUser(u: UserWithAppearance): AccountUser {
   const { backgroundUrl, primaryColor, accentColor, font } = u.appearance ?? {};
   return {
     ...toPublicUser(u),
+    profileAppearanceVisibility: profileAppearanceVisibility(u),
     appearance: backgroundUrl !== undefined || primaryColor !== undefined || accentColor !== undefined || font !== undefined
       ? { backgroundUrl, primaryColor, accentColor, font }
       : undefined,
@@ -120,12 +132,22 @@ export function toAccountUser(u: UserLike & { appearance?: Partial<SiteAppearanc
 }
 
 export function toProfileDTO(
-  u: UserLike,
+  u: UserWithAppearance,
   counts: { followerCount: number; followingCount: number },
   followedByMe: boolean,
   followsMe: boolean,
 ): ProfileDTO {
-  return { ...toPublicUser(u), ...counts, followedByMe, followsMe, banned: Boolean(u.banned) };
+  const { backgroundUrl, primaryColor, accentColor, font } = u.appearance ?? {};
+  const visibility = profileAppearanceVisibility(u);
+  const shareAppearance = !u.banned &&
+    (visibility === "everyone" || (visibility === "friends" && followedByMe && followsMe));
+  const profileAppearance = shareAppearance &&
+    (backgroundUrl || primaryColor || accentColor || font)
+    ? { backgroundUrl, primaryColor, accentColor, font }
+    : undefined;
+  const publicUser = toPublicUser(u);
+  if (!shareAppearance) delete publicUser.avatarFrame;
+  return { ...publicUser, ...counts, followedByMe, followsMe, banned: Boolean(u.banned), profileAppearance };
 }
 
 /**
