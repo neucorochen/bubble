@@ -2,11 +2,11 @@ import { DISPLAY_NAME_MAX_LENGTH, displayNameOf } from "@commune/shared";
 import { useEffect, useRef, useState } from "react";
 import { ProfileSkeleton } from "../components/Skeleton";
 import type { ChangeEvent, FormEvent } from "react";
-import { Link, useParams } from "react-router-dom";
+import { useParams } from "react-router-dom";
 import Composer from "../components/Composer";
 import OnlineStatus from "../components/OnlineStatus";
 import Avatar from "../components/Avatar";
-import Icon from "../components/Icon";
+import ProfileAction from "../components/ProfileAction";
 import PlusBadge from "../components/PlusBadge";
 import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
@@ -46,6 +46,13 @@ export default function ProfilePage() {
 
   const p = profile.data;
   const isMe = me?.id === p.id;
+  const friendship: { icon: "person_remove" | "close" | "how_to_reg" | "person_add"; label: string } = p.followedByMe
+    ? p.followsMe
+      ? { icon: "person_remove", label: "Удалить из друзей" }
+      : { icon: "close", label: "Отменить исходящую заявку" }
+    : p.followsMe
+      ? { icon: "how_to_reg", label: "Добавить в ответ" }
+      : { icon: "person_add", label: "Добавить в друзья" };
   const photoBusy = upload.isPending || update.isPending;
   const isAdmin = me?.role === "admin";
 
@@ -107,30 +114,20 @@ export default function ProfilePage() {
           </div>
           {isMe ? (
             !editing && (
-              <button className="btn btn-outline" onClick={startEditing}>
-
-                Редактировать профиль
-              </button>
+              <ProfileAction icon="edit" label="Редактировать профиль" onClick={startEditing} />
             )
           ) : (
             <div className="row">
-              <Link
-                className="btn btn-outline"
-                to={`/messages?to=${encodeURIComponent(p.username)}`}
-              >
-                <Icon name="mail" size={18} />  Сообщение
-              </Link>
-              <button
-                className={`btn ${p.followedByMe ? "btn-outline" : ""}`}
-                title={p.followedByMe && !p.followsMe ? "Отменить исходящую заявку" : undefined}
+              <ProfileAction icon="mail" label="Сообщение" to={`/messages?to=${encodeURIComponent(p.username)}`} />
+              <ProfileAction
+                {...friendship}
+                className={p.followedByMe ? "btn btn-outline" : "btn"}
                 onClick={() => {
                   if (p.followedByMe && p.followsMe && !window.confirm("Удалить пользователя из друзей? Вы отпишетесь от него.")) return;
                   follow.mutate(!p.followedByMe);
                 }}
                 disabled={follow.isPending}
-              >
-                {p.followedByMe ? (p.followsMe ? "Удалить из друзей" : "Отменить заявку") : (p.followsMe ? "Добавить в ответ" : "Добавить в друзья")}
-              </button>
+              />
             </div>
           )}
         </div>
@@ -146,29 +143,14 @@ export default function ProfilePage() {
               hidden
               onChange={pickPhoto}
             />
-            <button
-              type="button"
-              className="btn btn-outline"
-              onClick={() => fileRef.current?.click()}
-              disabled={photoBusy}
-            >
-              {photoBusy
-                ? upload.progress
-                  ? `Загрузка ${upload.progress}%`
-                  : "Сохранение фотографии…"
-                : "Изменить фото"}
-            </button>
+            <ProfileAction icon="photo_camera" label="Изменить фото"
+              onClick={() => fileRef.current?.click()} disabled={photoBusy} />
             {p.avatarUrl && (
-              <button
-                type="button"
-                className="btn btn-ghost"
-                onClick={() => update.mutate({ avatarUrl: null })}
-                disabled={photoBusy}
-              >
-
-                Удалить фото
-              </button>
+              <ProfileAction icon="delete" label="Удалить фото" className="btn btn-ghost"
+                onClick={() => update.mutate({ avatarUrl: null })} disabled={photoBusy} />
             )}
+            {photoBusy && <span role="status">{upload.progress !== null
+              ? `Загрузка ${upload.progress}%` : "Сохранение…"}</span>}
           </div>
         )}
         {photoError && <p className="error">{photoError}</p>}
@@ -185,13 +167,10 @@ export default function ProfilePage() {
             <div className="composer-footer">
               <span className="muted">{bio.length}/160</span>
               <span className="row">
-                <button type="button" className="btn btn-ghost" onClick={() => setEditing(false)}>
-
-                  Готово
-                </button>
-                <button className="btn" disabled={photoBusy || !displayName.trim()}>
-                  {update.isPending ? "Сохранение…" : "Сохранить профиль"}
-                </button>
+                <ProfileAction icon="close" label="Закрыть редактирование" className="btn btn-ghost"
+                  onClick={() => setEditing(false)} />
+                <ProfileAction icon="check" label="Сохранить профиль" className="btn" type="submit"
+                  disabled={photoBusy || !displayName.trim()} />
               </span>
             </div>
             {update.isError && <p className="error">{update.error.message}</p>}
@@ -208,19 +187,11 @@ export default function ProfilePage() {
         {isAdmin && !isMe && p.role !== "admin" && (
           <div className="row">
             {p.banned ? (
-              <button
-                className="btn btn-outline"
-                onClick={() => unban.mutate()}
-                disabled={unban.isPending}
-              >
-
-                Разблокировать
-              </button>
+              <ProfileAction icon="lock_open" label="Разблокировать пользователя"
+                onClick={() => unban.mutate()} disabled={unban.isPending} />
             ) : (
-              <button className="btn btn-danger" onClick={suspend} disabled={ban.isPending}>
-
-                Заблокировать пользователя
-              </button>
+              <ProfileAction icon="block" label="Заблокировать пользователя" className="btn btn-danger"
+                onClick={suspend} disabled={ban.isPending} />
             )}
           </div>
         )}
