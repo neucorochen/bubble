@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import type { ConversationDTO, MessageDTO, MessagePage } from "@commune/shared";
+import type { ConversationDTO, MessageDTO, MessagePage, MusicTrackDTO } from "@commune/shared";
 import { api } from "../lib/api";
 import { isRealtimeConnected } from "../lib/realtime";
 import { useAuth } from "../store/auth";
@@ -53,6 +53,13 @@ export function loadOlder(id: string, cursor: string) {
 
 /** Ids of messages that are still being sent start with this. */
 export const PENDING_PREFIX = "tmp-";
+export type MessageDraft = { text: string; tracks: MusicTrackDTO[]; clientMessageId: string; imageIds: string[] };
+const messageBody = (draft: MessageDraft) => ({
+  text: draft.text,
+  musicTrackIds: draft.tracks.map((track) => track.id),
+  imageIds: draft.imageIds,
+  clientMessageId: draft.clientMessageId,
+});
 
 /**
  * Sending shows the message at once ("optimistic"), then swaps in the saved one. If sending
@@ -63,16 +70,19 @@ export function useSendMessage(id: string) {
   const { user } = useAuth();
   const key = ["thread", id];
   return useMutation({
-    mutationFn: (text: string) =>
-      api<MessageDTO>(`/messages/${id}`, { method: "POST", body: { text } }),
-    onMutate: async (text) => {
+    mutationFn: (draft: MessageDraft) =>
+      api<MessageDTO>(`/messages/${id}`, { method: "POST", body: messageBody(draft) }),
+    onMutate: async (draft) => {
       await qc.cancelQueries({ queryKey: key });
       const tempId = `${PENDING_PREFIX}${Date.now()}-${Math.random().toString(36).slice(2)}`;
       const temp: MessageDTO = {
         id: tempId,
         conversationId: id,
         senderId: user?.id ?? "",
-        text,
+        text: draft.text,
+        clientMessageId: draft.clientMessageId,
+        imageIds: draft.imageIds,
+        musicAttachments: draft.tracks.map(({ id, title, artist, duration }) => ({ id, title, artist, duration, unavailable: false })),
         createdAt: new Date().toISOString(),
       };
       qc.setQueryData<ThreadPage>(key, (old) =>
@@ -121,12 +131,12 @@ export function useMarkRead(id: string) {
 export function useStartChat(username: string) {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (text: string) =>
+    mutationFn: (draft: MessageDraft) =>
       api<{ conversationId: string; message: MessageDTO }>(
         `/messages/with/${encodeURIComponent(username)}`,
         {
           method: "POST",
-          body: { text },
+          body: messageBody(draft),
         },
       ),
     onSuccess: () => void qc.invalidateQueries({ queryKey: ["conversations"] }),

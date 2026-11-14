@@ -1659,6 +1659,29 @@ video {
   gap: 8px;
 }
 
+.chat-draft-tracks {
+  display: grid;
+  gap: 4px;
+  max-height: 150px;
+  overflow-y: auto;
+}
+
+.chat-draft-track {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.chat-form-row textarea { min-width: 0; }
+
+@media (max-width: 480px) {
+  .chat-form-row { flex-wrap: wrap; }
+  .chat-form-row textarea { flex-basis: 100%; }
+}
+
 .chat-form textarea {
   flex: 1;
   max-height: 140px;

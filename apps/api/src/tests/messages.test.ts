@@ -6,6 +6,7 @@ import { createApp } from "../app.js";
 import { Conversation } from "../models/Conversation.js";
 import { ContactMessage } from "../models/ContactMessage.js";
 import { Message } from "../models/Message.js";
+import { MusicTrack } from "../models/MusicTrack.js";
 import { User } from "../models/User.js";
 import { signAccessToken } from "../utils/tokens.js";
 
@@ -24,6 +25,14 @@ const findOne = (user: unknown) =>
     .mockImplementation((() => ({ collation: () => leanOf(user) })) as never);
 
 describe("schemas", () => {
+  it("validates music-only, mixed, limits and case-insensitive duplicates", () => {
+    const ids = Array.from({ length: 11 }, () => oid().toString());
+    expect(sendMessageSchema.parse({ musicTrackIds: ids.slice(0, 1) }).text).toBe("");
+    expect(sendMessageSchema.safeParse({ text: "hello", musicTrackIds: ids.slice(0, 10) }).success).toBe(true);
+    expect(sendMessageSchema.safeParse({ musicTrackIds: ids }).success).toBe(false);
+    expect(sendMessageSchema.safeParse({ musicTrackIds: [ids[0], ids[0]!.toUpperCase()] }).success).toBe(false);
+    expect(sendMessageSchema.safeParse({ musicTrackIds: ["invalid"] }).success).toBe(false);
+  });
   it("trim and bound message text", () => {
     expect(sendMessageSchema.parse({ text: "  hi  " }).text).toBe("hi");
     expect(sendMessageSchema.safeParse({ text: "   " }).success).toBe(false);
@@ -38,6 +47,66 @@ describe("schemas", () => {
 });
 
 describe("message routes", () => {
+  it("rejects missing music before creating a conversation", async () => {
+    findOne({ _id: OTHER, username: "sam", banned: false });
+    vi.spyOn(MusicTrack, "countDocuments").mockResolvedValue(0 as never);
+    const upsert = vi.spyOn(Conversation, "findOneAndUpdate");
+    const create = vi.spyOn(Message, "create");
+    const res = await request(app).post("/api/messages/with/sam").set(auth).send({ musicTrackIds: [oid().toString()] });
+    expect(res.status).toBe(400);
+    expect(upsert).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
+  });
+
+  it("sends music-only messages and uses a music preview", async () => {
+    findOne({ _id: OTHER, username: "sam", banned: false });
+    const convoId = oid();
+    const trackId = oid();
+    vi.spyOn(MusicTrack, "countDocuments").mockResolvedValue(1 as never);
+    vi.spyOn(MusicTrack, "find").mockImplementation((() => ({ select: () => leanOf([{ _id: trackId, title: "Song", artist: "Artist", duration: 20 }]) })) as never);
+    vi.spyOn(Conversation, "findOneAndUpdate").mockImplementation((() => leanOf({ _id: convoId })) as never);
+    vi.spyOn(Message, "create").mockImplementation((async (data: unknown) => ({ ...(data as object), _id: oid(), createdAt: new Date(), toObject() { return this; } })) as never);
+    const update = vi.spyOn(Conversation, "updateOne").mockResolvedValue({} as never);
+    const res = await request(app).post("/api/messages/with/sam").set(auth).send({ musicTrackIds: [trackId.toString()] });
+    expect(res.status).toBe(201);
+    expect(res.body.message.text).toBe("");
+    expect(res.body.message.musicAttachments).toEqual([{ id: trackId.toString(), title: "Song", artist: "Artist", duration: 20, unavailable: false }]);
+    expect((update.mock.calls[0] as unknown as [unknown, unknown])[1]).toMatchObject({ $set: { lastMessageText: "Музыка" } });
+  });
+
+  it("sends mixed content in an existing conversation and retains the client identifier", async () => {
+    const convoId = oid();
+    const trackId = oid();
+    const clientMessageId = "a1a1a1a1-1111-4111-8111-111111111111";
+    vi.spyOn(Conversation, "findById").mockImplementation((() => leanOf({ _id: convoId, participants: [ME, OTHER], lastMessageAt: new Date() })) as never);
+    vi.spyOn(User, "findById").mockImplementation((() => ({ select: () => leanOf({ banned: false }) })) as never);
+    vi.spyOn(MusicTrack, "countDocuments").mockResolvedValue(1 as never);
+    vi.spyOn(MusicTrack, "find").mockImplementation((() => ({ select: () => leanOf([{ _id: trackId, title: "Song", artist: "Artist" }]) })) as never);
+    vi.spyOn(Message, "create").mockImplementation((async (data: unknown) => ({ ...(data as object), _id: oid(), createdAt: new Date(), toObject() { return this; } })) as never);
+    const update = vi.spyOn(Conversation, "updateOne").mockResolvedValue({} as never);
+    const res = await request(app).post(`/api/messages/${convoId}`).set(auth).send({ text: "hello", musicTrackIds: [trackId.toString()], clientMessageId });
+    expect(res.status).toBe(201);
+    expect(res.body).toMatchObject({ text: "hello", clientMessageId, musicAttachments: [{ id: trackId.toString() }] });
+    expect((update.mock.calls[0] as unknown as [unknown, unknown])[1]).toMatchObject({ $set: { lastMessageText: "hello" } });
+  });
+
+  it("loads music once for a history page and preserves order and missing tracks", async () => {
+    const convoId = oid();
+    const first = oid();
+    const missing = oid();
+    vi.spyOn(Conversation, "findById").mockImplementation((() => leanOf({ _id: convoId, participants: [ME, OTHER], lastMessageAt: new Date() })) as never);
+    const rows = [
+      { _id: oid(), conversation: convoId, sender: OTHER, text: "", musicTrackIds: [missing, first], createdAt: new Date() },
+      { _id: oid(), conversation: convoId, sender: OTHER, text: "old", createdAt: new Date() },
+    ];
+    vi.spyOn(Message, "find").mockImplementation((() => ({ sort: () => ({ limit: () => leanOf(rows) }) })) as never);
+    const find = vi.spyOn(MusicTrack, "find").mockImplementation((() => ({ select: () => leanOf([{ _id: first, title: "Song", artist: "Artist" }]) })) as never);
+    const res = await request(app).get(`/api/messages/${convoId}?cursor=2026-01-01T00:00:00.000Z`).set(auth);
+    expect(res.status).toBe(200);
+    expect(find).toHaveBeenCalledOnce();
+    expect(res.body.items[0].musicAttachments).toEqual([]);
+    expect(res.body.items[1].musicAttachments).toEqual([{ id: missing.toString(), unavailable: true }, { id: first.toString(), title: "Song", artist: "Artist", duration: null, unavailable: false }]);
+  });
   it("require a login", async () => {
     expect((await request(app).get("/api/messages")).status).toBe(401);
     expect((await request(app).get("/api/messages/unread-count")).status).toBe(401);

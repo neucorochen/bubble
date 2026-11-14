@@ -55,6 +55,7 @@ export async function createMusicUpload(
 export async function completeMusicUpload(
   userId: string,
   uploadId: string,
+  duration?: number,
 ) {
   const upload = await MusicUpload.findOne({
     _id: uploadId,
@@ -114,7 +115,7 @@ export async function completeMusicUpload(
           storageKey: upload.storageKey,
           mimeType: upload.mimeType,
           size: upload.size,
-          duration: null,
+          duration: duration ?? null,
           uploadedBy: userId,
         },
       },

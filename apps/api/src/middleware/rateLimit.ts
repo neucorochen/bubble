@@ -67,6 +67,15 @@ export const searchLimiter = rateLimit({
   message: { error: "Searching too fast, try again in a moment." },
 });
 
+export const linkPreviewLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  limit: 40,
+  standardHeaders: "draft-7",
+  legacyHeaders: false,
+  skip,
+  message: { error: "Too many requests, slow down." },
+});
+
 /** Post view pings: generous, since opening posts is normal browsing. */
 export const viewLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

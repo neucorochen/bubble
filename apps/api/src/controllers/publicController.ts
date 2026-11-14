@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import type { Request, Response } from "express";
 import type { Page, PostDTO } from "@commune/shared";
 import { Post } from "../models/Post.js";
+import { loadPostMusic } from "../services/postMusic.js";
 import { badRequest } from "../utils/errors.js";
 import { toPostDTO, type PopulatedPost } from "../utils/serializers.js";
 
@@ -23,8 +24,9 @@ export async function listPosts(_req: Request, res: Response) {
 
   const hasMore = rows.length > limit;
   const posts = hasMore ? rows.slice(0, limit) : rows;
+  const music = await loadPostMusic(posts);
   const body: Page<PostDTO> = {
-    items: posts.map((p) => toPostDTO(p, false, true)),
+    items: posts.map((p) => toPostDTO(p, false, true, music.get(p._id.toString()))),
     nextCursor: hasMore ? (posts[posts.length - 1]?._id.toString() ?? null) : null,
   };
   // Everyone gets the same answer, so the CDN may serve it for a minute and refresh in the background.

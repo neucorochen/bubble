@@ -3,6 +3,11 @@ import mongoose from "mongoose";
 import type { ConversationDTO, MessageDTO, MessagePage } from "@commune/shared";
 import { Conversation } from "../models/Conversation.js";
 import { Message } from "../models/Message.js";
+import { MessageImage } from "../models/MessageImage.js";
+import { randomBytes } from "node:crypto";
+import { detectImageType } from "../utils/images.js";
+import { createDownloadUrl, uploadObject } from "../services/storageService.js";
+import { loadPostMusic, validateMusicTrackIds } from "../services/postMusic.js";
 import { User } from "../models/User.js";
 import { badRequest, forbidden, notFound } from "../utils/errors.js";
 import { pushConfigured, pushToUser } from "../services/pushService.js";
@@ -33,18 +38,24 @@ interface LeanMessage {
   conversation: unknown;
   sender: unknown;
   text: string;
+  musicTrackIds?: unknown[];
+  clientMessageId?: string;
+  imageIds?: unknown[];
   createdAt: Date;
 }
 
 const str = (v: unknown) => String(v);
 const pairKey = (a: string, b: string) => [a, b].sort().join(":");
 
-function toMessageDTO(m: LeanMessage): MessageDTO {
+function toMessageDTO(m: LeanMessage, musicAttachments: MessageDTO["musicAttachments"] = []): MessageDTO {
   return {
     id: str(m._id),
     conversationId: str(m.conversation),
     senderId: str(m.sender),
     text: m.text,
+    musicAttachments,
+    imageIds: (m.imageIds ?? []).map(str),
+    ...(m.clientMessageId ? { clientMessageId: m.clientMessageId } : {}),
     createdAt: m.createdAt.toISOString(),
   };
 }
@@ -101,24 +112,27 @@ async function notifyByPush(convoId: string, me: string, otherId: string, text: 
   });
 }
 
-async function saveMessage(convoId: string, me: string, otherId: string, text: string) {
-  const message = await Message.create({ conversation: convoId, sender: me, text });
+async function saveMessage(convoId: string, me: string, otherId: string, text: string, musicTrackIds: string[], clientMessageId?: string, imageIds: string[] = []) {
+  const message = await Message.create({ conversation: convoId, sender: me, text, musicTrackIds, clientMessageId, imageIds });
+  const preview = text || (imageIds.length ? "Фото" : "Музыка");
   await Conversation.updateOne(
     { _id: convoId },
     {
       $set: {
-        lastMessageText: text.slice(0, PREVIEW_LENGTH),
+        lastMessageText: preview.slice(0, PREVIEW_LENGTH),
         lastMessageSender: me,
         lastMessageAt: message.createdAt,
       },
       $inc: { [`unread.${otherId}`]: 1 },
     },
   );
-  const dto = toMessageDTO(message.toObject() as unknown as LeanMessage);
+  const row = message.toObject() as unknown as LeanMessage;
+  const music = await loadPostMusic([row]);
+  const dto = toMessageDTO(row, music.get(str(row._id)) ?? []);
   // Live delivery to the recipient, and to the sender's other tabs and devices.
   await Promise.all([
     emitToUsers([me, otherId], "message:new", { message: dto }),
-    notifyByPush(convoId, me, otherId, text),
+    notifyByPush(convoId, me, otherId, preview),
   ]);
   return dto;
 }
@@ -182,8 +196,9 @@ export async function getMessages(req: Request, res: Response) {
   const other = (await User.findById(otherId)
     .select(USER_FIELDS)
     .lean()) as unknown as LeanUser | null;
+  const music = await loadPostMusic(page);
   const result: MessagePage & { conversation?: ConversationDTO } = {
-    items: page.reverse().map(toMessageDTO), // oldest first for display
+    items: page.reverse().map((row) => toMessageDTO(row, music.get(str(row._id)) ?? [])), // oldest first for display
     nextCursor,
   };
   if (!cursor && other) result.conversation = toConversationDTO(convo, me, other);
@@ -198,7 +213,11 @@ export async function send(req: Request, res: Response) {
     banned?: boolean;
   } | null;
   if (!other || other.banned) throw forbidden("You can't message this account");
-  res.status(201).json(await saveMessage(str(convo._id), me, otherId, req.body.text));
+  const musicTrackIds = req.body.musicTrackIds ?? [];
+  await validateMusicTrackIds(musicTrackIds);
+  const imageIds = req.body.imageIds ?? [];
+  await validateImages(me, imageIds);
+  res.status(201).json(await saveMessage(str(convo._id), me, otherId, req.body.text, musicTrackIds, req.body.clientMessageId, imageIds));
 }
 
 /** POST /messages/with/:username: send to a person, creating the conversation if needed. */
@@ -209,6 +228,10 @@ export async function start(req: Request, res: Response) {
   if (targetId === me) throw badRequest("You can't message yourself");
   if (target.banned) throw forbidden("You can't message this account");
 
+  const musicTrackIds = req.body.musicTrackIds ?? [];
+  await validateMusicTrackIds(musicTrackIds);
+  const imageIds = req.body.imageIds ?? [];
+  await validateImages(me, imageIds);
   const key = pairKey(me, targetId);
   const convo = (await Conversation.findOneAndUpdate(
     { key },
@@ -216,8 +239,38 @@ export async function start(req: Request, res: Response) {
     { upsert: true, new: true },
   ).lean()) as unknown as LeanConversation;
 
-  const message = await saveMessage(str(convo._id), me, targetId, req.body.text);
+  const message = await saveMessage(str(convo._id), me, targetId, req.body.text, musicTrackIds, req.body.clientMessageId, imageIds);
   res.status(201).json({ conversationId: str(convo._id), message });
+}
+
+async function validateImages(userId: string, ids: string[]) {
+  if (ids.length && await MessageImage.countDocuments({ _id: { $in: ids }, owner: userId }) !== ids.length) throw badRequest("Invalid message images");
+}
+
+export async function uploadImage(req: Request, res: Response) {
+  const file = req.file;
+  if (!file) throw badRequest("No file uploaded");
+  const ext = detectImageType(file.buffer);
+  if (!ext) throw badRequest("Only PNG, JPEG, GIF and WebP images are allowed");
+  const types: Record<string, string> = { png: "image/png", jpg: "image/jpeg", gif: "image/gif", webp: "image/webp" };
+  const storageKey = `message-images/${randomBytes(16).toString("hex")}.${ext}`;
+  await uploadObject(storageKey, file.buffer, types[ext]!);
+  const image = await MessageImage.create({ owner: req.userId!, storageKey });
+  res.status(201).json({ url: image.id });
+}
+
+export async function imageUrl(req: Request, res: Response) {
+  const id = req.params.imageId;
+  if (!id || !mongoose.isValidObjectId(id)) throw notFound("Image not found");
+  const image = await MessageImage.findById(id).lean();
+  if (!image) throw notFound("Image not found");
+  if (str(image.owner) !== req.userId) {
+    const messages = await Message.find({ imageIds: image._id }).select("conversation").lean();
+    const accessible = await Conversation.exists({ _id: { $in: messages.map((item) => item.conversation) }, participants: req.userId });
+    if (!accessible) throw notFound("Image not found");
+  }
+  res.set("Cache-Control", "private, no-store");
+  res.json({ url: await createDownloadUrl(image.storageKey, 120) });
 }
 
 /** POST /messages/:id/read: the person is looking at the conversation, so mark it read. */

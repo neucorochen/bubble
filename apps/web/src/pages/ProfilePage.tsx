@@ -8,6 +8,7 @@ import Icon from "../components/Icon";
 import PlusBadge from "../components/PlusBadge";
 import EarningsCard from "../components/EarningsCard";
 import PostList from "../components/PostList";
+import ProfileMusic from "../components/ProfileMusic";
 import { useProfile, useToggleFollow, useUpdateProfile, useUserPosts } from "../hooks/useSocial";
 import { useBanUser, useUnbanUser } from "../hooks/useModeration";
 import { useUploadImage } from "../hooks/useUpload";
@@ -213,6 +214,7 @@ export default function ProfilePage() {
         </div>
       </section>
 
+      {me && <ProfileMusic key={`${me.id}:${p.id}`} username={p.username} viewerId={me.id} isMe={isMe} />}
       <PostList query={posts} emptyMessage="Записей пока нет." />
     </>
   );

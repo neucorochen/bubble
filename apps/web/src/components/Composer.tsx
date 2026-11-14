@@ -1,9 +1,9 @@
-import { useEffect, useRef, useState } from "react";
-import type { ChangeEvent, ClipboardEvent, DragEvent, FormEvent } from "react";
+import { useRef, useState } from "react";
+import type { ChangeEvent, ClipboardEvent, FormEvent } from "react";
 import { useCreatePost } from "../hooks/usePosts";
-import { useUploadImage } from "../hooks/useUpload";
-import { assetUrl } from "../lib/api";
-import { validateImage } from "../lib/images";
+import { useImageDraft } from "../hooks/useImageDraft";
+import { useImageDrop } from "../hooks/useImageDrop";
+import ImageDropHint from "./ImageDropHint";
 import {
   FREE_POST_LENGTH,
   MAX_PREMIUM_LENGTH,
@@ -14,94 +14,35 @@ import {
 import { useAuth } from "../store/auth";
 import Avatar from "./Avatar";
 import Icon from "./Icon";
+import MusicAttachmentPicker from "./MusicAttachmentPicker";
+import { LinkPreview } from "./LinkContent";
+import type { MusicTrackDTO } from "@commune/shared";
 
 export default function Composer({ communitySlug, allowPaid = true }: { communitySlug?: string; allowPaid?: boolean }) {
   const { user } = useAuth();
   const MAX = user?.plus ? PLUS_POST_LENGTH : FREE_POST_LENGTH;
   const [content, setContent] = useState("");
-  const [imageUrl, setImageUrl] = useState<string | null>(null);
-  const [imageError, setImageError] = useState<string | null>(null);
-  const [preview, setPreview] = useState<string | null>(null); // local copy, shown instantly
-  const [lastFile, setLastFile] = useState<File | null>(null);
-  const [dragging, setDragging] = useState(false);
-  const attempt = useRef(0); // ignores the result of an upload the person has already cancelled
+  const [music, setMusic] = useState<MusicTrackDTO[]>([]);
+  const [musicPickerOpen, setMusicPickerOpen] = useState(false);
+  const imageDraft = useImageDraft();
   const [paid, setPaid] = useState(false);
   const [price, setPrice] = useState("5");
   const [premium, setPremium] = useState("");
   const fileRef = useRef<HTMLInputElement>(null);
   const create = useCreatePost();
-  const upload = useUploadImage("post");
-
-  // Free the temporary preview when it is replaced or the composer goes away.
-  useEffect(
-    () => () => {
-      if (preview) URL.revokeObjectURL(preview);
-    },
-    [preview],
-  );
-
-  /** Used by the file picker, paste and drag-and-drop. */
-  const handleFile = (file: File) => {
-    const problem = validateImage(file);
-    if (problem) {
-      setImageError(problem);
-      return;
-    }
-    setImageError(null);
-    setImageUrl(null);
-    setLastFile(file);
-    setPreview(URL.createObjectURL(file));
-    const mine = ++attempt.current;
-    upload.mutate(file, {
-      onSuccess: ({ url }) => {
-        if (mine !== attempt.current) return;
-        setImageUrl(url);
-        setLastFile(null);
-      },
-      onError: (err) => {
-        if (mine === attempt.current) setImageError(err.message);
-      },
-    });
-  };
-
+  const drop = useImageDrop(imageDraft.add, create.isPending);
   const pickImage = (e: ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    e.target.value = ""; // allow choosing the same file again later
-    if (file) handleFile(file);
+    const files = Array.from(e.target.files ?? []);
+    e.target.value = "";
+    if (files.length) imageDraft.add(files);
   };
-
-  const imageFrom = (files: FileList | null | undefined) =>
-    Array.from(files ?? []).find(
-      (f) => f.type.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(f.name),
-    );
-
-  const onPaste = (e: ClipboardEvent) => {
-    const file = imageFrom(e.clipboardData.files);
-    if (file) {
-      e.preventDefault();
-      handleFile(file);
-    }
-  };
-
-  const onDrop = (e: DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = imageFrom(e.dataTransfer.files);
-    if (file) handleFile(file);
-  };
-
-  const removeImage = () => {
-    attempt.current++;
-    setImageUrl(null);
-    setPreview(null);
-    setLastFile(null);
-    setImageError(null);
-  };
+  const imageFiles = (files: FileList | null | undefined) => Array.from(files ?? []).filter((file) => file.type.startsWith("image/") || /\.(png|jpe?g|gif|webp)$/i.test(file.name));
+  const onPaste = (e: ClipboardEvent) => { const files = imageFiles(e.clipboardData.files); if (files.length) { e.preventDefault(); imageDraft.add(files); } };
 
   const priceCents = Math.round(Number(price) * 100);
   const priceOk = priceCents >= MIN_PRICE_CENTS && priceCents <= MAX_PRICE_CENTS;
   const paidOk = !allowPaid || !paid || (priceOk && premium.trim().length > 0);
-  const canPost = (content.trim().length > 0 || imageUrl !== null) && !upload.isPending && paidOk;
+  const canPost = (content.trim().length > 0 || imageDraft.images.length > 0 || music.length > 0) && !imageDraft.busy && imageDraft.ready && paidOk;
 
   const submit = (e: FormEvent) => {
     e.preventDefault();
@@ -109,15 +50,16 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
     create.mutate(
       {
         content,
-        imageUrl,
+        imageUrls: imageDraft.images.map((image) => image.url!),
+        musicTrackIds: music.map((track) => track.id),
         ...(communitySlug ? { community: communitySlug } : {}),
         ...(allowPaid && paid ? { priceCents, premiumContent: premium } : {}),
       },
       {
         onSuccess: () => {
           setContent("");
-          setImageUrl(null);
-          setPreview(null);
+          setMusic([]);
+          imageDraft.clear();
           setPaid(false);
           setPremium("");
         },
@@ -127,17 +69,13 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
 
   return (
     <form
-      className={`card composer${dragging ? " dragging" : ""}`}
+      className="card composer"
       onSubmit={submit}
-      onDragOver={(e) => {
-        e.preventDefault();
-        setDragging(true);
-      }}
-      onDragLeave={() => setDragging(false)}
-      onDrop={onDrop}
+      {...drop.handlers}
     >
       <div className="composer-row">
         {user && <Avatar username={user.username} url={user.avatarUrl} size={42} />}
+        <div className="image-drop-field">
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}
@@ -149,6 +87,8 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
           aria-label="Написать запись"
           onPaste={onPaste}
         />
+        {drop.dragging && <ImageDropHint />}
+        </div>
       </div>
 
       {allowPaid && paid && (
@@ -176,53 +116,19 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
         </div>
       )}
 
-      {(preview || imageUrl) && (
-        <div className="image-preview">
-          <img src={preview ?? assetUrl(imageUrl)} alt="Предпросмотр вложения" />
-          {upload.isPending && (
-            <div
-              className="upload-progress"
-              role="progressbar"
-              aria-label="Загрузка изображения"
-              aria-valuemin={0}
-              aria-valuemax={100}
-              aria-valuenow={upload.progress ?? 0}
-            >
-              <span style={{ width: `${Math.max(6, upload.progress ?? 0)}%` }} />
-            </div>
-          )}
-          <button
-            type="button"
-            className="image-remove"
-            aria-label="Удалить изображение"
-            onClick={removeImage}
-          >
-            ×
-          </button>
-        </div>
-      )}
-      {upload.isPending && (
-        <p className="muted small" role="status">
-          {upload.progress ? `Загрузка… ${upload.progress}%` : "Подготовка фотографии…"}
-        </p>
-      )}
-      {imageError && (
-        <p className="error" role="alert">
-          {imageError}{" "}
-          {lastFile && !upload.isPending && (
-            <button type="button" className="link-btn" onClick={() => handleFile(lastFile)}>
-              Попробовать снова
-            </button>
-          )}
-        </p>
-      )}
+      <LinkPreview text={content} />
+      {imageDraft.images.length > 0 && <div className="image-draft">{imageDraft.images.map((image) => <div className="image-preview" key={image.id}><img src={image.preview} alt="Предпросмотр вложения" /><button type="button" className="image-remove" aria-label="Удалить изображение" onClick={() => imageDraft.remove(image.id)}>×</button>{image.pending && <span role="status">Загрузка…</span>}{image.error && <p className="error" role="alert">{image.error} <button type="button" onClick={() => imageDraft.retry(image)}>Повторить</button></p>}</div>)}</div>}
+      {imageDraft.error && <p className="error" role="alert">{imageDraft.error}</p>}
 
+      {music.length > 0 && <div className="music-attachments">{music.map((track) => <div className="music-attachments__row" key={track.id}><div className="music-page__track-info"><strong>{track.title}</strong><span>{track.artist}</span></div><button type="button" className="btn btn-ghost" aria-label={`Удалить ${track.title}`} onClick={() => setMusic((tracks) => tracks.filter((item) => item.id !== track.id))}>×</button></div>)}</div>}
+      {musicPickerOpen && <MusicAttachmentPicker selected={music} onChange={setMusic} onClose={() => setMusicPickerOpen(false)} />}
       <div className="composer-footer">
         <span className="row">
           <input
             ref={fileRef}
             type="file"
             accept="image/png,image/jpeg,image/gif,image/webp"
+            multiple
             hidden
             onChange={pickImage}
           />
@@ -230,11 +136,12 @@ export default function Composer({ communitySlug, allowPaid = true }: { communit
             type="button"
             className="btn btn-ghost"
             onClick={() => fileRef.current?.click()}
-            disabled={upload.isPending}
+            disabled={imageDraft.images.length >= 10}
             aria-label="Прикрепить изображение"
           >
             <Icon name="image" size={20} /> Фото
           </button>
+          <button type="button" className="btn btn-ghost" onClick={() => setMusicPickerOpen(true)}><Icon name="music" size={20} /> Музыка</button>
           {allowPaid && (<>
           <label className="row paid-toggle">
             <input type="checkbox" checked={paid} onChange={(e) => setPaid(e.target.checked)} />

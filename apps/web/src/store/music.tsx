@@ -16,13 +16,16 @@ type RepeatMode = 0 | 1 | 2;
 
 interface MusicState {
   track: MusicTrackDTO | null;
+  queue: MusicTrackDTO[];
+  queueSource: string | null;
   isPlaying: boolean;
   isLoading: boolean;
   currentTime: number;
   duration: number;
   volume: number;
   error: string | null;
-  playTrack: (track: MusicTrackDTO, queue?: MusicTrackDTO[]) => Promise<void>;
+  playTrack: (track: MusicTrackDTO, queue?: MusicTrackDTO[], source?: string) => Promise<void>;
+  setCurrentQueue: (queue: MusicTrackDTO[], source?: string) => void;
   togglePlayback: () => Promise<void>;
   pause: () => void;
   seek: (time: number) => void;
@@ -58,6 +61,8 @@ export function MusicPlayerProvider({
   const endedTrackRef = useRef<() => void>(() => {});
 
   const [track, setTrack] = useState<MusicTrackDTO | null>(null);
+  const [queue, setQueue] = useState<MusicTrackDTO[]>([]);
+  const [queueSource, setQueueSource] = useState<string | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [currentTime, setCurrentTime] = useState(0);
@@ -71,7 +76,7 @@ export function MusicPlayerProvider({
 
     if (!Number.isFinite(parsedVolume)) return 0.5;
 
-    return Math.min(0.5, Math.max(0, parsedVolume));
+    return Math.min(1, Math.max(0, parsedVolume));
   });
   const [error, setError] = useState<string | null>(null);
   const [isShuffled, setIsShuffled] = useState(false);
@@ -98,6 +103,7 @@ export function MusicPlayerProvider({
   const clear = useCallback(() => {
     requestIdRef.current++;
     queueRef.current = [];
+    setQueue([]);
     queueIndexRef.current = -1;
     originalQueueRef.current = [];
 
@@ -109,6 +115,7 @@ export function MusicPlayerProvider({
     }
 
     setTrack(null);
+    setQueueSource(null);
     setIsPlaying(false);
     setIsLoading(false);
     setCurrentTime(0);
@@ -188,11 +195,13 @@ export function MusicPlayerProvider({
     async (
       nextTrack: MusicTrackDTO,
       nextQueue?: MusicTrackDTO[],
+      source?: string,
     ) => {
       const audio = audioRef.current;
       if (!audio) return;
 
       if (nextQueue) {
+        setQueueSource(source ?? null);
         originalQueueRef.current = [...nextQueue];
 
         queueRef.current = isShuffled
@@ -217,6 +226,7 @@ export function MusicPlayerProvider({
       }
 
       queueIndexRef.current = index;
+      setQueue(queueRef.current);
 
       const requestId = ++requestIdRef.current;
 
@@ -367,6 +377,7 @@ export function MusicPlayerProvider({
     queueIndexRef.current = queueRef.current.findIndex(
       (item) => item.id === currentTrack.id,
     );
+    setQueue(queueRef.current);
 
     setIsShuffled((previous) => !previous);
   }, [track, isShuffled]);
@@ -374,6 +385,19 @@ export function MusicPlayerProvider({
   const cycleRepeatMode = useCallback(() => {
     setRepeatMode((previous) => ((previous + 1) % 3) as RepeatMode);
   }, []);
+
+  const setCurrentQueue = useCallback((queue: MusicTrackDTO[], source?: string) => {
+    if (!track || !queue.some((item) => item.id === track.id)) return;
+    setQueueSource(source ?? null);
+    const original = originalQueueRef.current;
+    if (original.length === queue.length && original.every((item, index) => item.id === queue[index]?.id)) return;
+    originalQueueRef.current = [...queue];
+    queueRef.current = isShuffled
+      ? [track, ...shuffleTracks(queue.filter((item) => item.id !== track.id))]
+      : [...queue];
+    queueIndexRef.current = queueRef.current.findIndex((item) => item.id === track.id);
+    setQueue(queueRef.current);
+  }, [track, isShuffled]);
 
   useEffect(() => {
     playTrackRef.current = playTrack;
@@ -428,6 +452,8 @@ export function MusicPlayerProvider({
   const value = useMemo(
     () => ({
       track,
+      queue,
+      queueSource,
       nextTrack,
       previousTrack,
       isPlaying,
@@ -437,6 +463,7 @@ export function MusicPlayerProvider({
       volume,
       error,
       playTrack,
+      setCurrentQueue,
       togglePlayback,
       pause,
       seek,
@@ -449,6 +476,8 @@ export function MusicPlayerProvider({
     }),
     [
       track,
+      queue,
+      queueSource,
       nextTrack,
       previousTrack,
       isPlaying,
@@ -458,6 +487,7 @@ export function MusicPlayerProvider({
       volume,
       error,
       playTrack,
+      setCurrentQueue,
       togglePlayback,
       pause,
       seek,

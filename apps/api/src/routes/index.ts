@@ -1,4 +1,5 @@
 import { Router } from "express";
+import type { RequestHandler } from "express";
 import {
   banUserSchema,
   clientErrorSchema,
@@ -7,10 +8,15 @@ import {
   pushUnsubscribeSchema,
   contactSchema,
   messagesQuerySchema,
+  linkPreviewSchema,
   musicUploadSignSchema,
   musicUploadCompleteSchema,
   musicListQuerySchema,
+  musicPickerQuerySchema,
   musicTrackIdSchema,
+  musicLibraryStatusSchema,
+  musicSettingsSchema,
+  profileMusicQuerySchema,
   newsQuerySchema,
   sendMessageSchema,
   communityListSchema,
@@ -67,14 +73,20 @@ import {
   reportLimiter,
   publicLimiter,
   searchLimiter,
+  linkPreviewLimiter,
   uploadLimiter,
   viewLimiter,
 } from "../middleware/rateLimit.js";
 import { parseImageUpload } from "../middleware/upload.js";
 import { validate } from "../middleware/validate.js";
 import { asyncHandler } from "../utils/errors.js";
+import { loadLinkPreview } from "../services/linkPreview.js";
 
 export const router = Router();
+const privateMusicResponse: RequestHandler = (_req, res, next) => {
+  res.set("Cache-Control", "private, no-store");
+  next();
+};
 
 /**
  * Middleware order on write routes:  requireAuth -> (limiter) -> validate -> requireActive.
@@ -87,6 +99,10 @@ const adminOnly = [requireAuth, requireActive, requireAdmin];
 // and is the one for an uptime monitor. Neither reveals versions, paths or settings.
 router.get("/health", monitor.live);
 router.get("/health/ready", monitor.ready);
+router.post("/link-preview", requireAuth, linkPreviewLimiter, validate(linkPreviewSchema), asyncHandler(async (req, res) => {
+  res.set("Cache-Control", "private, no-store");
+  res.json({ preview: await loadLinkPreview(req.body.url) });
+}));
 
 // Used only by the realtime service (shared secret; 404 for everyone else).
 router.get(
@@ -174,6 +190,8 @@ router.post(
   asyncHandler(music.completeUpload),
 );
 
+router.get("/music/picker", requireAuth, validate(musicPickerQuerySchema, "query"), asyncHandler(music.picker));
+router.post("/music/library/status", requireAuth, validate(musicLibraryStatusSchema), asyncHandler(music.libraryStatuses));
 router.get(
   "/music",
   requireAuth,
@@ -189,12 +207,26 @@ router.post(
   asyncHandler(music.addToLibrary),
 );
 
+router.get(
+  "/music/:id/library",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  asyncHandler(music.libraryStatus),
+);
+
 router.delete(
   "/music/:id/library",
   requireAuth,
   validate(musicTrackIdSchema, "params"),
   requireActive,
   asyncHandler(music.removeFromLibrary),
+);
+
+router.get(
+  "/music/:id/download",
+  requireAuth,
+  validate(musicTrackIdSchema, "params"),
+  asyncHandler(music.download),
 );
 
 router.get(
@@ -206,6 +238,9 @@ router.get(
 
 // Users. "/users/me" must be declared before "/users/:username".
 router.get("/users/me", requireAuth, asyncHandler(users.me));
+router.get("/users/me/music-settings", privateMusicResponse, requireAuth, asyncHandler(users.getMusicSettings));
+router.patch("/users/me/music-settings", privateMusicResponse, requireAuth, validate(musicSettingsSchema), requireActive, asyncHandler(users.updateMusicSettings));
+router.get("/users/:username/music", privateMusicResponse, requireAuth, validate(profileMusicQuerySchema, "query"), asyncHandler(users.userMusic));
 router.patch(
   "/users/me",
   requireAuth,
@@ -391,6 +426,8 @@ router.post("/push/test", requireAuth, testPushLimiter, asyncHandler(push.test))
 // before "/messages/:id".
 router.get("/messages", requireAuth, asyncHandler(messages.listConversations));
 router.get("/messages/unread-count", requireAuth, asyncHandler(messages.unreadCount));
+router.post("/messages/images", requireAuth, uploadLimiter, parseImageUpload, requireActive, asyncHandler(messages.uploadImage));
+router.get("/messages/images/:imageId", requireAuth, asyncHandler(messages.imageUrl));
 router.post(
   "/messages/with/:username",
   requireAuth,

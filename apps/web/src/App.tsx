@@ -34,6 +34,7 @@ const NewsPage = lazy(() => import("./pages/NewsPage"));
 const ContactPage = lazy(() => import("./pages/ContactPage"));
 const ResetPasswordPage = lazy(() => import("./pages/ResetPassword"));
 const MusicPage = lazy(() => import("./pages/MusicPage"));
+const UserMusicPage = lazy(() => import("./pages/UserMusicPage"));
 
 const TITLES: Record<string, string> = {
   "/": "Bubble — открытая платформа сообществ",
@@ -118,6 +119,10 @@ function AppRoutes() {
               <PostPage />
             </Protected>
           }
+        />
+        <Route
+          path="/u/:username/music"
+          element={<Protected><UserMusicPage /></Protected>}
         />
         <Route
           path="/u/:username"

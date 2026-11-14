@@ -82,12 +82,14 @@ export async function createUploadForm(
 export async function createDownloadUrl(
   key: string,
   expiresIn = 600,
+  filename?: string,
 ): Promise<string> {
   return getSignedUrl(
     s3PresignClient,
     new GetObjectCommand({
       Bucket: env.S3_BUCKET,
       Key: key,
+      ...(filename ? { ResponseContentDisposition: `attachment; filename="track"; filename*=UTF-8''${encodeURIComponent(filename).replace(/['()*]/g, (char) => `%${char.charCodeAt(0).toString(16).toUpperCase()}`)}` } : {}),
     }),
     { expiresIn },
   );
