@@ -61,7 +61,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Build and push API
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/api/Dockerfile
@@ -72,7 +72,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=api
 
       - name: Build and push Realtime
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/realtime/Dockerfile
@@ -83,7 +83,7 @@ jobs:
           cache-to: type=gha,mode=max,scope=realtime
 
       - name: Build and push Web
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
         with:
           context: .
           file: apps/web/Dockerfile
